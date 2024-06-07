@@ -1,0 +1,36 @@
+name: Build and Deploy bungaku
+on:
+  push:
+    branches: ['master']
+jobs:
+  android-build:
+    name: Android Build Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo to master
+        uses: actions/checkout@v4
+        with:
+          ref: master
+      - name: Decrypt release.keystore secret
+        run: |
+          echo "${{secrets.BUNGAKU_KEYSTORE}}" > release.keystore.asc
+          gpg -d --passphrase "${{secrets.BUNGAKU_KEYSTORE_PASSWORD}}" --batch release.keystore.asc > android/app/release.keystore
+      - name: Appending keystore settings to gradle.properties
+        uses: DamianReeves/write-file-action@master
+        with:
+          path: android/gradle.properties
+          contents: '${{secrets.KEYSTORE_GRADLE}}'
+          write-mode: append
+      - name: Install npm dependencies
+        run: yarn
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
+      - name: Build Android JS Bundle
+        run: yarn assemble:release
