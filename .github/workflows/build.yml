@@ -34,3 +34,8 @@ jobs:
         uses: gradle/gradle-build-action@v2
       - name: Build Android JS Bundle
         run: yarn assemble:release
+      - name: Upload Artifact Signed apk
+        uses: actions/upload-artifact@v4
+          name: app-release.apk
+          path: android/app/build/outputs/apk/release
+          retention-days: 60
