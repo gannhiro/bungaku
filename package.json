@@ -3,8 +3,7 @@
   "version": "0.0.9",
   "private": true,
   "scripts": {
-    "device": "react-native run-android --deviceId=R9WWB0NRBGH",
-    "deviceW": "react-native run-android --deviceId=adb-RFCT40BG3JA-i84NrD._adb-tls-connect._tcp",
+    "device": "react-native run-android --deviceId=RFCT40BG3JA",
     "android": "react-native run-android",
     "bundle:release": "cd android && ./gradlew bundleRelease",
     "assemble:release": "cd android && ./gradlew assembleRelease",
