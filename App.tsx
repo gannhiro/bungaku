@@ -5,6 +5,7 @@ import {Provider} from 'react-redux';
 import {store} from './src/store/store';
 import RootNavigation from './src/navigation/RootNavigation';
 import BackgroundFetch from 'react-native-background-fetch';
+import {backgroundLibraryUpdate} from './index';
 
 export default function App() {
   LogBox.ignoreAllLogs();
@@ -12,6 +13,7 @@ export default function App() {
   async function initBackgroundFetch() {
     async function onEvent(taskId: string) {
       console.log('[BackgroundFetch] task: ', taskId);
+      await backgroundLibraryUpdate({taskId, timeout: false});
       BackgroundFetch.finish(taskId);
     }
 

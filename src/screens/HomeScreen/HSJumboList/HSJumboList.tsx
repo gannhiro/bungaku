@@ -198,7 +198,7 @@ function getStyles(colorScheme: ColorScheme) {
     bgImage: {
       height: (width / 4) * 2.3 + 67,
       width: width,
-      opacity: 0.3,
+      opacity: colorScheme.type === 'dark' ? 0.5 : 0.3,
     },
     gradient: {
       height: (width / 4) * 2.3 + 67,

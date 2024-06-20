@@ -63,7 +63,7 @@ export const MangaListRenderItem = memo(({manga}: Props) => {
   const contAnimStyle = useAnimatedStyle(() => {
     return {
       transform: [{scale: itemScale.value}],
-      borderWidth: 4,
+      borderWidth: 1,
       borderColor: withSpring(
         inLibrary !== -1 ? systemPurple : colorScheme.colors.primary,
       ),

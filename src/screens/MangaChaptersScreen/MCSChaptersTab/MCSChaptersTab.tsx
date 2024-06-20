@@ -136,7 +136,7 @@ export function MCSChaptersTab({}: Props) {
           data={chapters}
           renderItem={renderItem}
           showsVerticalScrollIndicator={false}
-          estimatedItemSize={height / 14}
+          estimatedItemSize={height / 13 + 10}
           estimatedListSize={{height, width}}
         />
       ) : (

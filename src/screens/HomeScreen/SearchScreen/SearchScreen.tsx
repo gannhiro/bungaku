@@ -1,30 +1,41 @@
-import {MangaList, MangaTagsDropdown, SearchFilterIcon} from '@components';
+import {MangaList} from '@components';
 import {ColorScheme, PRETENDARD_JP, TOP_OVERLAY_HEIGHT} from '@constants';
+import {BlurView} from '@react-native-community/blur';
+import {MaterialTopTabScreenProps} from '@react-navigation/material-top-tabs';
 import {RootState} from '@store';
 import {textColor} from '@utils';
 import React, {useEffect, useRef, useState} from 'react';
 import {
   Dimensions,
-  TextInput,
-  StatusBar,
-  Vibration,
-  NativeSyntheticEvent,
-  TextInputSubmitEditingEventData,
-  NativeScrollEvent,
   Keyboard,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
   StyleSheet,
+  TextInput,
+  TextInputSubmitEditingEventData,
+  TouchableOpacity,
+  Vibration,
 } from 'react-native';
 import Animated, {
-  useSharedValue,
+  FadeInDown,
+  FadeOutDown,
+  SlideInDown,
+  SlideOutDown,
   useAnimatedStyle,
-  withTiming,
-  Easing,
   withSpring,
 } from 'react-native-reanimated';
 import {useSelector} from 'react-redux';
-const {height} = Dimensions.get('window');
+import {HomeBottomTabsParamsList} from '../HomeScreen';
+import {SSBottomSheet} from './SSBottomSheet';
+const {height, width} = Dimensions.get('window');
 
-export function SearchScreen() {
+type Props = MaterialTopTabScreenProps<
+  HomeBottomTabsParamsList,
+  'SearchScreen',
+  undefined
+>;
+
+export function SearchScreen({}: Props) {
   const {colorScheme} = useSelector(
     (state: RootState) => state.userPreferences,
   );
@@ -35,27 +46,17 @@ export function SearchScreen() {
   const [title, setTitle] = useState<string>('');
   const [includedTags, setIncludedTags] = useState<string[]>([]);
   const [showFilterBadge, setShowFilterBadge] = useState(false);
+  const [showFilterContainer, setShowFilterContainer] = useState(false);
+  const [showSearch, setShowSearch] = useState(true);
 
-  const inputBoxHeight = useSharedValue(0);
-  const inputBoxDropdownStyle = useAnimatedStyle(() => {
+  const searchBtnAnim = useAnimatedStyle(() => {
     return {
-      height: withTiming(inputBoxHeight.value, {easing: Easing.cubic}),
-    };
-  });
-
-  const inputBoxYStyle = useSharedValue(TOP_OVERLAY_HEIGHT);
-  const titleInputBoxYPosStyle = useAnimatedStyle(() => {
-    return {
-      transform: [{translateY: inputBoxYStyle.value}],
+      transform: [{translateY: withSpring(showFilterContainer ? 40 : 0)}],
     };
   });
 
   function searchIconOnPress() {
-    if (inputBoxHeight.value === 0) {
-      inputBoxHeight.value = height * 0.5;
-    } else {
-      inputBoxHeight.value = 0;
-    }
+    setShowFilterContainer(!showFilterContainer);
     Vibration.vibrate([0, 50], false);
   }
 
@@ -71,19 +72,11 @@ export function SearchScreen() {
       return;
     }
     if (event.nativeEvent.velocity.y < 0) {
-      inputBoxYStyle.value = withSpring(TOP_OVERLAY_HEIGHT, {
-        velocity: 500,
-      });
+      setShowSearch(true);
     }
     if (event.nativeEvent.velocity.y > 1) {
-      inputBoxYStyle.value = withTiming(-100, {
-        duration: 200,
-        easing: Easing.out(Easing.linear),
-      });
-
-      if (inputBoxHeight.value > 0) {
-        inputBoxHeight.value = 0;
-      }
+      setShowSearch(false);
+      setShowFilterContainer(false);
     }
   }
 
@@ -98,33 +91,6 @@ export function SearchScreen() {
 
   return (
     <Animated.View style={[styles.container]}>
-      <Animated.View style={[styles.inputBox, titleInputBoxYPosStyle]}>
-        <Animated.View style={[styles.inputBoxTitle]}>
-          <TextInput
-            blurOnSubmit={true}
-            placeholder="Search Manga"
-            ref={titleInputRef}
-            placeholderTextColor={textColor(colorScheme.colors.primary)}
-            style={[styles.title]}
-            onSubmitEditing={titleOnSubmit}
-          />
-          <SearchFilterIcon
-            filterIconOnPress={searchIconOnPress}
-            showBadge={showFilterBadge}
-          />
-        </Animated.View>
-
-        <Animated.ScrollView
-          style={[styles.inputBoxDropDown, inputBoxDropdownStyle]}
-          contentContainerStyle={styles.inputBoxDropDownContStyle}>
-          <Animated.Text style={styles.formLabel}>Tags</Animated.Text>
-          <MangaTagsDropdown
-            setIncludedTags={setIncludedTags}
-            includedTags={includedTags}
-          />
-        </Animated.ScrollView>
-      </Animated.View>
-
       <MangaList
         limit={10}
         title={title}
@@ -132,6 +98,20 @@ export function SearchScreen() {
         contentViewStyle={styles.mangalistContent}
         onScroll={onMangaListScroll}
       />
+      {showFilterContainer && <SSBottomSheet />}
+      {showSearch && (
+        <Animated.View
+          entering={SlideInDown}
+          exiting={SlideOutDown}
+          style={[styles.searchContainer, searchBtnAnim]}>
+          <TouchableOpacity onPress={searchIconOnPress}>
+            <Animated.Image
+              source={require('@assets/icons/magnify.png')}
+              style={styles.searchIcon}
+            />
+          </TouchableOpacity>
+        </Animated.View>
+      )}
     </Animated.View>
   );
 }
@@ -143,6 +123,39 @@ function getStyles(colorScheme: ColorScheme) {
       justifyContent: 'center',
       alignItems: 'center',
       backgroundColor: colorScheme.colors.main,
+    },
+    searchContainer: {
+      position: 'absolute',
+      bottom: 20,
+
+      width: width / 7,
+      height: width / 7,
+      padding: 5,
+
+      backgroundColor: colorScheme.colors.primary,
+      borderRadius: 100,
+    },
+    searchIcon: {
+      width: '100%',
+      height: '100%',
+      tintColor: textColor(colorScheme.colors.primary),
+    },
+    filterContainer: {
+      position: 'absolute',
+      bottom: 0,
+
+      height: height * 0.4,
+      width: width,
+      overflow: 'hidden',
+
+      borderTopLeftRadius: 30,
+      borderTopRightRadius: 30,
+    },
+    filterContainerBlur: {
+      position: 'absolute',
+      top: 0,
+      bottom: 0,
+      width: '100%',
     },
     title: {
       flex: 1,
@@ -159,10 +172,6 @@ function getStyles(colorScheme: ColorScheme) {
       borderRadius: 25,
       zIndex: 4,
       backgroundColor: colorScheme.colors.primary,
-    },
-    searchIcon: {
-      width: 25,
-      height: 25,
     },
     inputBoxTitle: {
       flexDirection: 'row',
@@ -189,8 +198,7 @@ function getStyles(colorScheme: ColorScheme) {
       marginBottom: 5,
     },
     mangalistContent: {
-      paddingTop:
-        StatusBar.currentHeight && 0.09 * height + StatusBar.currentHeight + 15,
+      paddingTop: TOP_OVERLAY_HEIGHT,
     },
   });
 }

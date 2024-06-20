@@ -14,7 +14,7 @@ import {
   SplashScreen,
   TestScreen,
 } from '@screens';
-import {RootState, setColorScheme} from '@store';
+import {RootState, setColorScheme, setLibraryUpdates} from '@store';
 import {themeConverter} from '@utils';
 import React, {useEffect, useState} from 'react';
 import {StatusBar, useColorScheme} from 'react-native';
@@ -22,16 +22,17 @@ import changeNavigationBarColor from 'react-native-navigation-bar-color';
 import {useDispatch, useSelector} from 'react-redux';
 import {ThemeModal, AddToLibraryModal} from '@modals';
 import {RootStackParamsList} from './types';
+import {UpdatedMangaData} from '@types';
 
 const Stack = createStackNavigator<RootStackParamsList>();
 
 export default function RootNavigation() {
+  const dispatch = useDispatch();
   const {preferSystemColor, colorScheme} = useSelector(
     (state: RootState) => state.userPreferences,
   );
   const preferences = useSelector((state: RootState) => state.userPreferences);
   const systemColorScheme = useColorScheme();
-  const dispatch = useDispatch();
 
   const [theme, setTheme] = useState<Theme>(themeConverter(dark));
 
@@ -44,7 +45,12 @@ export default function RootNavigation() {
     console.info('Root Navigation READY');
   }
 
-  async function onNavStateChange() {}
+  async function onNavStateChange() {
+    const updatesList: UpdatedMangaData[] = JSON.parse(
+      (await AsyncStorage.getItem('library-updates')) ?? '[]',
+    );
+    dispatch(setLibraryUpdates(updatesList));
+  }
 
   useEffect(() => {
     (async () => {

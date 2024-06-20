@@ -23,14 +23,7 @@ export function LibraryList() {
   const styles = getStyles(colorScheme);
 
   function renderItem({item, index}: ListRenderItemInfo<string>) {
-    const coverPath = `file://${FS.DocumentDirectoryPath}/manga/${item}/cover.png`;
-    return (
-      <LibraryListRenderItem
-        mangaId={item}
-        coverPath={coverPath}
-        index={index}
-      />
-    );
+    return <LibraryListRenderItem mangaId={item} index={index} />;
   }
 
   return (

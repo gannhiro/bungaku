@@ -130,9 +130,9 @@ export function MangaList({
   }
 
   useEffect(() => {
-    setLoading(true);
-    setLoadError(false);
     (async () => {
+      setLoading(true);
+      setLoadError(false);
       const data = await mangadexAPI<res_get_manga, get_manga>(
         'get',
         '/manga',
@@ -161,7 +161,7 @@ export function MangaList({
 
   return (
     <View style={[styles.container, style]}>
-      {(!loading && !intError) || mangas.length > 0 ? (
+      {!loading && !intError ? (
         <FlatList
           data={mangas}
           renderItem={renderItem}

@@ -19,6 +19,7 @@ import {getDateMDEX, textColor} from '@utils';
 import React, {Fragment, useEffect, useState} from 'react';
 import {
   Dimensions,
+  Keyboard,
   StyleSheet,
   Switch,
   Text,
@@ -35,6 +36,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import {useDispatch, useSelector} from 'react-redux';
+import FS from 'react-native-fs';
 
 const {width, height} = Dimensions.get('screen');
 const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
@@ -54,17 +56,19 @@ export function AddToLibraryModal({route, navigation}: Props) {
   const styles = getStyles(colorScheme);
 
   const [dateError, setDateError] = useState(false);
-  const [stayUpdated, setStayUpdated] = useState(true);
-  const [stayUpdatedYr, setStayUpdatedYr] = useState<string>(
+  const [stayUpdatedLoc, setStayUpdatedLoc] = useState(true);
+  const [stayUpdatedYrLoc, setStayUpdatedYrLoc] = useState<string>(
     new Date().getUTCFullYear().toString(),
   );
-  const [stayUpdatedMo, setStayUpdatedMo] = useState<string>(
+  const [stayUpdatedMoLoc, setStayUpdatedMoLoc] = useState<string>(
     new Date().getUTCMonth() + 1 < 10
       ? `0${new Date().getUTCMonth() + 1}`
-      : new Date().getUTCMonth().toString() + 1,
+      : (new Date().getUTCMonth() + 1).toString(),
   );
-  const [stayUpdatedDy, setStayUpdatedDy] = useState<string>(
-    new Date().getUTCDate().toString(),
+  const [stayUpdatedDyLoc, setStayUpdatedDyLoc] = useState<string>(
+    new Date().getUTCDate() < 10
+      ? `0${new Date().getUTCDate()}`
+      : new Date().getUTCDate().toString(),
   );
   const [targetLanguages, setTargetLanguages] = useState<Language[]>([
     manga.attributes.availableTranslatedLanguages[0] as Language,
@@ -88,60 +92,61 @@ export function AddToLibraryModal({route, navigation}: Props) {
 
   function onYearChange(text: string) {
     if (!text || isNaN(parseInt(text, 10))) {
-      setStayUpdatedYr('');
+      setStayUpdatedYrLoc('');
       return;
     }
-    setStayUpdatedYr(text);
+    setStayUpdatedYrLoc(text);
   }
 
   function onMonthChange(text: string) {
     if (!text || isNaN(parseInt(text, 10))) {
-      setStayUpdatedMo('');
+      setStayUpdatedMoLoc('');
       return;
     }
-    setStayUpdatedMo(text);
+    setStayUpdatedMoLoc(text);
   }
 
   function onMonthBlur() {
-    if (parseInt(stayUpdatedMo, 10) < 10) {
-      setStayUpdatedMo(`0${parseInt(stayUpdatedMo, 10)}`);
+    if (parseInt(stayUpdatedMoLoc, 10) < 10) {
+      setStayUpdatedMoLoc(`0${parseInt(stayUpdatedMoLoc, 10)}`);
     }
   }
 
   function onDayChange(text: string) {
     if (!text || isNaN(parseInt(text, 10))) {
-      setStayUpdatedDy('');
+      setStayUpdatedDyLoc('');
       return;
     }
-    setStayUpdatedDy(text);
+    setStayUpdatedDyLoc(text);
   }
 
   function onDayBlur() {
-    if (parseInt(stayUpdatedDy, 10) < 10) {
-      setStayUpdatedDy(`0${parseInt(stayUpdatedDy, 10)}`);
+    if (parseInt(stayUpdatedDyLoc, 10) < 10) {
+      setStayUpdatedDyLoc(`0${parseInt(stayUpdatedDyLoc, 10)}`);
     }
   }
 
   async function onStayUpdatedSwitchChange(value: boolean) {
-    setStayUpdated(value);
+    setStayUpdatedLoc(value);
   }
 
   async function onAddToLibPress() {
+    Keyboard.dismiss();
     const mangaDetails: MangaDetails = {
       manga,
       statistics,
       dateAdded: getDateMDEX(),
-      stayUpdated: stayUpdated,
+      stayUpdated: stayUpdatedLoc,
       stayUpdatedLanguages: targetLanguages,
-      stayUpdatedAfterDate: `${stayUpdatedYr}-${
-        parseInt(stayUpdatedMo, 10) < 10
-          ? `0${parseInt(stayUpdatedMo, 10)}`
-          : stayUpdatedMo
+      stayUpdatedAfterDate: `${stayUpdatedYrLoc}-${
+        parseInt(stayUpdatedMoLoc, 10) < 10
+          ? `0${parseInt(stayUpdatedMoLoc, 10)}`
+          : stayUpdatedMoLoc
       }-${
-        parseInt(stayUpdatedDy, 10) < 10
-          ? `0${parseInt(stayUpdatedMo, 10)}`
-          : stayUpdatedDy
-      }T00:00:00`,
+        parseInt(stayUpdatedDyLoc, 10) < 10
+          ? `0${parseInt(stayUpdatedMoLoc, 10)}`
+          : stayUpdatedDyLoc
+      }T09:00:00`,
     };
 
     dispatch(addRemToLibraryJob(mangaDetails));
@@ -152,63 +157,102 @@ export function AddToLibraryModal({route, navigation}: Props) {
       manga,
       statistics,
       dateAdded: getDateMDEX(),
-      stayUpdated: stayUpdated,
+      stayUpdated: stayUpdatedLoc,
       stayUpdatedLanguages: targetLanguages,
-      stayUpdatedAfterDate: `${stayUpdatedYr}-${
-        parseInt(stayUpdatedMo, 10) < 10
-          ? `0${parseInt(stayUpdatedMo, 10)}`
-          : stayUpdatedMo
+      stayUpdatedAfterDate: `${stayUpdatedYrLoc}-${
+        parseInt(stayUpdatedMoLoc, 10) < 10
+          ? `0${parseInt(stayUpdatedMoLoc, 10)}`
+          : stayUpdatedMoLoc
       }-${
-        parseInt(stayUpdatedDy, 10) < 10
-          ? `0${parseInt(stayUpdatedMo, 10)}`
-          : stayUpdatedDy
-      }T00:00:00`,
+        parseInt(stayUpdatedDyLoc, 10) < 10
+          ? `0${parseInt(stayUpdatedDyLoc, 10)}`
+          : stayUpdatedDyLoc
+      }T09:00:00`,
     };
 
     dispatch(updateMangaSettingsJob(mangaDetails));
   }
 
   useEffect(() => {
-    if (!stayUpdatedYr) {
+    (async () => {
+      const extractedDetails = await FS.readFile(
+        `${FS.DocumentDirectoryPath}/manga/${manga.id}/manga-details.json`,
+      );
+
+      if (!extractedDetails) {
+        return;
+      }
+
+      const {
+        stayUpdated,
+        stayUpdatedLanguages,
+        stayUpdatedAfterDate,
+      }: MangaDetails = JSON.parse(extractedDetails);
+
+      const date = new Date(stayUpdatedAfterDate);
+
+      setStayUpdatedLoc(stayUpdated);
+      setStayUpdatedDyLoc(
+        date.getUTCDate() < 10
+          ? `0${date.getUTCDate()}`
+          : date.getUTCDate().toString(),
+      );
+      setStayUpdatedMoLoc(
+        date.getUTCMonth() + 1 < 10
+          ? `0${date.getUTCMonth() + 1}`
+          : (date.getUTCMonth() + 1).toString(),
+      );
+      setStayUpdatedYrLoc(date.getUTCFullYear().toString());
+      setTargetLanguages(stayUpdatedLanguages);
+    })();
+  }, [manga]);
+
+  useEffect(() => {
+    let localDateError = false;
+
+    if (!stayUpdatedYrLoc || parseInt(stayUpdatedYrLoc, 10) < 1900) {
       console.log(
         'year error' + new Date(manga.attributes.createdAt).getUTCFullYear(),
       );
       setDateError(true);
-      return;
+      localDateError = true;
     }
 
     if (
-      !stayUpdatedMo ||
-      parseInt(stayUpdatedMo, 10) > 12 ||
-      parseInt(stayUpdatedMo, 10) <= 0
+      !stayUpdatedMoLoc ||
+      parseInt(stayUpdatedMoLoc, 10) > 12 ||
+      parseInt(stayUpdatedMoLoc, 10) <= 0
     ) {
       console.log('month error');
       setDateError(true);
-      return;
+      localDateError = true;
     }
 
     if (
-      !stayUpdatedDy ||
-      parseInt(stayUpdatedDy, 10) > 31 ||
-      parseInt(stayUpdatedDy, 10) <= 0
+      !stayUpdatedDyLoc ||
+      parseInt(stayUpdatedDyLoc, 10) > 31 ||
+      parseInt(stayUpdatedDyLoc, 10) <= 0
     ) {
       console.log('day error');
       setDateError(true);
+      localDateError = true;
+    }
+
+    if (localDateError) {
+      dateTextInputBorderColor.value = withTiming(systemRed);
       return;
     }
 
-    if (dateError) {
-      setDateError(false);
-    }
-  }, [dateError, manga, stayUpdatedDy, stayUpdatedMo, stayUpdatedYr]);
-
-  useEffect(() => {
-    if (dateError) {
-      dateTextInputBorderColor.value = withTiming(systemRed);
-    } else {
-      dateTextInputBorderColor.value = withTiming(colorScheme.colors.primary);
-    }
-  }, [colorScheme, dateError, dateTextInputBorderColor]);
+    dateTextInputBorderColor.value = withTiming(colorScheme.colors.primary);
+    setDateError(false);
+  }, [
+    colorScheme,
+    dateTextInputBorderColor,
+    manga,
+    stayUpdatedDyLoc,
+    stayUpdatedMoLoc,
+    stayUpdatedYrLoc,
+  ]);
 
   return (
     <Animated.View style={[styles.container]}>
@@ -226,11 +270,11 @@ export function AddToLibraryModal({route, navigation}: Props) {
         <View style={styles.groupRow}>
           <Text style={styles.groupRowLabel}>Stay Updated?</Text>
           <Switch
-            value={stayUpdated}
+            value={stayUpdatedLoc}
             onValueChange={onStayUpdatedSwitchChange}
           />
         </View>
-        {stayUpdated && (
+        {stayUpdatedLoc && (
           <Fragment>
             <Animated.View
               entering={FadeInLeft.delay(200)}
@@ -249,7 +293,7 @@ export function AddToLibraryModal({route, navigation}: Props) {
                     colorScheme.colors.primary,
                   )}8`}
                   onChangeText={onYearChange}
-                  value={stayUpdatedYr}
+                  value={stayUpdatedYrLoc}
                   maxLength={4}
                 />
                 <AnimatedTextInput
@@ -264,7 +308,7 @@ export function AddToLibraryModal({route, navigation}: Props) {
                     colorScheme.colors.primary,
                   )}8`}
                   maxLength={2}
-                  value={stayUpdatedMo}
+                  value={stayUpdatedMoLoc}
                   onChangeText={onMonthChange}
                   onBlur={onMonthBlur}
                 />
@@ -276,7 +320,7 @@ export function AddToLibraryModal({route, navigation}: Props) {
                     colorScheme.colors.primary,
                   )}8`}
                   maxLength={2}
-                  value={stayUpdatedDy}
+                  value={stayUpdatedDyLoc}
                   onChangeText={onDayChange}
                   onBlur={onDayBlur}
                 />
@@ -305,11 +349,11 @@ export function AddToLibraryModal({route, navigation}: Props) {
 
         <Animated.View layout={Layout.delay(100)} style={styles.groupRow}>
           <Button
-            title="Cancel"
+            title="Back"
             containerStyle={styles.navButtonCancel}
             btnColor={systemRed}
             onButtonPress={onCancelBtnPress}
-            imageReq={require('@assets/icons/close.png')}
+            imageReq={require('@assets/icons/chevron-left.png')}
             shouldTintImage={true}
           />
           {inLibrary ? (
@@ -386,12 +430,14 @@ function getStyles(colorScheme: ColorScheme) {
       elevation: 5,
     },
     addToLibLabel: {
+      color: textColor(colorScheme.colors.main),
       fontFamily: PRETENDARD_JP.THIN,
       fontSize: 12,
       textAlign: 'center',
       marginBottom: 15,
     },
     mangaTitleLabel: {
+      color: textColor(colorScheme.colors.main),
       fontFamily: OTOMANOPEE,
       fontSize: 20,
       textAlign: 'center',
@@ -407,10 +453,12 @@ function getStyles(colorScheme: ColorScheme) {
       marginTop: 10,
     },
     groupRowLabel: {
+      color: textColor(colorScheme.colors.main),
       fontFamily: PRETENDARD_JP.REGULAR,
       fontSize: 14,
     },
     groupSubLabel: {
+      color: textColor(colorScheme.colors.main),
       fontFamily: PRETENDARD_JP.LIGHT,
       fontSize: 9,
     },

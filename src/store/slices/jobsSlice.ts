@@ -45,7 +45,7 @@ export const updateMangaSettingsJob = createAsyncThunk(
       `${FS.DocumentDirectoryPath}/manga/${manga.id}/manga-details.json`,
       JSON.stringify(toFile),
     );
-    ToastAndroid.show('Updated Settings.', 1000);
+    ToastAndroid.show('Updated Settings.', 500);
   },
 );
 
