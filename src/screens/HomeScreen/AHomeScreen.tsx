@@ -3,7 +3,7 @@ import {ColorScheme, PRETENDARD_JP, mangaDexOrange, neko} from '@constants';
 import {RootState} from '@store';
 import {textColor} from '@utils';
 import React from 'react';
-import {Linking, ScrollView, StyleSheet, Text, View} from 'react-native';
+import {Linking, ScrollView, StyleSheet, View} from 'react-native';
 import {useSelector} from 'react-redux';
 import {HSJumboList} from './HSJumboList/HSJumboList';
 

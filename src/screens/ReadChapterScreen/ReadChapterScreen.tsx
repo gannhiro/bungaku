@@ -78,7 +78,8 @@ export function ReadChapterScreen({route, navigation}: Props) {
   const [local, setLocal] = useState(false);
   const [localFiles, setLocalFiles] = useState<string[]>([]);
 
-  const listRef = useRef<FlatList<res_get_manga_$_feed['data'][0]>>(null);
+  const listRef =
+    useRef<Animated.FlatList<res_get_manga_$_feed['data'][0]>>(null);
 
   const swipeUp = Gesture.Fling()
     .runOnJS(true)

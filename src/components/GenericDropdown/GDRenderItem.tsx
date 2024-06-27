@@ -17,10 +17,10 @@ import {textColor} from '@utils';
 
 type Props = {
   item: GenericDropdownValues;
-  atLeastOne: boolean;
   renderBotBorder: boolean;
   index: number;
   value: string | number | null | Array<string | number | null>;
+  atLeastOne?: boolean;
   setValues?: React.Dispatch<React.SetStateAction<any | Array<any>>>;
   onSelectionPress?: (
     value: string | number | null | Array<string | number | null>,

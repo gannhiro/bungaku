@@ -56,7 +56,7 @@ export function SplashScreen({navigation}: Props) {
     (async () => {
       // check if installed for first time
       const firstTimeInstall = await AsyncStorage.getItem('first-time');
-      if (firstTimeInstall === null) {
+      if (!firstTimeInstall) {
         console.log('first time installation.');
         setLoadingText('first time installation');
         await AsyncStorage.setItem('first-time', 'true');

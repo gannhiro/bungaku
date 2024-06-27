@@ -30,9 +30,9 @@ export type GenericDropdownValues = {
 
 type Props = {
   multiple: boolean;
-  atLeastOne: boolean;
   items: GenericDropdownValues[];
   value: string | number | null | Array<string | number | null>;
+  atLeastOne?: boolean;
   setValues?: React.Dispatch<React.SetStateAction<Array<any> | any>>;
   onSelectionPress?: (
     value: string | number | null | Array<string | number | null>,
