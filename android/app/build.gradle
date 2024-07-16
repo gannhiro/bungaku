@@ -99,7 +99,7 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 9
-        versionName "0.0.9"
+        versionName "0.1.10"
     }
 
     splits {
@@ -129,6 +129,7 @@ android {
     buildTypes {
         debug {
             signingConfig signingConfigs.debug
+            applicationIdSuffix = ".debug"
         }
         release {
             // Caution! In production, you need to generate your own keystore file.

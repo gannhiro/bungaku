@@ -1,9 +1,9 @@
-import {Button, LibraryUpdates} from '@components';
+import {Button, DevelopersChoice, LibraryUpdates} from '@components';
 import {ColorScheme, PRETENDARD_JP, mangaDexOrange, neko} from '@constants';
 import {RootState} from '@store';
 import {textColor} from '@utils';
 import React from 'react';
-import {Linking, ScrollView, StyleSheet, Text, View} from 'react-native';
+import {Linking, ScrollView, StyleSheet, View} from 'react-native';
 import {useSelector} from 'react-redux';
 import {HSJumboList} from './HSJumboList/HSJumboList';
 
@@ -34,7 +34,7 @@ export function AHomeScreen() {
   return (
     <ScrollView style={styles.container}>
       <HSJumboList />
-      <View style={styles.group}>
+      <View style={styles.btnGroup}>
         <Button
           title="Support MangaDex!"
           btnColor={mangaDexOrange}
@@ -54,13 +54,8 @@ export function AHomeScreen() {
           fontSize={14}
         />
       </View>
-      <View style={styles.group}>
-        <Text style={styles.miniHeading}>Library Updates</Text>
-        <LibraryUpdates />
-      </View>
-      <View style={styles.group}>
-        <Text style={styles.miniHeading}>Developer's Choice</Text>
-      </View>
+      <LibraryUpdates />
+      <DevelopersChoice />
     </ScrollView>
   );
 }
@@ -70,12 +65,15 @@ function getStyles(colorScheme: ColorScheme) {
     container: {
       flex: 1,
     },
+    btnGroup: {
+      marginBottom: 30,
+      marginHorizontal: 15,
+    },
     group: {
-      marginHorizontal: 20,
       marginBottom: 30,
     },
     groupRow: {
-      marginHorizontal: 20,
+      paddingHorizontal: 20,
       marginBottom: 30,
       flexDirection: 'row',
       alignItems: 'center',
@@ -91,6 +89,7 @@ function getStyles(colorScheme: ColorScheme) {
       fontFamily: PRETENDARD_JP.BOLD,
       fontSize: 12,
       marginBottom: 5,
+      marginLeft: 15,
     },
     footer: {
       alignItems: 'center',

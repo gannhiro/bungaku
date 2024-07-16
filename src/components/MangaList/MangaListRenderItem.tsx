@@ -25,8 +25,8 @@ import Animated, {
 } from 'react-native-reanimated';
 import {useSelector} from 'react-redux';
 import {FlagIcon} from '..';
-import {res_get_cover_$, res_get_manga} from '../../api/types';
-import {RootStackParamsList} from '../../navigation';
+import {res_get_cover_$, res_get_manga} from '@api';
+import {RootStackParamsList} from '@navigation';
 import {MangaListRenderItemContRatIcon} from './MangaListRenderItemContRatIcon';
 import {MangaListRenderItemStatIcon} from './MangaListRenderItemStatIcon';
 
@@ -63,7 +63,7 @@ export const MangaListRenderItem = memo(({manga}: Props) => {
   const contAnimStyle = useAnimatedStyle(() => {
     return {
       transform: [{scale: itemScale.value}],
-      borderWidth: 4,
+      borderWidth: 1,
       borderColor: withSpring(
         inLibrary !== -1 ? systemPurple : colorScheme.colors.primary,
       ),

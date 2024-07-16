@@ -1,7 +1,7 @@
 import {createSlice} from '@reduxjs/toolkit';
 import {PayloadAction} from '@reduxjs/toolkit';
 import type {RootState} from '../store';
-import {res_get_manga_tag} from '../../api/types';
+import {res_get_manga_tag} from '@api';
 
 const initialState: {tags: res_get_manga_tag | null} = {tags: null};
 

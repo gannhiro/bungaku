@@ -1,7 +1,24 @@
-import React, {SetStateAction, useEffect, useRef, useState} from 'react';
+import {
+  mangadexAPI,
+  res_at_home_$,
+  res_get_group_$,
+  res_get_user_$,
+} from '@api';
+import {
+  BottomSheet,
+  Button,
+  GenericDropdown,
+  GenericDropdownValues,
+} from '@components';
+import {ColorScheme, PRETENDARD_JP, black, white} from '@constants';
+import {RootStackParamsList} from '@navigation';
+import {StackScreenProps} from '@react-navigation/stack';
+import {RootState, setError} from '@store';
+import {ChapterDetails} from '@types';
+import {textColor} from '@utils';
+import React, {Fragment, SetStateAction, useEffect, useState} from 'react';
 import {
   Dimensions,
-  FlatList,
   ListRenderItemInfo,
   NativeScrollEvent,
   NativeSyntheticEvent,
@@ -12,34 +29,25 @@ import {
   Vibration,
   View,
 } from 'react-native';
+import FastImage from 'react-native-fast-image';
+import FS from 'react-native-fs';
 import {
-  Gesture,
   Directions,
+  Gesture,
   GestureDetector,
 } from 'react-native-gesture-handler';
-import {StackScreenProps} from '@react-navigation/stack';
 import * as Progress from 'react-native-progress';
-import {res_at_home_$, mangadexAPI, res_get_manga_$_feed} from '@api';
-import {Button, GenericDropdown, GenericDropdownValues} from '@components';
-import {white, ColorScheme, PRETENDARD_JP, black} from '@constants';
-import {RootStackParamsList} from '@navigation';
-import {RootState, setError} from '@store';
 import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-  withSequence,
   FadeInDown,
   FadeOutDown,
-  SlideInDown,
-  SlideOutDown,
+  useAnimatedRef,
+  useAnimatedStyle,
+  useSharedValue,
+  withSequence,
+  withTiming,
 } from 'react-native-reanimated';
 import {useDispatch, useSelector} from 'react-redux';
 import {RCSChapterImages} from './RCSChapterImages';
-import {textColor} from '@utils';
-import FastImage from 'react-native-fast-image';
-import FS from 'react-native-fs';
-import {ChapterDetails} from '@types';
 
 type Props = StackScreenProps<RootStackParamsList, 'ReadChapterScreen'>;
 export enum READING_MODES {
@@ -48,7 +56,7 @@ export enum READING_MODES {
   WEBTOON = 'webtoon',
 }
 export type ReadingMode = `${READING_MODES}`;
-const readingModes: Array<GenericDropdownValues> = [
+const readingModes: GenericDropdownValues = [
   {label: 'Horizontal', value: READING_MODES.HORIZONTAL},
   {label: 'Vertical', value: READING_MODES.VERTICAL},
   {label: 'Webtoon', value: READING_MODES.WEBTOON},
@@ -58,8 +66,7 @@ const {width, height} = Dimensions.get('screen');
 
 export function ReadChapterScreen({route, navigation}: Props) {
   const dispatch = useDispatch();
-  const {mangaId, chapters, initialChapterIndex, user, oReadingMode} =
-    route.params;
+  const {mangaId, chapters, initialChapterIndex} = route.params;
   const {colorScheme, preferDataSaver, readingMode} = useSelector(
     (state: RootState) => state.userPreferences,
   );
@@ -77,10 +84,20 @@ export function ReadChapterScreen({route, navigation}: Props) {
   const [loading, setLoading] = useState(true);
   const [local, setLocal] = useState(false);
   const [localFiles, setLocalFiles] = useState<string[]>([]);
+  const [removeClippedSubviews, setRemoveClippedSubviews] = useState(false);
 
-  const listRef = useRef<FlatList<res_get_manga_$_feed['data'][0]>>(null);
+  const scanlator = chapters[currentChapter].relationships.find(
+    rs => rs.type === 'scanlation_group',
+  ) as res_get_group_$['data'];
+
+  const user = chapters[currentChapter].relationships.find(
+    rs => rs.type === 'user',
+  ) as res_get_user_$['data'];
+
+  const listRef = useAnimatedRef<Animated.FlatList<string>>();
 
   const swipeUp = Gesture.Fling()
+    .enabled(locReadingMode === READING_MODES.HORIZONTAL)
     .runOnJS(true)
     .direction(Directions.UP)
     .onEnd(() => {
@@ -89,6 +106,7 @@ export function ReadChapterScreen({route, navigation}: Props) {
     });
 
   const swipeLeft = Gesture.Fling()
+    .enabled(locReadingMode !== READING_MODES.HORIZONTAL)
     .runOnJS(true)
     .direction(Directions.LEFT)
     .onEnd(() => {
@@ -131,24 +149,12 @@ export function ReadChapterScreen({route, navigation}: Props) {
       setCurrentChapter(currentChapter - 1);
     });
 
-  const gestures =
-    locReadingMode === 'horizontal'
-      ? Gesture.Race(swipeUp, listTap)
-      : Gesture.Race(swipeLeft, listTap);
+  const gestures = Gesture.Race(swipeUp, swipeLeft, listTap);
 
   const chapterOverlayOpacity = useSharedValue(1);
   const chapterOverlayStyle = useAnimatedStyle(() => {
     return {
       opacity: chapterOverlayOpacity.value,
-    };
-  });
-
-  const settingsSheetStyle = useAnimatedStyle(() => {
-    return {
-      height: withTiming(height * 0.3),
-      width: withTiming(width),
-      borderTopRightRadius: 30,
-      borderTopLeftRadius: 30,
     };
   });
 
@@ -194,9 +200,15 @@ export function ReadChapterScreen({route, navigation}: Props) {
   }
 
   useEffect(() => {
-    listRef.current?.scrollToOffset({animated: false, offset: 0});
     setLoading(true);
     setCurrentPage(0);
+
+    if (locReadingMode === READING_MODES.WEBTOON) {
+      setRemoveClippedSubviews(true);
+    } else {
+      setRemoveClippedSubviews(false);
+    }
+
     (async () => {
       await FastImage.clearMemoryCache();
       await FastImage.clearDiskCache();
@@ -238,8 +250,8 @@ export function ReadChapterScreen({route, navigation}: Props) {
       } else {
         console.error('Fetching Error.');
       }
+      setLoading(false);
     })();
-    setLoading(false);
 
     chapterOverlayOpacity.value = withSequence(
       withTiming(1, {duration: 100}),
@@ -253,7 +265,9 @@ export function ReadChapterScreen({route, navigation}: Props) {
     dispatch,
     isDataSaver,
     jobs,
+    listRef,
     mangaId,
+    locReadingMode,
   ]);
 
   useEffect(() => {
@@ -295,8 +309,10 @@ export function ReadChapterScreen({route, navigation}: Props) {
               scrollEnabled={!showSettingsSheet}
               onScroll={onScroll}
               renderItem={renderItem}
-              windowSize={locReadingMode !== READING_MODES.WEBTOON ? 5 : 3}
-              initialNumToRender={2}
+              windowSize={locReadingMode === READING_MODES.WEBTOON ? 2 : 5}
+              initialNumToRender={
+                locReadingMode === READING_MODES.WEBTOON ? 2 : 10
+              }
               maxToRenderPerBatch={
                 locReadingMode !== READING_MODES.WEBTOON ? 5 : 2
               }
@@ -325,10 +341,7 @@ export function ReadChapterScreen({route, navigation}: Props) {
       </Animated.View>
 
       {showBottomOverlay && (
-        <Animated.View
-          entering={FadeInDown}
-          exiting={FadeOutDown}
-          style={styles.bottomOverlay}>
+        <Fragment>
           {currentChapter !== 0 && (
             <GestureDetector gesture={prevBtnTap}>
               <Animated.View style={[styles.prevBtnContainer]}>
@@ -347,7 +360,7 @@ export function ReadChapterScreen({route, navigation}: Props) {
               </Animated.View>
             </GestureDetector>
           )}
-        </Animated.View>
+        </Fragment>
       )}
       {locReadingMode !== 'webtoon' && (
         <Progress.Bar
@@ -369,86 +382,90 @@ export function ReadChapterScreen({route, navigation}: Props) {
           borderRadius={0}
         />
       )}
-      {showSettingsSheet && (
-        <Animated.View
-          entering={SlideInDown}
-          exiting={SlideOutDown}
-          style={[styles.settingsSheet, settingsSheetStyle]}>
-          <ScrollView
-            contentContainerStyle={styles.settingsSheetScrollView}
-            showsVerticalScrollIndicator={false}
-            bounces={false}>
-            <Text style={styles.settingsSheetHeader}>
-              {chapters[currentChapter].attributes.title
-                ? chapters[currentChapter].attributes.title
-                : 'No Chapter Title'}
-            </Text>
-            <Text style={styles.settingsSheetSmall}>
-              {chapters[currentChapter].id}
-            </Text>
-            <Text style={styles.settingsSheetSmall}>
-              Chapter {chapters[currentChapter].attributes.chapter}
-            </Text>
+      <BottomSheet
+        showBottomSheet={showSettingsSheet}
+        setShowBottomSheet={setShowSettingsSheet}>
+        <ScrollView
+          contentContainerStyle={styles.settingsSheetScrollView}
+          showsVerticalScrollIndicator={false}
+          bounces={false}>
+          <Text style={styles.settingsSheetHeader}>
+            {chapters[currentChapter].attributes.title
+              ? chapters[currentChapter].attributes.title
+              : 'No Chapter Title'}
+          </Text>
+          <Text style={styles.settingsSheetSmall}>
+            {chapters[currentChapter].id}
+          </Text>
+          <Text style={styles.settingsSheetSmall}>
+            Chapter {chapters[currentChapter].attributes.chapter}
+          </Text>
 
-            <Text style={styles.settingsSheetSmall}>Scanlator: </Text>
-            <Text style={styles.settingsSheetSmall}>
-              Uploaded by User:{' '}
-              {(user?.result === 'ok' && user.data.attributes.username) ??
-                'No User Available'}
-            </Text>
+          <Text style={styles.settingsSheetSmall}>
+            Scanlator: {scanlator.attributes.name}{' '}
+          </Text>
+          <Text style={styles.settingsSheetSmall}>
+            Uploaded by User: {user.attributes.username ?? 'No User Available'}
+          </Text>
 
-            <View style={styles.settingsSheetGroup}>
-              <Text style={styles.settingsSheetSmall}>Reading Mode</Text>
-              <GenericDropdown
-                multiple={false}
-                items={readingModes}
-                value={locReadingMode}
-                setValues={setLocReadingMode}
-                onSelectionPress={() => {
-                  console.log('pressed');
-                  setShowBottomOverlay(false);
-                }}
-              />
-            </View>
-            <View style={styles.settingsSheetGroup}>
-              <Text style={styles.settingsSheetSmall}>Chapter</Text>
-              <GenericDropdown
-                multiple={false}
-                items={chapters.map((chapter, index) => {
-                  return {
-                    label: 'Chapter ' + chapter.attributes.chapter,
-                    value: index,
-                  };
-                })}
-                value={currentChapter}
-                setValues={
-                  setCurrentChapter as React.Dispatch<
-                    SetStateAction<string | number | Array<string | number>>
-                  >
-                }
-                onSelectionPress={() => {
-                  setShowBottomOverlay(false);
-                }}
-              />
-            </View>
-            <View style={styles.settingsSheetGroupRow}>
-              <Text style={styles.settingsSheetReg}>Data Saver</Text>
-              <Switch
-                value={isDataSaver}
-                onValueChange={onDataSaverSwitchChange}
-              />
-            </View>
-
-            <Button
-              title="Go Back"
-              onButtonPress={() => {
-                navigation.goBack();
+          <View style={styles.settingsSheetGroup}>
+            <Text style={styles.settingsSheetSmall}>Reading Mode</Text>
+            <GenericDropdown
+              items={readingModes}
+              selection={locReadingMode}
+              setSelection={setLocReadingMode}
+              onSelectionPress={() => {
+                console.log('pressed');
+                setShowBottomOverlay(false);
               }}
-              containerStyle={{marginTop: 20}}
+              atLeastOne
             />
-          </ScrollView>
-        </Animated.View>
-      )}
+          </View>
+          <View style={styles.settingsSheetGroup}>
+            <Text style={styles.settingsSheetSmall}>Chapter</Text>
+            <GenericDropdown
+              items={chapters.map((chapter, index) => {
+                return {
+                  label: 'Chapter ' + chapter.attributes.chapter,
+                  subLabel:
+                    (
+                      chapter.relationships.find(rs => {
+                        if (rs.type === 'scanlation_group') {
+                          return rs;
+                        }
+                      }) as res_get_group_$['data']
+                    )?.attributes.name ?? 'no scanlator',
+                  value: index,
+                };
+              })}
+              selection={currentChapter}
+              setSelection={
+                setCurrentChapter as React.Dispatch<
+                  SetStateAction<string | number | Array<string | number>>
+                >
+              }
+              onSelectionPress={() => {
+                setShowBottomOverlay(false);
+              }}
+            />
+          </View>
+          <View style={styles.settingsSheetGroupRow}>
+            <Text style={styles.settingsSheetReg}>Data Saver</Text>
+            <Switch
+              value={isDataSaver}
+              onValueChange={onDataSaverSwitchChange}
+            />
+          </View>
+
+          <Button
+            title="Go Back"
+            onButtonPress={() => {
+              navigation.goBack();
+            }}
+            containerStyle={{marginTop: 20}}
+          />
+        </ScrollView>
+      </BottomSheet>
     </View>
   );
 }
@@ -493,10 +510,16 @@ function getStyles(colorScheme: ColorScheme) {
       fontSize: 8,
     },
     nextBtnContainer: {
+      position: 'absolute',
+      bottom: 20,
+      right: 0,
       padding: 10,
       backgroundColor: colorScheme.colors.secondary,
     },
     prevBtnContainer: {
+      position: 'absolute',
+      bottom: 20,
+      right: 0,
       padding: 10,
       backgroundColor: colorScheme.colors.secondary,
     },
@@ -521,7 +544,9 @@ function getStyles(colorScheme: ColorScheme) {
       overflow: 'hidden',
     },
     settingsSheetScrollView: {
-      padding: 20,
+      paddingTop: 10,
+      paddingHorizontal: 15,
+      paddingBottom: 60,
     },
     settingsSheetHeader: {
       color: textColor(colorScheme.colors.main),
@@ -544,11 +569,11 @@ function getStyles(colorScheme: ColorScheme) {
       fontSize: 10,
     },
     settingsSheetGroup: {
-      marginTop: 10,
+      marginBottom: 10,
       justifyContent: 'center',
     },
     settingsSheetGroupRow: {
-      marginTop: 10,
+      marginBottom: 10,
       alignItems: 'center',
       flexDirection: 'row',
     },

@@ -1,5 +1,5 @@
 import {Theme} from '@react-navigation/native';
-import {ColorScheme} from '../constants';
+import {ColorScheme} from '@constants';
 import {textColor} from './textColor';
 
 export function themeConverter(colorScheme: ColorScheme): Theme {

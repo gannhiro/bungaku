@@ -149,7 +149,8 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
 
   async function downloadChapter() {
     if (inLibrary) {
-      dispatch(chapterDLJob({chapter, manga, statistics}));
+      const promise = dispatch(chapterDLJob({chapter, manga, statistics}));
+      // promise.
     } else {
       navigation.navigate('AddToLibraryModal', {
         manga,
@@ -207,6 +208,36 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
     });
   }
 
+  function getTimeReleased() {
+    const dateNow = new Date().getTime();
+    const timeInMs = dateNow - new Date(chapter.attributes.publishAt).getTime();
+
+    const timeInSecs = Math.floor(timeInMs / 1000);
+    const timeInMins = Math.floor(timeInMs / (1000 * 60));
+    const timeInHours = Math.floor(timeInMs / (1000 * 60 * 60));
+    const timeInDays = Math.floor(timeInMs / (1000 * 60 * 60 * 24));
+    const timeInMonths = Math.floor(timeInMs / (1000 * 60 * 60 * 24 * 30));
+    const timeInYears = Math.floor(timeInMs / (1000 * 60 * 60 * 24 * 30 * 12));
+
+    if (timeInMonths > 12) {
+      return timeInYears + ' years ago';
+    }
+    if (timeInDays > 30) {
+      return timeInMonths + ' months ago';
+    }
+    if (timeInHours > 24) {
+      return timeInDays + ' days ago';
+    }
+    if (timeInMins > 60) {
+      return timeInHours + ' hours ago';
+    }
+    if (timeInSecs > 60) {
+      return timeInMins + ' minutes ago';
+    }
+
+    return timeInSecs + ' seconds ago';
+  }
+
   useEffect(() => {
     (async () => {
       const isDL = await FS.exists(
@@ -218,7 +249,7 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
         setIsDownloaded(false);
       }
     })();
-  }, [chapter, manga, libraryList]);
+  }, [chapter, manga, libraryList, jobs]);
 
   return (
     <GestureDetector gesture={gestures}>
@@ -258,7 +289,10 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
           <Animated.View style={styles.bottomRow}>
             <Animated.Text style={styles.chapterGenericLabel}>
               {'Chapter ' + chapter?.attributes.chapter + ' | '}
+              {getTimeReleased()}
             </Animated.Text>
+          </Animated.View>
+          <Animated.View style={styles.bottomRow}>
             {scanlator && (
               <>
                 <Image
@@ -316,14 +350,13 @@ function getStyles(colorScheme: ColorScheme) {
     container: {
       zIndex: 0,
       borderRadius: 10,
-      marginBottom: 5,
+      marginBottom: 10,
 
       flexDirection: 'row',
       alignItems: 'center',
-      justifyContent: 'space-between',
       borderWidth: 1.5,
       overflow: 'hidden',
-      height: height / 14,
+      height: height / 13,
       minHeight: 60,
       paddingLeft: 10,
     },

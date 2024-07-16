@@ -1,9 +1,16 @@
-import {ColorScheme, OTOMANOPEE, white} from '@constants';
+import {
+  ColorScheme,
+  OTOMANOPEE,
+  PRETENDARD_JP,
+  systemRed,
+  white,
+} from '@constants';
 import {RootStackParamsList} from '@navigation';
 import {useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
-import {RootState} from '@store';
+import {RootState, rmLibraryUpdateAsync} from '@store';
 import {MangaDetails} from '@types';
+import {textColor} from '@utils';
 import React, {useEffect, useState} from 'react';
 import {
   Dimensions,
@@ -22,17 +29,17 @@ import Animated, {
   withSequence,
   withTiming,
 } from 'react-native-reanimated';
-import {useSelector} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 
-const {width, height} = Dimensions.get('screen');
+const {width} = Dimensions.get('screen');
 
 type Props = {
   mangaId: string;
-  coverPath: string;
   index: number;
 };
 
-export function LibraryListRenderItem({coverPath, mangaId, index}: Props) {
+export function LibraryListRenderItem({mangaId}: Props) {
+  const dispatch = useDispatch();
   const navigation =
     useNavigation<
       StackNavigationProp<RootStackParamsList, 'HomeScreen', undefined>
@@ -40,7 +47,14 @@ export function LibraryListRenderItem({coverPath, mangaId, index}: Props) {
   const {colorScheme} = useSelector(
     (state: RootState) => state.userPreferences,
   );
+  const libraryUpdatesLocal = useSelector(
+    (state: RootState) => state.libraryUpdates,
+  );
+  const badgeCount =
+    libraryUpdatesLocal.find(val => val.mangaId === mangaId)?.newChapterCount ??
+    0;
   const styles = getStyles(colorScheme);
+  const coverPath = `file://${FS.DocumentDirectoryPath}/manga/${mangaId}/cover.png`;
 
   const [mangaTitle, setMangaTitle] = useState('');
 
@@ -66,6 +80,7 @@ export function LibraryListRenderItem({coverPath, mangaId, index}: Props) {
   );
 
   async function goToChapters() {
+    dispatch(rmLibraryUpdateAsync({mangaId: mangaId}));
     Vibration.vibrate([0, 50], false);
 
     const mangaDetails = await FS.readFile(
@@ -84,11 +99,9 @@ export function LibraryListRenderItem({coverPath, mangaId, index}: Props) {
       const mangaDetails = await FS.readFile(
         `${FS.DocumentDirectoryPath}/manga/${mangaId}/manga-details.json`,
       );
+      const {manga}: MangaDetails = JSON.parse(mangaDetails);
 
       if (mangaDetails) {
-        const parsedMangaDetails: MangaDetails = JSON.parse(mangaDetails);
-        const manga = parsedMangaDetails.manga;
-
         if (manga.attributes.title.en) {
           setMangaTitle(manga.attributes.title.en);
         }
@@ -98,24 +111,32 @@ export function LibraryListRenderItem({coverPath, mangaId, index}: Props) {
 
   return (
     <GestureDetector gesture={gestures}>
-      <Animated.View style={[styles.container, contAnimStyle]}>
-        <Image source={{uri: coverPath}} style={styles.coverImage} />
-        <View style={styles.detailsCont}>
-          <Text style={styles.titleLabel} numberOfLines={2}>
-            {mangaTitle}
-          </Text>
-        </View>
-      </Animated.View>
+      <View style={styles.outerCont}>
+        <Animated.View style={[styles.container, contAnimStyle]}>
+          <Image source={{uri: coverPath}} style={styles.coverImage} />
+          <View style={styles.detailsCont}>
+            <Text style={styles.titleLabel} numberOfLines={2}>
+              {mangaTitle}
+            </Text>
+          </View>
+        </Animated.View>
+        {badgeCount > 0 && (
+          <View style={styles.badgeOuter}>
+            <View style={styles.badgeInner}>
+              <Text style={styles.badgeText}>{badgeCount}</Text>
+            </View>
+          </View>
+        )}
+      </View>
     </GestureDetector>
   );
 }
 
-function getStyles(_colorScheme: ColorScheme) {
+function getStyles(colorScheme: ColorScheme) {
   return StyleSheet.create({
+    outerCont: {paddingTop: 10, paddingRight: 10},
     container: {
       width: width / 3 - 15,
-      marginRight: 10,
-      marginBottom: 10,
       borderRadius: 10,
       overflow: 'hidden',
     },
@@ -134,6 +155,26 @@ function getStyles(_colorScheme: ColorScheme) {
       fontFamily: OTOMANOPEE,
       textAlign: 'center',
       color: white,
+    },
+    badgeOuter: {
+      position: 'absolute',
+      top: 2,
+      right: 0,
+      paddingHorizontal: 4,
+      paddingVertical: 4,
+      borderRadius: 100,
+      backgroundColor: colorScheme.colors.main,
+    },
+    badgeInner: {
+      paddingHorizontal: 7,
+      paddingVertical: 2,
+      borderRadius: 100,
+      backgroundColor: systemRed,
+    },
+    badgeText: {
+      fontSize: 11,
+      fontFamily: PRETENDARD_JP.BOLD,
+      color: textColor(systemRed),
     },
   });
 }

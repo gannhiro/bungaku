@@ -1,7 +1,7 @@
 import {createSlice} from '@reduxjs/toolkit';
 import {PayloadAction} from '@reduxjs/toolkit';
 import type {RootState} from '../store';
-import {res_get_user_me} from '../../api/types';
+import {res_get_user_me} from '@api';
 
 export type User = {
   userDetails: res_get_user_me | null;

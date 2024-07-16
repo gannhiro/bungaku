@@ -18,3 +18,8 @@ export type ChapterDetails = {
   chapter: res_get_manga_$_feed['data'][0];
   pageFileNames: string[];
 };
+
+export type UpdatedMangaData = {
+  mangaId: string;
+  newChapterCount: number;
+};

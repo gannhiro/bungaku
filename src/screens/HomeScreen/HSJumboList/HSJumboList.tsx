@@ -134,8 +134,10 @@ export function HSJumboList() {
             showsHorizontalScrollIndicator={false}
             onScroll={onScrollJumboList}
             style={styles.list}
-            initialNumToRender={10}
+            initialNumToRender={15}
+            maxToRenderPerBatch={10}
             windowSize={11}
+            removeClippedSubviews={false}
             getItemLayout={getItemLayout}
           />
           <Animated.View style={[styles.bgCont, bgContStyle]}>
@@ -198,7 +200,7 @@ function getStyles(colorScheme: ColorScheme) {
     bgImage: {
       height: (width / 4) * 2.3 + 67,
       width: width,
-      opacity: 0.3,
+      opacity: colorScheme.type === 'dark' ? 0.5 : 0.3,
     },
     gradient: {
       height: (width / 4) * 2.3 + 67,

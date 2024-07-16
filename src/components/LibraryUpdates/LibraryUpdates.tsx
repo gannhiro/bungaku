@@ -1,34 +1,47 @@
-import {ColorScheme} from '@constants';
-import {RootStackParamsList} from '@navigation';
-import {useNavigation} from '@react-navigation/native';
-import {StackNavigationProp} from '@react-navigation/stack';
+import {ColorScheme, PRETENDARD_JP} from '@constants';
 import {RootState} from '@store';
+import {UpdatedMangaData} from '@types';
 import {textColor} from '@utils';
-import React, {Fragment} from 'react';
-import {Dimensions, View, Text, StyleSheet} from 'react-native';
-import {useDispatch, useSelector} from 'react-redux';
+import React from 'react';
+import {
+  Dimensions,
+  FlatList,
+  ListRenderItemInfo,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
+import {useSelector} from 'react-redux';
+import {LibraryListRenderItem} from '../LibraryList/LibraryListRenderItem';
 
 const {width} = Dimensions.get('window');
 
 export function LibraryUpdates() {
-  const dispatch = useDispatch();
-  const navigation =
-    useNavigation<
-      StackNavigationProp<RootStackParamsList, 'HomeScreen', undefined>
-    >();
+  const libraryUpdates = useSelector(
+    (state: RootState) => state.libraryUpdates,
+  );
   const {colorScheme} = useSelector(
     (state: RootState) => state.userPreferences,
   );
   const styles = getStyles(colorScheme);
 
+  function renderItem({item, index}: ListRenderItemInfo<UpdatedMangaData>) {
+    return <LibraryListRenderItem mangaId={item.mangaId} index={index} />;
+  }
+
+  if (libraryUpdates.length === 0) {
+    return null;
+  }
+
   return (
     <View style={styles.container}>
-      <Fragment>
-        {/* <FlatList /> */}
-        <Text style={styles.loginPromptLabel}>
-          sorry this actually doesn't work yet :p
-        </Text>
-      </Fragment>
+      <Text style={styles.header}>Library Updates</Text>
+      <FlatList
+        data={libraryUpdates}
+        renderItem={renderItem}
+        contentContainerStyle={styles.listCont}
+        horizontal
+      />
     </View>
   );
 }
@@ -36,16 +49,24 @@ export function LibraryUpdates() {
 function getStyles(colorScheme: ColorScheme) {
   return StyleSheet.create({
     container: {
-      alignItems: 'center',
+      alignItems: 'stretch',
       justifyContent: 'center',
-      borderRadius: 10,
-      height: (width / 4) * 2 - 25,
+      height: width / 3 + 20,
+      marginBottom: 30,
     },
-    loginPromptLabel: {
-      fontSize: 11,
+    listCont: {
+      paddingHorizontal: 15,
+    },
+    noUpdatesLabel: {
       color: textColor(colorScheme.colors.main),
-      marginBottom: 5,
+      fontFamily: PRETENDARD_JP.MEDIUM,
+      fontSize: 14,
     },
-    loginBtn: {},
+    header: {
+      color: textColor(colorScheme.colors.main),
+      fontFamily: PRETENDARD_JP.REGULAR,
+      fontSize: 12,
+      marginLeft: 15,
+    },
   });
 }

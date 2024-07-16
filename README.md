@@ -2,7 +2,7 @@
   <img src="./android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png" />
   <h1>bungaku</h1>
   <h4>bungaku is a simple manga reader for android that is powered by an API provided by MangaDex.</h4>
-  <p>**DISCLAIMER**: Currently bungaku is in its very early development, please expect a lot of bugs and weird stuff happening.</p>
+  <p><b>DISCLAIMER</b>: Currently bungaku is in its very early development, please expect a lot of bugs and weird stuff happening.</p>
 </div>
 
 <br/>
@@ -37,7 +37,7 @@ Thank you for reading.
 
 ### Can I contribute?
 
-For now, no, you cannot contribute. Because I want this to be a solo project, I am making this repository public so people can see what happens under the hood and can trust the project. Also, please feel free to fork this repository and make your own version, but pretty please credit me.
+Yes! I also encourage you to fork this repo and make your own version of bungaku (but pretty please credit me properly!).
 
 ### Will there be an iOS release?
 

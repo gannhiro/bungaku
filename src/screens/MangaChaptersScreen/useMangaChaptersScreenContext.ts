@@ -14,7 +14,7 @@ export interface iMangaChaptersScreenContext {
   onAddToLibPress: () => Promise<void>;
   languages: Array<Language>;
   setLanguages: Dispatch<SetStateAction<Array<Language>>>;
-  languageList: GenericDropdownValues[];
+  languageList: GenericDropdownValues;
   loading: boolean;
   setLoading: Dispatch<SetStateAction<boolean>>;
   setSelectMode: Dispatch<SetStateAction<boolean>>;

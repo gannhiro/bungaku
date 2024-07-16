@@ -24,10 +24,8 @@ import * as Progress from 'react-native-progress';
 const {width} = Dimensions.get('screen');
 
 interface Props {
-  limit: number;
-  includedTags?: string[];
+  params: get_manga;
   horizontal?: boolean;
-  title?: string;
   style?: StyleProp<ViewStyle>;
   contentViewStyle?: StyleProp<ViewStyle>;
   onScroll?:
@@ -36,9 +34,7 @@ interface Props {
 }
 
 export function MangaList({
-  limit,
-  title,
-  includedTags,
+  params,
   horizontal,
   style,
   contentViewStyle,
@@ -60,6 +56,7 @@ export function MangaList({
   const [loadError, setLoadError] = useState(false);
 
   const flatlistRef = useRef<FlatList>(null);
+  const abortController = useRef<AbortController | null>(null);
 
   function renderItem({
     item,
@@ -76,17 +73,16 @@ export function MangaList({
   }
 
   async function onEndReached() {
-    if (total <= offset + limit || intError) {
+    if (total <= offset + params.limit || intError) {
       return;
     }
+
     const data = await mangadexAPI<res_get_manga, get_manga>(
       'get',
       '/manga',
       {
-        limit,
-        offset: offset + limit,
-        includedTags,
-        title,
+        ...params,
+        offset: offset + params.limit,
         includes: ['artist', 'author', 'cover_art'],
       },
       [],
@@ -94,7 +90,7 @@ export function MangaList({
 
     if (data && data.result === 'ok') {
       const tempMangas = [...mangas, ...data.data];
-      setOffset(offset + limit);
+      setOffset(offset + params.limit);
       setMangas(tempMangas);
     } else if (data && data.result === 'error') {
       dispatch(setError(data));
@@ -104,17 +100,26 @@ export function MangaList({
   async function onRefresh() {
     setRefreshing(true);
     setLoadError(false);
+    setOffset(0);
+
+    if (abortController.current) {
+      abortController.current.abort();
+    }
+
+    const newAbortController = new AbortController();
+    abortController.current = newAbortController;
+
     const data = await mangadexAPI<res_get_manga, get_manga>(
       'get',
       '/manga',
       {
-        limit,
-        offset: 1,
-        includedTags,
-        title,
+        ...params,
+        offset: __DEV__ ? 0 : 1,
         includes: ['artist', 'author', 'cover_art'],
       },
       [],
+      undefined,
+      newAbortController.signal,
     );
 
     if (data && data.result === 'ok') {
@@ -130,21 +135,28 @@ export function MangaList({
   }
 
   useEffect(() => {
-    setLoading(true);
-    setLoadError(false);
     (async () => {
+      setLoading(true);
+      setLoadError(false);
+
+      if (abortController.current) {
+        abortController.current.abort();
+      }
+
+      const newAbortController = new AbortController();
+      abortController.current = newAbortController;
+
       const data = await mangadexAPI<res_get_manga, get_manga>(
         'get',
         '/manga',
         {
-          limit,
-          offset: 1,
-          includedTags,
-          contentRating: [],
-          title,
+          ...params,
+          offset: __DEV__ ? 0 : 1,
           includes: ['artist', 'author', 'cover_art'],
         },
         [],
+        undefined,
+        newAbortController.signal,
       );
 
       if (data && data.result === 'ok') {
@@ -157,11 +169,19 @@ export function MangaList({
       }
       setLoading(false);
     })();
-  }, [dispatch, includedTags, limit, title, intError]);
+  }, [dispatch, params, intError]);
+
+  useEffect(() => {
+    return () => {
+      if (abortController.current) {
+        abortController.current.abort();
+      }
+    };
+  }, []);
 
   return (
     <View style={[styles.container, style]}>
-      {(!loading && !intError) || mangas.length > 0 ? (
+      {!loading && !intError ? (
         <FlatList
           data={mangas}
           renderItem={renderItem}
@@ -175,7 +195,7 @@ export function MangaList({
           onEndReached={onEndReached}
           ref={flatlistRef}
           ListFooterComponent={
-            !(total <= offset + limit) ? <MangaListFooter /> : undefined
+            !(total <= offset + params.limit) ? <MangaListFooter /> : undefined
           }
           onEndReachedThreshold={0.1}
           numColumns={horizontal ? 0 : 2}

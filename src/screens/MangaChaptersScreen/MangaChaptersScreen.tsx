@@ -47,21 +47,7 @@ export function MangaChaptersScreen({route, navigation}: Props) {
   );
   const styles = getStyles(colorScheme);
 
-  const [statistics, setStatistics] = useState<res_get_statistics_manga | null>(
-    null,
-  );
-  const [chapters, setChapters] = useState<res_get_manga_$_feed['data']>([]);
-  const [loading, setLoading] = useState(true);
-  const [languages, setLanguages] = useState<Array<Language>>([]);
-  const [selectMode, setSelectMode] = useState(false);
-  const [selectedChapters, setSelectedChapters] = useState<string[]>([]);
-
-  const coverItem = manga.relationships.find(rs => rs.type === 'cover_art') as
-    | res_get_cover_$['data']
-    | undefined;
-  const coverSrc = `https://uploads.mangadex.org/covers/${manga.id}/${coverItem?.attributes.fileName}`;
-
-  const languageList: GenericDropdownValues[] =
+  const languageList: GenericDropdownValues =
     manga.attributes.availableTranslatedLanguages.map(lang => {
       if (lang) {
         return {
@@ -75,6 +61,20 @@ export function MangaChaptersScreen({route, navigation}: Props) {
         };
       }
     });
+
+  const [statistics, setStatistics] = useState<res_get_statistics_manga | null>(
+    null,
+  );
+  const [chapters, setChapters] = useState<res_get_manga_$_feed['data']>([]);
+  const [loading, setLoading] = useState(true);
+  const [languages, setLanguages] = useState<Array<Language>>([]);
+  const [selectMode, setSelectMode] = useState(false);
+  const [selectedChapters, setSelectedChapters] = useState<string[]>([]);
+
+  const coverItem = manga.relationships.find(rs => rs.type === 'cover_art') as
+    | res_get_cover_$['data']
+    | undefined;
+  const coverSrc = `https://uploads.mangadex.org/covers/${manga.id}/${coverItem?.attributes.fileName}`;
 
   async function onAddToLibPress() {
     navigation.navigate('AddToLibraryModal', {manga});
@@ -170,7 +170,7 @@ export function MangaChaptersScreen({route, navigation}: Props) {
           {
             limit: limit,
             offset: offset,
-            order: {volume: 'asc', chapter: 'asc'},
+            order: {volume: 'desc', chapter: 'desc'},
             includes: ['scanlation_group', 'user'],
           },
           [manga.id],
@@ -184,7 +184,9 @@ export function MangaChaptersScreen({route, navigation}: Props) {
           } else {
             done = true;
           }
-        } else {
+        }
+
+        if (chapterData?.result === 'error') {
           dispatch(setError(chapterData));
           done = true;
         }
