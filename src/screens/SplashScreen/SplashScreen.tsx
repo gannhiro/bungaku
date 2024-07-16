@@ -63,10 +63,6 @@ export function SplashScreen({navigation}: Props) {
 
         // create directories and files
         await FS.mkdir(`${FS.DocumentDirectoryPath}/manga`);
-        await FS.writeFile(
-          `${FS.DocumentDirectoryPath}/manga/manga-list.json`,
-          '[]',
-        );
 
         // get notifcations permission
         const notifPermResult = await PermissionsAndroid.request(
@@ -119,11 +115,11 @@ export function SplashScreen({navigation}: Props) {
 
       // initialize library list
       setLoadingText('getting library');
-      const libraryList = await FS.readFile(
-        `${FS.DocumentDirectoryPath}/manga/manga-list.json`,
+      const libraryDirList = await FS.readDir(
+        `${FS.DocumentDirectoryPath}/manga/`,
       );
-      const parsedLibraryList: string[] = JSON.parse(libraryList);
-      dispatch(setLibraryList(parsedLibraryList));
+      const libraryList = libraryDirList.map(dir => dir.name);
+      dispatch(setLibraryList(libraryList));
     })();
     setLoadingText('welcome');
     setLoading(false);

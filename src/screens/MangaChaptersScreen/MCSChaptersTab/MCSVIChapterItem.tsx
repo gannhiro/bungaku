@@ -149,7 +149,8 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
 
   async function downloadChapter() {
     if (inLibrary) {
-      dispatch(chapterDLJob({chapter, manga, statistics}));
+      const promise = dispatch(chapterDLJob({chapter, manga, statistics}));
+      // promise.
     } else {
       navigation.navigate('AddToLibraryModal', {
         manga,
@@ -248,7 +249,7 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
         setIsDownloaded(false);
       }
     })();
-  }, [chapter, manga, libraryList]);
+  }, [chapter, manga, libraryList, jobs]);
 
   return (
     <GestureDetector gesture={gestures}>

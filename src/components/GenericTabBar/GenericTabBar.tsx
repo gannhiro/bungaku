@@ -85,7 +85,7 @@ function TabBarIcon({tabTitle}: TabBarIconProps) {
   if (tabTitle === Tabs.HOME) {
     return (
       <Animated.Image
-        source={require('../../../assets/icons/home.png')}
+        source={require('@assets/icons/home.png')}
         style={[styles.icon]}
       />
     );
@@ -94,7 +94,7 @@ function TabBarIcon({tabTitle}: TabBarIconProps) {
   if (tabTitle === Tabs.LIBRARY) {
     return (
       <Animated.Image
-        source={require('../../../assets/icons/bookshelf.png')}
+        source={require('@assets/icons/bookshelf.png')}
         style={[styles.icon]}
       />
     );
@@ -103,7 +103,7 @@ function TabBarIcon({tabTitle}: TabBarIconProps) {
   if (tabTitle === Tabs.SEARCH) {
     return (
       <Animated.Image
-        source={require('../../../assets/icons/magnify.png')}
+        source={require('@assets/icons/magnify.png')}
         style={[styles.icon]}
       />
     );
@@ -112,7 +112,7 @@ function TabBarIcon({tabTitle}: TabBarIconProps) {
   if (tabTitle === Tabs.CHAPTERS) {
     return (
       <Animated.Image
-        source={require('../../../assets/icons/bookshelf.png')}
+        source={require('@assets/icons/bookshelf.png')}
         style={[styles.icon]}
       />
     );
@@ -121,7 +121,7 @@ function TabBarIcon({tabTitle}: TabBarIconProps) {
   if (tabTitle === Tabs.DETAILS) {
     return (
       <Animated.Image
-        source={require('../../../assets/icons/details.png')}
+        source={require('@assets/icons/details.png')}
         style={[styles.icon]}
       />
     );
@@ -130,7 +130,7 @@ function TabBarIcon({tabTitle}: TabBarIconProps) {
   if (tabTitle === Tabs.ACCSETTINGSSCREEN) {
     return (
       <Animated.Image
-        source={require('../../../assets/icons/account.png')}
+        source={require('@assets/icons/account.png')}
         style={[styles.icon]}
       />
     );

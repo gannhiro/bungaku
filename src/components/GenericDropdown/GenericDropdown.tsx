@@ -1,52 +1,52 @@
-import React, {Fragment, useEffect, useState} from 'react';
-import Animated, {
-  FadeInDown,
-  useAnimatedStyle,
-  useSharedValue,
-  withSequence,
-  withSpring,
-  withTiming,
-} from 'react-native-reanimated';
+import {ColorScheme, PRETENDARD_JP} from '@constants';
+import {RootState} from '@store';
+import {textColor} from '@utils';
+import React, {Dispatch, SetStateAction, useState} from 'react';
 import {
-  FlatList,
   ListRenderItemInfo,
   StyleSheet,
   Text,
   Vibration,
+  View,
   ViewStyle,
 } from 'react-native';
-import {ColorScheme, PRETENDARD_JP} from '@constants';
-import {useSelector} from 'react-redux';
-import {RootState} from '@store';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
+import Animated, {
+  EntryAnimationsValues,
+  EntryExitAnimationFunction,
+  ExitAnimationsValues,
+  LayoutAnimation,
+  runOnJS,
+  useAnimatedStyle,
+  withDelay,
+  withSequence,
+  withSpring,
+  withTiming,
+} from 'react-native-reanimated';
+import {useSelector} from 'react-redux';
 import {GDRenderItem} from './GDRenderItem';
-import {textColor} from '@utils';
 
 export type GenericDropdownValues = {
   label: string;
   subLabel?: string;
   value: string | number | null;
-};
+}[];
 
 type Props = {
-  multiple: boolean;
-  items: GenericDropdownValues[];
-  value: string | number | null | Array<string | number | null>;
+  items: GenericDropdownValues;
+  selection: string | number | Array<string | number>;
+  setSelection: Dispatch<SetStateAction<any>>;
   atLeastOne?: boolean;
-  setValues?: React.Dispatch<React.SetStateAction<Array<any> | any>>;
-  onSelectionPress?: (
-    value: string | number | null | Array<string | number | null>,
-  ) => void;
+  onSelectionPress?: (value: string | number | null) => void;
   onDropdownPress?: () => void;
   style?: ViewStyle;
 };
 
 export function GenericDropdown({
-  multiple,
-  atLeastOne,
+  atLeastOne = false,
   items,
-  value,
-  setValues,
+  selection,
+  setSelection,
   onSelectionPress,
   onDropdownPress,
   style,
@@ -58,132 +58,147 @@ export function GenericDropdown({
 
   const [showDropdown, setShowDropdown] = useState(false);
 
-  const chevronImgTransform = useSharedValue(0);
   const chevronImgTransformStyle = useAnimatedStyle(() => {
     return {
-      transform: [{rotateZ: withSpring(`${chevronImgTransform.value}deg`)}],
+      transform: [
+        {rotate: showDropdown ? withSpring('180deg') : withSpring('0deg')},
+      ],
     };
   });
 
-  const dropdownPressableBG = useSharedValue(colorScheme.colors.secondary);
-  const dropdownPressableBGStyle = useAnimatedStyle(() => {
+  const dropdownPressableStyle = useAnimatedStyle(() => {
     return {
-      backgroundColor: dropdownPressableBG.value,
-    };
-  });
-
-  const selectedBorderRadiusBottom = useSharedValue(10);
-  const selectedStyle = useAnimatedStyle(() => {
-    return {
-      borderBottomLeftRadius: selectedBorderRadiusBottom.value,
-      borderBottomRightRadius: selectedBorderRadiusBottom.value,
-    };
-  });
-
-  const selectionsStyle = useAnimatedStyle(() => {
-    return {
-      height: items.length > 5 ? 200 : undefined,
-      borderColor: dropdownPressableBG.value,
+      backgroundColor: withSequence(
+        withTiming(colorScheme.colors.secondary + 99, {duration: 100}),
+        withTiming(
+          showDropdown
+            ? colorScheme.colors.primary
+            : colorScheme.colors.secondary,
+        ),
+      ),
+      borderBottomLeftRadius: showDropdown
+        ? 0
+        : withDelay(100, withTiming(10, {duration: 250})),
+      borderBottomRightRadius: showDropdown
+        ? 0
+        : withDelay(100, withTiming(10, {duration: 250})),
     };
   });
 
   const tapDropdown = Gesture.Tap()
     .runOnJS(true)
     .onEnd(() => {
-      onDropdownPress?.();
-      setShowDropdown(!showDropdown);
-
-      if (showDropdown) {
-        chevronImgTransform.value = 0;
-        selectedBorderRadiusBottom.value = 10;
-      } else {
-        chevronImgTransform.value = 180;
-        selectedBorderRadiusBottom.value = 0;
+      if (onDropdownPress) {
+        onDropdownPress();
       }
-      Vibration.vibrate([0, 50], false);
+      setShowDropdown(!showDropdown);
+      runOnJS(Vibration.vibrate)([0, 50], false);
     });
 
-  function keyExtractor(item: GenericDropdownValues, index: number) {
+  const dropdownEnterLayoutAnim: EntryExitAnimationFunction = (
+    targetValues: EntryAnimationsValues,
+  ) => {
+    'worklet';
+    const initialValues: LayoutAnimation['initialValues'] = {
+      height: 0,
+    };
+
+    const animations: LayoutAnimation['animations'] = {
+      height: withTiming(targetValues.targetHeight, {duration: 250}),
+    };
+
+    return {
+      initialValues,
+      animations,
+    };
+  };
+
+  const dropdownExitLayoutAnim: EntryExitAnimationFunction = (
+    currentValues: ExitAnimationsValues,
+  ) => {
+    'worklet';
+    const initialValues: LayoutAnimation['initialValues'] = {
+      height: currentValues.currentHeight,
+    };
+
+    const animations: LayoutAnimation['animations'] = {
+      height: withTiming(0, {duration: 250}),
+    };
+
+    return {
+      initialValues,
+      animations,
+    };
+  };
+
+  function keyExtractor(item: GenericDropdownValues[0], index: number) {
     return `${item.value} - ${index}`;
   }
 
   function renderItem({
     item,
     index,
-  }: ListRenderItemInfo<GenericDropdownValues>) {
+  }: ListRenderItemInfo<GenericDropdownValues[0]>) {
     return (
       <GDRenderItem
         item={item}
         atLeastOne={atLeastOne}
         renderBotBorder={items.length - 1 > index}
-        index={index}
-        value={value}
-        setValues={setValues}
+        selection={selection}
+        setSelection={setSelection}
         onSelectionPress={onSelectionPress}
       />
     );
   }
 
-  useEffect(() => {
-    dropdownPressableBG.value = withSequence(
-      withTiming(colorScheme.colors.secondary + 99, {duration: 100}),
-      withTiming(
-        showDropdown
-          ? colorScheme.colors.primary
-          : colorScheme.colors.secondary,
-      ),
-    );
-  }, [colorScheme, dropdownPressableBG, showDropdown]);
-
   return (
-    <Fragment>
+    <View>
       <GestureDetector gesture={tapDropdown}>
         <Animated.View
-          style={[
-            styles.selectedCont,
-            selectedStyle,
-            dropdownPressableBGStyle,
-            style,
-          ]}>
+          style={[styles.selectedCont, dropdownPressableStyle, style]}>
           <Text style={[styles.selectedText]}>
-            {!multiple
-              ? items.find(item => {
-                  if (item.value === value) {
-                    return item.label;
-                  }
-                })?.label
-              : value && Array.isArray(value) && value.length > 0
-              ? value.length > 3
-                ? value.length + ' items selected'
-                : items.map((item, index) => {
-                    if (value.includes(item.value)) {
-                      if (index < value.length - 1) {
-                        return `${item.label}, `;
+            {Array.isArray(selection)
+              ? selection.length > 0
+                ? selection.length < 4
+                  ? selection.map((val, index) => {
+                      if (
+                        index === selection.length - 1 ||
+                        selection.length === 1
+                      ) {
+                        return items.find(item => item.value === val)?.label;
                       }
-                      return item.label;
-                    }
-                  })
-              : 'None Selected'}
+                      return `${
+                        items.find(item => item.value === val)?.label
+                      }, `;
+                    })
+                  : `${selection.length} items selected`
+                : 'No Selection'
+              : items.find(item => item.value === selection)?.label ??
+                'No Selection'}
           </Text>
           <Animated.Image
-            source={require('../../../assets/icons/chevron-down.png')}
+            source={require('@assets/icons/chevron-down.png')}
             style={[styles.selectedDownIcon, chevronImgTransformStyle]}
           />
         </Animated.View>
       </GestureDetector>
       {showDropdown && (
         <Animated.View
-          entering={FadeInDown}
-          style={[styles.selectionDropdownCont, selectionsStyle]}>
-          <FlatList
+          entering={dropdownEnterLayoutAnim}
+          exiting={dropdownExitLayoutAnim}
+          style={[styles.selectionDropdownCont]}>
+          <Animated.FlatList
             data={items}
             renderItem={renderItem}
             keyExtractor={keyExtractor}
             nestedScrollEnabled={items.length > 5}
+            maxToRenderPerBatch={5}
+            windowSize={10}
+            removeClippedSubviews={false}
           />
         </Animated.View>
       )}
-    </Fragment>
+    </View>
   );
 }
 
@@ -205,11 +220,12 @@ function getStyles(colorScheme: ColorScheme) {
       color: textColor(colorScheme.colors.primary),
     },
     selectionDropdownCont: {
+      maxHeight: 200,
       borderWidth: 2,
       borderTopWidth: 0,
       borderBottomLeftRadius: 10,
       borderBottomRightRadius: 10,
-      borderColor: colorScheme.colors.main,
+      borderColor: colorScheme.colors.primary,
       backgroundColor: colorScheme.colors.secondary,
       overflow: 'hidden',
     },

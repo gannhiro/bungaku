@@ -10,7 +10,7 @@ import {PayloadAction, createAsyncThunk, createSlice} from '@reduxjs/toolkit';
 import {ChapterDetails, MangaDetails} from '@types';
 import {getDateMDEX} from '@utils';
 import {ToastAndroid} from 'react-native';
-import FS from 'react-native-fs';
+import FS, {ReadDirItem} from 'react-native-fs';
 import type {RootState} from '../store';
 import {addRemToLibraryList} from './libraryListSlice';
 
@@ -51,7 +51,13 @@ export const updateMangaSettingsJob = createAsyncThunk(
 
 export const chapterDLJob = createAsyncThunk(
   'jobs/chapterDLJob',
-  async ({chapter, manga}: ChapterDLJobProps, {fulfillWithValue}) => {
+  async (
+    {chapter, manga}: ChapterDLJobProps,
+    {fulfillWithValue, rejectWithValue, requestId, signal},
+  ) => {
+    console.log('JOB TYPE: CHAPTER DOWNLOAD');
+    console.log('JOB requestId: ' + requestId);
+
     // check for translated language folder
     const langFolderExists = await FS.exists(
       `${FS.DocumentDirectoryPath}/manga/${manga.id}/${chapter.attributes.translatedLanguage}`,
@@ -83,6 +89,8 @@ export const chapterDLJob = createAsyncThunk(
       '/at-home/server/$',
       {},
       [chapter.id],
+      undefined,
+      signal,
     );
 
     if (chapterData?.result === 'ok') {
@@ -111,6 +119,7 @@ export const chapterDLJob = createAsyncThunk(
 
           const result = await promise;
           console.log(`${result.jobId}: ${result.statusCode}`);
+          return fulfillWithValue('success');
         }
       } catch (e) {
         console.error(e);
@@ -124,11 +133,10 @@ export const chapterDLJob = createAsyncThunk(
         );
 
         console.log('deleted chapter');
+        return rejectWithValue('fail');
       }
       console.log('finished downloading chapter');
     }
-
-    return fulfillWithValue('success');
   },
 );
 
@@ -144,18 +152,18 @@ export const addRemToLibraryJob = createAsyncThunk(
     }: MangaDetails,
     {dispatch},
   ) => {
-    console.log('read from manga-list.json');
-    const mangaList: string[] = JSON.parse(
-      await FS.readFile(`${FS.DocumentDirectoryPath}/manga/manga-list.json`),
+    const mangaDirList: ReadDirItem[] = await FS.readDir(
+      `${FS.DocumentDirectoryPath}/manga/`,
     );
+    const mangaList = mangaDirList.map(dir => dir.name);
     try {
       //check first if manga is in library
-      const inLibrary = mangaList.some(id => id === manga.id);
+      const inLibraryIndex = mangaList.findIndex(id => id === manga.id);
 
-      if (inLibrary) {
+      if (inLibraryIndex > -1) {
         // remove from list
         console.log('removing from library');
-        mangaList.splice(mangaList.indexOf(manga.id), 1);
+        mangaList.splice(inLibraryIndex, 1);
         await FS.unlink(`${FS.DocumentDirectoryPath}/manga/${manga.id}`);
         dispatch(addRemToLibraryList(manga.id));
         ToastAndroid.show('Removed from Library.', 1000);
@@ -219,11 +227,6 @@ export const addRemToLibraryJob = createAsyncThunk(
       await FS.unlink(`${FS.DocumentDirectoryPath}/manga/${manga.id}`);
       console.error('finished FAILED ADDING TO LIST');
     } finally {
-      // write list to file
-      await FS.writeFile(
-        `${FS.DocumentDirectoryPath}/manga/manga-list.json`,
-        JSON.stringify(mangaList),
-      );
       console.log(`FINALIZED JOB: ${manga.id} - ${getDateMDEX()}`);
     }
   },

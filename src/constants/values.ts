@@ -5,6 +5,7 @@ export const APP_NAME = '文学 bungaku';
 export const APP_NAME_JP = '文学';
 export const APP_NAME_EN = 'bungaku';
 
+// these are gannhiro's favorite mangas!
 export const DEVS_CHOICE = {
   'd773c8be-8e82-4ff1-a4e9-46171395319b':
     'I adore this series, it is basically like: "What if World War but with magic". It explores a lot of questions thematically and does so in a respectable manner. VERY interesting main protagonist and their conflict against God (yeah, with a big "G"). Absolute cinema right here.', // Saga of Tanya The Evil
@@ -25,6 +26,7 @@ export const TOP_OVERLAY_HEIGHT = StatusBar.currentHeight
   ? StatusBar.currentHeight + 20
   : 20;
 
+// these are the labels for different languages that I want to support
 type Labels = {
   [L in Language]?: {
     noInternetLabel: string;
@@ -85,6 +87,7 @@ type Labels = {
 };
 
 export const LABELS: Labels = {
+  // EN
   en: {
     homeScreen: {
       home: 'Home',

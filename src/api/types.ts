@@ -462,6 +462,52 @@ export type res_get_author_$ = {
   };
 };
 
+export type get_author = {
+  limit: number;
+  offset: number;
+  ids: string[];
+  name: string;
+  order?: {
+    name: 'asc';
+  };
+  includes: Array<'manga'>;
+};
+
+export type res_get_author = {
+  result: 'ok';
+  response: string;
+  data: {
+    id: string;
+    type: 'author';
+    attributes: {
+      name: string;
+      imageUrl: string | null;
+      biography: {
+        key: Language;
+      };
+      twitter: string | null;
+      pixiv: string | null;
+      melonBook: string | null;
+      fanBox: string | null;
+      booth: string | null;
+      nicoVideo: string | null;
+      skeb: string | null;
+      fantia: string | null;
+      tumblr: string | null;
+      youtube: string | null;
+      weibo: string | null;
+      naver: string | null;
+      website: string | null;
+      createdAt: string;
+      updatedAt: string;
+      version: number;
+    };
+  }[];
+  limit: number;
+  offset: number;
+  total: number;
+};
+
 export type res_get_user_$ = {
   result: 'ok';
   response: 'entity';
@@ -541,6 +587,10 @@ export type res_get_manga_status = {
   statuses: {
     [key: string]: READING_STATUS;
   };
+};
+
+export type aborted_request = {
+  result: 'aborted';
 };
 
 export type gen_error = {

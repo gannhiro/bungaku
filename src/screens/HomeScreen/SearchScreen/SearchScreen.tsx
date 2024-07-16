@@ -1,32 +1,55 @@
-import {MangaList} from '@components';
-import {ColorScheme, PRETENDARD_JP, TOP_OVERLAY_HEIGHT} from '@constants';
-import {BlurView} from '@react-native-community/blur';
+import {
+  CONTENT_RATING,
+  ContentRating,
+  MANGA_STATUS,
+  MangaStatus,
+  PUBLICATION_DEMOGRAPHIC,
+  PublicationDemographic,
+  get_manga,
+  res_get_author,
+} from '@api';
+import {
+  BottomSheet,
+  Button,
+  GenericDropdown,
+  GenericTextInput,
+  MangaList,
+} from '@components';
+import {
+  ColorScheme,
+  ISO_LANGS,
+  Language,
+  PRETENDARD_JP,
+  TOP_OVERLAY_HEIGHT,
+  systemTeal,
+} from '@constants';
+import {RootStackParamsList} from '@navigation';
 import {MaterialTopTabScreenProps} from '@react-navigation/material-top-tabs';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
+import {StackNavigationProp} from '@react-navigation/stack';
 import {RootState} from '@store';
 import {textColor} from '@utils';
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
+  BackHandler,
   Dimensions,
   Keyboard,
   NativeScrollEvent,
   NativeSyntheticEvent,
+  ScrollView,
   StyleSheet,
-  TextInput,
-  TextInputSubmitEditingEventData,
+  Text,
   TouchableOpacity,
   Vibration,
+  View,
 } from 'react-native';
 import Animated, {
-  FadeInDown,
-  FadeOutDown,
+  Layout,
   SlideInDown,
   SlideOutDown,
-  useAnimatedStyle,
-  withSpring,
 } from 'react-native-reanimated';
 import {useSelector} from 'react-redux';
 import {HomeBottomTabsParamsList} from '../HomeScreen';
-import {SSBottomSheet} from './SSBottomSheet';
 const {height, width} = Dimensions.get('window');
 
 type Props = MaterialTopTabScreenProps<
@@ -36,34 +59,43 @@ type Props = MaterialTopTabScreenProps<
 >;
 
 export function SearchScreen({}: Props) {
+  const navigation =
+    useNavigation<
+      StackNavigationProp<RootStackParamsList, 'HomeScreen', undefined>
+    >();
   const {colorScheme} = useSelector(
     (state: RootState) => state.userPreferences,
   );
+  const {tags} = useSelector((state: RootState) => state.mangaTags);
   const styles = getStyles(colorScheme);
 
-  const titleInputRef = useRef<TextInput>(null);
-
-  const [title, setTitle] = useState<string>('');
-  const [includedTags, setIncludedTags] = useState<string[]>([]);
-  const [showFilterBadge, setShowFilterBadge] = useState(false);
-  const [showFilterContainer, setShowFilterContainer] = useState(false);
-  const [showSearch, setShowSearch] = useState(true);
-
-  const searchBtnAnim = useAnimatedStyle(() => {
-    return {
-      transform: [{translateY: withSpring(showFilterContainer ? 40 : 0)}],
-    };
+  const [params, setParams] = useState<get_manga>({
+    limit: 10,
+    offset: 0,
   });
+  const [title, setTitle] = useState<string>('');
+  const [author, setAuthor] = useState<string>('');
+  const [artist, setArtist] = useState<string>('');
+  const [authors, setAuthors] = useState<string[]>([]);
+  const [artists, setArtists] = useState<string[]>([]);
+  const [fetchedAuthors, setFetchedAuthors] = useState<res_get_author['data']>(
+    [],
+  );
+  const [includedTags, setIncludedTags] = useState<string[]>([]);
+  const [publicationDemographic, setPubDemographic] = useState<
+    PublicationDemographic[]
+  >([]);
+  const [contentRating, setContentRating] = useState<ContentRating[]>([]);
+  const [showBottomSheet, setShowBottomSheet] = useState(false);
+  const [mangaStatus, setMangaStatus] = useState<MangaStatus[]>([]);
+  const [year, setYear] = useState<string>('');
+  const [languages, setLanguages] = useState<Language[]>([]);
+  const [resetting, setResetting] = useState(false);
 
   function searchIconOnPress() {
-    setShowFilterContainer(!showFilterContainer);
+    setShowBottomSheet(!showBottomSheet);
+    Keyboard.dismiss();
     Vibration.vibrate([0, 50], false);
-  }
-
-  function titleOnSubmit(
-    event: NativeSyntheticEvent<TextInputSubmitEditingEventData>,
-  ) {
-    setTitle(event.nativeEvent.text);
   }
 
   function onMangaListScroll(event: NativeSyntheticEvent<NativeScrollEvent>) {
@@ -71,47 +103,257 @@ export function SearchScreen({}: Props) {
     if (!event.nativeEvent.velocity) {
       return;
     }
-    if (event.nativeEvent.velocity.y < 0) {
-      setShowSearch(true);
-    }
     if (event.nativeEvent.velocity.y > 1) {
-      setShowSearch(false);
-      setShowFilterContainer(false);
+      setShowBottomSheet(false);
     }
   }
 
+  function onPressResetFiltersBtn() {
+    setResetting(true);
+  }
+
+  function onPressAddAuthorsBtn() {}
+
   useEffect(() => {
-    if (includedTags.length > 0) {
-      setShowFilterBadge(true);
+    if (resetting) {
+      setArtist('');
+      setArtists([]);
+      setAuthor('');
+      setAuthors([]);
+      setIncludedTags([]);
+      setTitle('');
+      setLanguages([]);
+      setMangaStatus([]);
+      setPubDemographic([]);
+      setYear('');
+      setParams({
+        limit: 10,
+        offset: 1,
+        title: '',
+      });
+      setResetting(false);
       return;
     }
 
-    setShowFilterBadge(false);
-  }, [includedTags]);
+    setParams({
+      limit: 10,
+      offset: 1,
+      title,
+      authors,
+      artists,
+      includedTags,
+      publicationDemographic,
+      year: parseInt(year, 10),
+      availableTranslatedLanguage: languages,
+      status: mangaStatus,
+      contentRating,
+    });
+  }, [
+    resetting,
+    artists,
+    authors,
+    contentRating,
+    includedTags,
+    languages,
+    mangaStatus,
+    publicationDemographic,
+    title,
+    year,
+  ]);
+
+  useEffect(() => {
+    navigation.addListener('blur', () => {
+      setShowBottomSheet(false);
+    });
+  }, [navigation]);
+
+  useFocusEffect(() => {
+    const backHandlerSub = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => {
+        if (showBottomSheet) {
+          setShowBottomSheet(false);
+          return true;
+        }
+        return false;
+      },
+    );
+
+    return () => backHandlerSub.remove();
+  });
 
   return (
     <Animated.View style={[styles.container]}>
       <MangaList
-        limit={10}
-        title={title}
-        includedTags={includedTags}
+        params={params}
         contentViewStyle={styles.mangalistContent}
         onScroll={onMangaListScroll}
       />
-      {showFilterContainer && <SSBottomSheet />}
-      {showSearch && (
-        <Animated.View
-          entering={SlideInDown}
-          exiting={SlideOutDown}
-          style={[styles.searchContainer, searchBtnAnim]}>
-          <TouchableOpacity onPress={searchIconOnPress}>
-            <Animated.Image
-              source={require('@assets/icons/magnify.png')}
-              style={styles.searchIcon}
+      <BottomSheet
+        showBottomSheet={showBottomSheet}
+        setShowBottomSheet={setShowBottomSheet}
+        style={styles.bottomSheet}
+        height={height * 0.45}>
+        <View style={styles.filterFloatBtns}>
+          <Button
+            title="Reset Filters"
+            containerStyle={styles.resetFiltersBtn}
+            onButtonPress={onPressResetFiltersBtn}
+            imageReq={require('@assets/icons/refresh.png')}
+            btnColor={systemTeal}
+            shouldTintImage
+          />
+        </View>
+        <ScrollView
+          contentContainerStyle={styles.bottomSheetScrollView}
+          nestedScrollEnabled>
+          <View style={styles.filterGroup}>
+            <Text style={styles.filterValueLabel}>Title</Text>
+            <GenericTextInput
+              placeholder="Title e.g. Saga of Tanya The Evil"
+              value={title}
+              setValue={setTitle}
             />
-          </TouchableOpacity>
-        </Animated.View>
-      )}
+          </View>
+          <View style={styles.filterGroup}>
+            <Text style={styles.filterValueLabel}>
+              Authors (UNDER CONSTRUCTION)
+            </Text>
+            <View style={styles.filterInnerGroupRow}>
+              <GenericTextInput
+                value={author}
+                setValue={setAuthor}
+                placeholder="Authors e.g. Kentaro Miura"
+                style={styles.filterTextInputsFlex}
+                disabled
+              />
+              <Button
+                title="Add Author"
+                imageReq={require('@assets/icons/plus.png')}
+                onButtonPress={onPressAddAuthorsBtn}
+                shouldTintImage
+                disabled
+              />
+            </View>
+          </View>
+          {/* <View style={styles.filterGroup}>
+            <Text style={styles.filterValueLabel}>Artists</Text>
+            <View style={styles.filterInnerGroupRow}>
+              <GenericTextInput
+                value={artist}
+                setValue={setArtist}
+                placeholder="Artists e.g. Yusuke Murata"
+                style={styles.filterTextInputsFlex}
+                disabled
+              />
+              <Button
+                title="Add Artist"
+                imageReq={require('@assets/icons/plus.png')}
+                onButtonPress={onPressAddArtistsBtn}
+                shouldTintImage
+                disabled
+              />
+            </View>
+          </View> */}
+          <Animated.View style={styles.filterGroup} layout={Layout}>
+            <Text style={styles.filterValueLabel}>Publication Year</Text>
+            <GenericTextInput
+              value={year}
+              setValue={setYear}
+              placeholder="Year e.g. 1960"
+              keyboardType="number-pad"
+            />
+          </Animated.View>
+          <View style={styles.filterGroup}>
+            <Text style={styles.filterValueLabel}>Tags</Text>
+            <GenericDropdown
+              items={
+                tags
+                  ? tags.data
+                      .map(tag => {
+                        return {
+                          label: tag.attributes.name.en,
+                          subLabel: tag.attributes.group,
+                          value: tag.id,
+                        };
+                      })
+                      .filter(tag => tag)
+                  : []
+              }
+              selection={includedTags}
+              setSelection={setIncludedTags}
+            />
+          </View>
+          <Animated.View style={styles.filterGroup} layout={Layout}>
+            <Text style={styles.filterValueLabel}>Publication Demographic</Text>
+            <GenericDropdown
+              items={Object.values(PUBLICATION_DEMOGRAPHIC).map(demographic => {
+                return {
+                  label: demographic,
+                  value: demographic,
+                };
+              })}
+              selection={publicationDemographic}
+              setSelection={setPubDemographic}
+            />
+          </Animated.View>
+          <Animated.View style={styles.filterGroup} layout={Layout}>
+            <Text style={styles.filterValueLabel}>Publication Status</Text>
+            <GenericDropdown
+              items={Object.values(MANGA_STATUS).map(status => {
+                return {
+                  label: status,
+                  value: status,
+                };
+              })}
+              selection={mangaStatus}
+              setSelection={setMangaStatus}
+            />
+          </Animated.View>
+          <Animated.View style={styles.filterGroup} layout={Layout}>
+            <Text style={styles.filterValueLabel}>
+              Available Translated Languages
+            </Text>
+            <GenericDropdown
+              items={Object.keys(ISO_LANGS).map(lang => {
+                return {
+                  label: ISO_LANGS[lang as keyof typeof ISO_LANGS].name,
+                  subLabel: `${
+                    ISO_LANGS[lang as keyof typeof ISO_LANGS].nativeName
+                  } | ${lang}`,
+                  value: lang,
+                };
+              })}
+              selection={languages}
+              setSelection={setLanguages}
+            />
+          </Animated.View>
+          <Animated.View style={styles.filterGroup} layout={Layout}>
+            <Text style={styles.filterValueLabel}>Content Rating</Text>
+            <GenericDropdown
+              items={Object.values(CONTENT_RATING).map(rating => {
+                return {
+                  label: rating,
+                  value: rating,
+                };
+              })}
+              selection={contentRating}
+              setSelection={setContentRating}
+            />
+          </Animated.View>
+        </ScrollView>
+      </BottomSheet>
+      <Animated.View
+        entering={SlideInDown}
+        exiting={SlideOutDown}
+        style={[styles.searchContainer]}>
+        <TouchableOpacity onPress={searchIconOnPress}>
+          <Animated.Image
+            source={require('@assets/icons/magnify.png')}
+            style={styles.searchIcon}
+          />
+        </TouchableOpacity>
+      </Animated.View>
     </Animated.View>
   );
 }
@@ -126,7 +368,8 @@ function getStyles(colorScheme: ColorScheme) {
     },
     searchContainer: {
       position: 'absolute',
-      bottom: 20,
+      right: 15,
+      bottom: 15,
 
       width: width / 7,
       height: width / 7,
@@ -134,71 +377,57 @@ function getStyles(colorScheme: ColorScheme) {
 
       backgroundColor: colorScheme.colors.primary,
       borderRadius: 100,
+
+      elevation: 5,
+      overflow: 'hidden',
+
+      zIndex: 1000,
     },
     searchIcon: {
       width: '100%',
       height: '100%',
       tintColor: textColor(colorScheme.colors.primary),
     },
-    filterContainer: {
-      position: 'absolute',
-      bottom: 0,
-
-      height: height * 0.4,
-      width: width,
-      overflow: 'hidden',
-
-      borderTopLeftRadius: 30,
-      borderTopRightRadius: 30,
-    },
-    filterContainerBlur: {
-      position: 'absolute',
-      top: 0,
-      bottom: 0,
-      width: '100%',
-    },
-    title: {
-      flex: 1,
-      fontSize: 16,
-      fontFamily: PRETENDARD_JP.SEMIBOLD,
-      color: textColor(colorScheme.colors.primary),
-    },
-    inputBox: {
-      position: 'absolute',
-      top: 0,
-      right: 0,
-      left: 0,
-      marginHorizontal: 10,
-      borderRadius: 25,
-      zIndex: 4,
-      backgroundColor: colorScheme.colors.primary,
-    },
-    inputBoxTitle: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      margin: 0,
-      paddingHorizontal: 15,
-      borderRadius: 25,
-      zIndex: 1,
-      backgroundColor: colorScheme.colors.primary,
-    },
-    inputBoxDropDown: {
-      height: 0,
-      overflow: 'hidden',
-    },
-    inputBoxDropDownContStyle: {
-      paddingHorizontal: 15,
-      paddingBottom: 15,
-    },
-    formLabel: {
-      color: textColor(colorScheme.colors.secondary),
-      fontFamily: PRETENDARD_JP.SEMIBOLD,
-      fontSize: 12,
-      marginBottom: 5,
-    },
     mangalistContent: {
       paddingTop: TOP_OVERLAY_HEIGHT,
+    },
+    bottomSheet: {
+      flex: 1,
+    },
+    bottomSheetScrollView: {
+      flexGrow: 1,
+      padding: 15,
+      paddingBottom: 80,
+    },
+    filterValueLabel: {
+      color: textColor(colorScheme.colors.main),
+      fontFamily: PRETENDARD_JP.SEMIBOLD,
+      fontSize: 11,
+      marginBottom: 5,
+    },
+    filterGroup: {
+      marginBottom: 10,
+    },
+    filterFloatBtns: {
+      position: 'absolute',
+      bottom: 20,
+      left: 15,
+      zIndex: 1000,
+      flexDirection: 'row',
+      justifyContent: 'flex-start',
+    },
+    resetFiltersBtn: {
+      marginRight: 10,
+      elevation: 10,
+    },
+    filterInnerGroupRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    filterTextInputsFlex: {
+      flex: 1,
+      marginRight: 10,
     },
   });
 }

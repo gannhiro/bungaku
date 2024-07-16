@@ -13,3 +13,5 @@ export * from './MangaList/MangaListRenderItemFollowsIcon';
 export * from './MangaList/MangaListRenderItemRatingsIcon';
 export * from './MangaList/MangaListRenderItemStatIcon';
 export * from './DevelopersChoice/DevelopersChoice';
+export * from './BottomSheet/BottomSheet';
+export * from './GenericTextInput/GenericTextInput';

@@ -27,7 +27,6 @@ BackgroundFetch.registerHeadlessTask(backgroundLibraryUpdate);
 async function getChapters(mangaId: string) {
   let chapterCount = 0;
 
-  // manga exists
   // reading manga details and date of addition to library
   console.log('reading from manga-details.json');
   const {
@@ -90,7 +89,6 @@ async function getChapters(mangaId: string) {
 
   // check if the array has chapters that can be updated
   if (tempChapters.length === 0) {
-    // no chapters for update
     console.log('no new chapters');
     return;
   }
@@ -242,24 +240,12 @@ export async function backgroundLibraryUpdate(event: HeadlessEvent) {
       new Date().toDateString(),
   );
 
-  // check for mangas in library
-  console.log('checking for mangas in library');
-  const mangaList: string[] = JSON.parse(
-    await FS.readFile(`${FS.DocumentDirectoryPath}/manga/manga-list.json`),
+  const mangaList: string[] = await FS.readdir(
+    `${FS.DocumentDirectoryPath}/manga/`,
   );
 
   for (const mangaId of mangaList) {
     console.log(`${mangaId} - started checking for updates`);
-    const mangaExists = await FS.exists(
-      `${FS.DocumentDirectoryPath}/manga/${mangaId}`,
-    );
-
-    if (!mangaExists) {
-      // manga does not exist, which would be a very weird case
-      console.log(`${mangaId} - this manga directory does not exist! weird!!!`);
-      continue;
-    }
-
     getChapters(mangaId);
   }
 

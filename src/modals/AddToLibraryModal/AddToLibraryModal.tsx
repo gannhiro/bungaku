@@ -74,9 +74,13 @@ export function AddToLibraryModal({route, navigation}: Props) {
     manga.attributes.availableTranslatedLanguages[0] as Language,
   ]);
 
-  const availableLangs: GenericDropdownValues[] =
+  const availableLangs: GenericDropdownValues =
     manga.attributes.availableTranslatedLanguages.map(lang => {
-      return {value: lang, label: ISO_LANGS[lang as Language].name};
+      return {
+        value: lang,
+        label: ISO_LANGS[lang as Language].name,
+        subLabel: `${ISO_LANGS[lang as Language].name} | ${lang}`,
+      };
     });
 
   const dateTextInputBorderColor = useSharedValue(colorScheme.colors.secondary);
@@ -175,11 +179,13 @@ export function AddToLibraryModal({route, navigation}: Props) {
 
   useEffect(() => {
     (async () => {
-      const extractedDetails = await FS.readFile(
-        `${FS.DocumentDirectoryPath}/manga/${manga.id}/manga-details.json`,
-      );
-
-      if (!extractedDetails) {
+      let extractedDetails = '';
+      try {
+        extractedDetails = await FS.readFile(
+          `${FS.DocumentDirectoryPath}/manga/${manga.id}/manga-details.json`,
+        );
+      } catch (e) {
+        console.log('manga-details.json does not exist');
         return;
       }
 
@@ -261,10 +267,7 @@ export function AddToLibraryModal({route, navigation}: Props) {
         blurType={colorScheme.type}
         blurRadius={3}
       />
-      <Animated.View
-        entering={FadeIn}
-        layout={Layout.delay(100)}
-        style={styles.innerCont}>
+      <Animated.View entering={FadeIn} layout={Layout} style={styles.innerCont}>
         <Text style={styles.addToLibLabel}>Adding To Library</Text>
         <Text style={styles.mangaTitleLabel}>{manga.attributes.title.en}</Text>
         <View style={styles.groupRow}>
@@ -278,7 +281,7 @@ export function AddToLibraryModal({route, navigation}: Props) {
           <Fragment>
             <Animated.View
               entering={FadeInLeft.delay(200)}
-              exiting={FadeOut}
+              exiting={FadeOut.duration(75)}
               style={styles.group}>
               <Text style={styles.groupRowLabel}>Stay Updated After?</Text>
               <Text style={styles.groupSubLabel}>
@@ -328,7 +331,7 @@ export function AddToLibraryModal({route, navigation}: Props) {
             </Animated.View>
             <Animated.View
               entering={FadeInLeft.delay(200)}
-              exiting={FadeOut}
+              exiting={FadeOut.duration(75)}
               style={styles.group}>
               <Text style={styles.groupRowLabel}>Target Languages</Text>
               <Text style={styles.groupSubLabel}>
@@ -337,9 +340,8 @@ export function AddToLibraryModal({route, navigation}: Props) {
               <View style={styles.group}>
                 <GenericDropdown
                   items={availableLangs}
-                  value={targetLanguages}
-                  setValues={setTargetLanguages}
-                  multiple
+                  selection={targetLanguages}
+                  setSelection={setTargetLanguages}
                   atLeastOne
                 />
               </View>
@@ -347,7 +349,7 @@ export function AddToLibraryModal({route, navigation}: Props) {
           </Fragment>
         )}
 
-        <Animated.View layout={Layout.delay(100)} style={styles.groupRow}>
+        <Animated.View layout={Layout} style={styles.groupRow}>
           <Button
             title="Back"
             containerStyle={styles.navButtonCancel}

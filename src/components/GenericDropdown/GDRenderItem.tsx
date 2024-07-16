@@ -1,7 +1,6 @@
 import {ColorScheme, PRETENDARD_JP} from '@constants';
 import {View, StyleSheet, Text} from 'react-native';
 import Animated, {
-  runOnJS,
   SlideInRight,
   useAnimatedStyle,
   useSharedValue,
@@ -9,31 +8,30 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import {GenericDropdownValues} from './GenericDropdown';
-import React, {useEffect, useState} from 'react';
+import React, {Dispatch, SetStateAction, useEffect, useState} from 'react';
 import {RootState} from '@store';
 import {useSelector} from 'react-redux';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import {textColor} from '@utils';
 
 type Props = {
-  item: GenericDropdownValues;
+  item: GenericDropdownValues[0];
   renderBotBorder: boolean;
-  index: number;
-  value: string | number | null | Array<string | number | null>;
-  atLeastOne?: boolean;
-  setValues?: React.Dispatch<React.SetStateAction<any | Array<any>>>;
-  onSelectionPress?: (
-    value: string | number | null | Array<string | number | null>,
-  ) => void;
+  selection: string | number | null | Array<string | number>;
+  setSelection: Dispatch<
+    SetStateAction<string | number | null | Array<string | number | null>>
+  >;
+  atLeastOne: boolean;
+  onSelectionPress?: (value: string | number | null) => void;
 };
 
 export function GDRenderItem({
   item,
-  atLeastOne,
+  selection,
+  setSelection,
   renderBotBorder,
-  value,
-  setValues,
-  onSelectionPress = () => {},
+  onSelectionPress,
+  atLeastOne,
 }: Props) {
   const {colorScheme} = useSelector(
     (state: RootState) => state.userPreferences,
@@ -50,6 +48,7 @@ export function GDRenderItem({
   });
 
   const tap = Gesture.Tap()
+    .runOnJS(true)
     .onBegin(() => {
       renderItemBG.value = withSequence(
         withTiming(colorScheme.colors.secondary, {duration: 10}),
@@ -57,62 +56,65 @@ export function GDRenderItem({
       );
     })
     .onEnd(() => {
-      if (Array.isArray(value)) {
-        const tempValues = [...value];
-        const included = tempValues.findIndex(val => val === item.value);
+      if (onSelectionPress) {
+        onSelectionPress(item.value);
+      }
 
-        if (included !== -1) {
-          // remove item
-          if (atLeastOne && tempValues.length === 1) {
+      if (Array.isArray(selection)) {
+        const temp = [...selection];
+        const includedIndex = selection.findIndex(s => s === item.value);
+
+        if (includedIndex !== -1) {
+          if (atLeastOne && temp.length === 1) {
             return;
           }
 
-          tempValues.splice(included, 1);
-          if (setValues) {
-            runOnJS(setValues)(tempValues);
-          }
-          runOnJS(onSelectionPress)(tempValues);
-        } else {
-          // add item
-          tempValues.push(item.value);
-          if (setValues) {
-            runOnJS(setValues)(tempValues);
-          }
-          runOnJS(onSelectionPress)(tempValues);
+          temp.splice(includedIndex, 1);
+
+          setSelection(temp);
+          return;
         }
-      } else {
-        if (value !== item.value) {
-          if (setValues) {
-            runOnJS(setValues)(item.value);
-          }
-          runOnJS(onSelectionPress)(item.value);
-        }
+
+        temp.push(item.value ?? '');
+        setSelection(temp);
+        return;
       }
+
+      if (item.value === selection && !atLeastOne) {
+        setSelection(null);
+        return;
+      }
+
+      setSelection(item.value);
     });
 
   useEffect(() => {
-    if (Array.isArray(value)) {
-      const included = value.includes(item.value);
+    if (Array.isArray(selection)) {
+      const included = selection.includes(item.value ?? '');
 
       if (included) {
         setSelected(true);
-      } else {
-        setSelected(false);
+        return;
       }
-    } else {
-      if (item.value === value) {
-        setSelected(true);
-      } else {
-        setSelected(false);
-      }
+      setSelected(false);
+      return;
     }
-  }, [item.value, value]);
+
+    if (item.value === selection) {
+      setSelected(true);
+      return;
+    }
+    setSelected(false);
+  }, [item.value, selection]);
 
   return (
     <GestureDetector gesture={tap}>
       <Animated.View style={[styles.selections, renderItemStyle]}>
         <View style={styles.selectionGroup}>
-          <Text style={[styles.selectionText]}>{item.label}</Text>
+          <Text style={[styles.selectionLabel]}>{item.label}</Text>
+          {item.subLabel && (
+            <Text style={[styles.selectionSubLabel]}>{item.subLabel}</Text>
+          )}
         </View>
         {selected && (
           <Animated.Image
@@ -135,18 +137,20 @@ function getStyles(colorScheme: ColorScheme) {
       flexDirection: 'row',
       padding: 10,
     },
-    selectionGroup: {
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
+    selectionGroup: {},
     selectionCheckIcon: {
       width: 20,
       height: 20,
       tintColor: textColor(colorScheme.colors.secondary),
     },
-    selectionText: {
-      fontFamily: PRETENDARD_JP.REGULAR,
-      fontSize: 14,
+    selectionLabel: {
+      fontFamily: PRETENDARD_JP.BOLD,
+      fontSize: 16,
+      color: textColor(colorScheme.colors.secondary),
+    },
+    selectionSubLabel: {
+      fontFamily: PRETENDARD_JP.LIGHT,
+      fontSize: 11,
       color: textColor(colorScheme.colors.secondary),
     },
   });

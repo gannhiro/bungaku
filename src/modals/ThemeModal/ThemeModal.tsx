@@ -5,8 +5,9 @@ import {BlurView} from '@react-native-community/blur';
 import {StackScreenProps} from '@react-navigation/stack';
 import {RootState, setColorScheme, setPreferSystemColor} from '@store';
 import {textColor} from '@utils';
-import React, {Dispatch, SetStateAction, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Dimensions, StyleSheet, Text, View} from 'react-native';
+import Animated, {Layout} from 'react-native-reanimated';
 import {useDispatch, useSelector} from 'react-redux';
 
 const {width} = Dimensions.get('screen');
@@ -24,14 +25,12 @@ export function ThemeModal({navigation}: Props) {
     colorScheme.name,
   );
 
-  const choices: GenericDropdownValues[] = AVAILABLE_COLOR_SCHEMES.map(
-    scheme => {
-      return {
-        label: scheme.name,
-        value: scheme.name,
-      };
-    },
-  );
+  const choices: GenericDropdownValues = AVAILABLE_COLOR_SCHEMES.map(scheme => {
+    return {
+      label: scheme.name,
+      value: scheme.name,
+    };
+  });
 
   function onBackBtnPress() {
     navigation.goBack();
@@ -55,26 +54,19 @@ export function ThemeModal({navigation}: Props) {
   return (
     <View style={[styles.container]}>
       <BlurView style={styles.blur} blurType={colorScheme.type} />
-      <View style={styles.innerCont}>
+      <Animated.View style={styles.innerCont} layout={Layout}>
         <Text style={styles.label}>Theme</Text>
         <GenericDropdown
-          multiple={false}
           items={choices}
-          value={locColorScheme}
-          setValues={
-            setLocColorScheme as Dispatch<
-              SetStateAction<
-                string | number | null | (string | number | null)[]
-              >
-            >
-          }
+          selection={locColorScheme}
+          setSelection={setLocColorScheme}
         />
         <Button
           title="Back"
           onButtonPress={onBackBtnPress}
           containerStyle={styles.backBtn}
         />
-      </View>
+      </Animated.View>
     </View>
   );
 }

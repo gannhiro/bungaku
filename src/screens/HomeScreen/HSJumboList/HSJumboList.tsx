@@ -134,8 +134,10 @@ export function HSJumboList() {
             showsHorizontalScrollIndicator={false}
             onScroll={onScrollJumboList}
             style={styles.list}
-            initialNumToRender={10}
+            initialNumToRender={15}
+            maxToRenderPerBatch={10}
             windowSize={11}
+            removeClippedSubviews={false}
             getItemLayout={getItemLayout}
           />
           <Animated.View style={[styles.bgCont, bgContStyle]}>
