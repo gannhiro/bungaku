@@ -122,15 +122,18 @@ export function MangaList({
       newAbortController.signal,
     );
 
-    if (data && data.result === 'ok') {
+    if (data.result === 'ok') {
       setMangas(data?.data);
       setTotal(data.total);
       flatlistRef.current?.scrollToOffset({animated: true, offset: 0});
       setLoading(false);
-    } else if (data && data.result === 'error') {
+    }
+
+    if (data.result === 'error') {
       setLoadError(true);
       dispatch(setError(data));
     }
+
     setRefreshing(false);
   }
 
@@ -159,14 +162,24 @@ export function MangaList({
         newAbortController.signal,
       );
 
-      if (data && data.result === 'ok') {
-        setMangas(data?.data);
+      if (data?.result === 'internal-error') {
+      }
+
+      if (data?.result === 'aborted') {
+        return;
+      }
+
+      if (data.result === 'ok') {
+        setMangas(data.data);
         setTotal(data.total);
         flatlistRef.current?.scrollToOffset({animated: true, offset: 0});
-      } else if (data && data.result === 'error') {
+      }
+
+      if (data.result === 'error') {
         setLoadError(true);
         dispatch(setError(data));
       }
+
       setLoading(false);
     })();
   }, [dispatch, params, intError]);

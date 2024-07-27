@@ -14,6 +14,7 @@ import {
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import React, {useEffect, useState} from 'react';
 import Animated, {
+  LinearTransition,
   runOnJS,
   useAnimatedStyle,
   useSharedValue,
@@ -130,6 +131,7 @@ export function Button({
     <GestureDetector gesture={tapGesture}>
       <Animated.View
         style={[styles.container, containerStyle, buttonStyle]}
+        layout={LinearTransition}
         onLayout={onButtonLayout}>
         {imageReq && (
           <Animated.Image

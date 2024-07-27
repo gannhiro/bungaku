@@ -1,4 +1,4 @@
-import {Button, GenericDropdown, GenericDropdownValues} from '@components';
+import {Button, Dropdown, GenericDropdownValues} from '@components';
 import {AVAILABLE_COLOR_SCHEMES, ColorScheme, PRETENDARD_JP} from '@constants';
 import {RootStackParamsList} from '@navigation';
 import {BlurView} from '@react-native-community/blur';
@@ -56,7 +56,7 @@ export function ThemeModal({navigation}: Props) {
       <BlurView style={styles.blur} blurType={colorScheme.type} />
       <Animated.View style={styles.innerCont} layout={Layout}>
         <Text style={styles.label}>Theme</Text>
-        <GenericDropdown
+        <Dropdown
           items={choices}
           selection={locColorScheme}
           setSelection={setLocColorScheme}

@@ -17,7 +17,7 @@ enum Tabs {
   DETAILS = 'MCSDetailsTab',
 }
 
-export function GenericTabBar({
+export function TabBar({
   state,
   navigation,
   descriptors,

@@ -54,16 +54,20 @@ export function Overlay({children}: Props) {
           />
         </Animated.View>
       )}
-      {showError && (
+      {error && (
         <Animated.View
           entering={SlideInDown}
           exiting={SlideOutDown}
           style={[styles.errorOverlay]}>
           <Text style={styles.errorTitle}>
-            {error?.errors[0].status + ': '}
-            {error?.errors[0].title}
+            {error.result === 'error' &&
+              `${error?.errors[0].status}: ${error?.errors[0].title}`}
+            {error.result === 'internal-error' && error.title}
           </Text>
-          <Text style={styles.errorDesc}>{error?.errors[0].detail}</Text>
+          <Text style={styles.errorDesc}>
+            {error.result === 'error' && error.errors[0].detail}
+            {error.result === 'internal-error' && error.desc}
+          </Text>
         </Animated.View>
       )}
     </Animated.View>

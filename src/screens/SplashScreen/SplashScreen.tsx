@@ -139,13 +139,13 @@ export function SplashScreen({navigation}: Props) {
         <Animated.Text entering={FadeIn.delay(500)} style={styles.appName}>
           {APP_NAME}
         </Animated.Text>
-        <View style={{flexDirection: 'row'}}>
+        <View style={styles.progressBarContainer}>
           <Progress.Bar
             indeterminate
             height={1}
             borderWidth={0}
             borderColor={'#0000'}
-            style={{flex: 1}}
+            style={styles.progressBar}
             color={preferences.colorScheme.colors.secondary}
           />
         </View>
@@ -180,6 +180,12 @@ function getStyles(colorScheme: ColorScheme) {
       fontFamily: PRETENDARD_JP.LIGHT,
       color: textColor(colorScheme.colors.main),
       textAlign: 'left',
+    },
+    progressBarContainer: {
+      flexDirection: 'row',
+    },
+    progressBar: {
+      flex: 1,
     },
   });
 }

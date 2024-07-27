@@ -24,7 +24,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import {useSelector} from 'react-redux';
-import {GDRenderItem} from './GDRenderItem';
+import {DropdownRenderItem} from './DropdownRenderItem';
 
 export type GenericDropdownValues = {
   label: string;
@@ -42,7 +42,7 @@ type Props = {
   style?: ViewStyle;
 };
 
-export function GenericDropdown({
+export function Dropdown({
   atLeastOne = false,
   items,
   selection,
@@ -140,7 +140,7 @@ export function GenericDropdown({
     index,
   }: ListRenderItemInfo<GenericDropdownValues[0]>) {
     return (
-      <GDRenderItem
+      <DropdownRenderItem
         item={item}
         atLeastOne={atLeastOne}
         renderBotBorder={items.length - 1 > index}
@@ -191,7 +191,7 @@ export function GenericDropdown({
             data={items}
             renderItem={renderItem}
             keyExtractor={keyExtractor}
-            nestedScrollEnabled={items.length > 5}
+            nestedScrollEnabled={true}
             maxToRenderPerBatch={5}
             windowSize={10}
             removeClippedSubviews={false}

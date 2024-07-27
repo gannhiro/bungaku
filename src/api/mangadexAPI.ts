@@ -1,15 +1,10 @@
-import {API_URL, aborted_request, endpoints, gen_error} from './types';
-
-/**
- *
- * @param method 'get' | 'post'
- * @param endpoint endpoints
- * @param parameters P
- * @param additionalParams string[]
- * @param token string?
- * @param signal AbortSignal?
- * @returns R | gen_error | aborted_request | null
- */
+import {
+  API_URL,
+  aborted_request,
+  endpoints,
+  gen_error,
+  internal_gen_error,
+} from './types';
 
 export async function mangadexAPI<R, P extends Object>(
   method: 'get' | 'post',
@@ -18,7 +13,7 @@ export async function mangadexAPI<R, P extends Object>(
   additionalParams: string[],
   token?: string,
   signal?: AbortSignal,
-): Promise<R | gen_error | aborted_request | null> {
+): Promise<R | gen_error | aborted_request | internal_gen_error> {
   let request = API_URL + endpoint;
 
   if (Object.keys(parameters).length > 0) {
@@ -39,14 +34,23 @@ export async function mangadexAPI<R, P extends Object>(
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(parameters),
+        signal,
       });
 
-      const data = await res.json();
+      const data: R | gen_error = await res.json();
 
       return data;
     } catch (e) {
-      console.log(e);
-      return null;
+      if (signal?.aborted) {
+        console.log('Request Aborted: ' + request);
+        return {result: 'aborted'};
+      }
+      const internalError: internal_gen_error = {
+        result: 'internal-error',
+        title: JSON.stringify(e),
+      };
+
+      return internalError;
     }
   }
 
@@ -113,7 +117,7 @@ export async function mangadexAPI<R, P extends Object>(
       signal,
     });
 
-    const data: R = await res.json();
+    const data: R | gen_error = await res.json();
 
     return data;
   } catch (e) {
@@ -121,6 +125,13 @@ export async function mangadexAPI<R, P extends Object>(
       console.log('Request Aborted: ' + request);
       return {result: 'aborted'};
     }
-    return null;
+    const internalError: internal_gen_error = {
+      result: 'internal-error',
+      title: JSON.stringify(e),
+    };
+
+    console.log('Internal Error: ' + request);
+    console.log('Details: ' + internalError);
+    return internalError;
   }
 }

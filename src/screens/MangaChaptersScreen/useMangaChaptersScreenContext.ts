@@ -16,6 +16,10 @@ export interface iMangaChaptersScreenContext {
   setLanguages: Dispatch<SetStateAction<Array<Language>>>;
   languageList: GenericDropdownValues;
   loading: boolean;
+  loadingProgress: number;
+  loadingText: string;
+  setLoadingProgress: Dispatch<SetStateAction<number>>;
+  setLoadingText: Dispatch<SetStateAction<string>>;
   setLoading: Dispatch<SetStateAction<boolean>>;
   setSelectMode: Dispatch<SetStateAction<boolean>>;
   selectMode: boolean;

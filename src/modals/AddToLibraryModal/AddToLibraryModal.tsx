@@ -1,4 +1,4 @@
-import {Button, GenericDropdown, GenericDropdownValues} from '@components';
+import {Button, Dropdown, GenericDropdownValues} from '@components';
 import {
   ColorScheme,
   ISO_LANGS,
@@ -338,7 +338,7 @@ export function AddToLibraryModal({route, navigation}: Props) {
                 *only chapters with this language will be downloaded.
               </Text>
               <View style={styles.group}>
-                <GenericDropdown
+                <Dropdown
                   items={availableLangs}
                   selection={targetLanguages}
                   setSelection={setTargetLanguages}

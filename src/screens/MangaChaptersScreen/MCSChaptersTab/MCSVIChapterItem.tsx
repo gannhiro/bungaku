@@ -149,8 +149,7 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
 
   async function downloadChapter() {
     if (inLibrary) {
-      const promise = dispatch(chapterDLJob({chapter, manga, statistics}));
-      // promise.
+      dispatch(chapterDLJob({chapter, manga, statistics}));
     } else {
       navigation.navigate('AddToLibraryModal', {
         manga,

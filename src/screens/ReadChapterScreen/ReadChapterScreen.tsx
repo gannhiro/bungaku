@@ -4,28 +4,22 @@ import {
   res_get_group_$,
   res_get_user_$,
 } from '@api';
-import {
-  BottomSheet,
-  Button,
-  GenericDropdown,
-  GenericDropdownValues,
-} from '@components';
+import {GenericDropdownValues} from '@components';
 import {ColorScheme, PRETENDARD_JP, black, white} from '@constants';
 import {RootStackParamsList} from '@navigation';
 import {StackScreenProps} from '@react-navigation/stack';
 import {RootState, setError} from '@store';
 import {ChapterDetails} from '@types';
 import {textColor} from '@utils';
-import React, {Fragment, SetStateAction, useEffect, useState} from 'react';
+import React, {Fragment, useEffect, useRef, useState} from 'react';
 import {
+  BackHandler,
   Dimensions,
+  FlatList,
   ListRenderItemInfo,
   NativeScrollEvent,
   NativeSyntheticEvent,
-  ScrollView,
   StyleSheet,
-  Switch,
-  Text,
   Vibration,
   View,
 } from 'react-native';
@@ -38,16 +32,23 @@ import {
 } from 'react-native-gesture-handler';
 import * as Progress from 'react-native-progress';
 import Animated, {
-  FadeInDown,
-  FadeOutDown,
-  useAnimatedRef,
+  SlideInLeft,
+  SlideInRight,
+  SlideOutLeft,
+  SlideOutRight,
   useAnimatedStyle,
   useSharedValue,
   withSequence,
   withTiming,
 } from 'react-native-reanimated';
 import {useDispatch, useSelector} from 'react-redux';
+import {RCSBottomSheet} from './RCSBottomSheet';
 import {RCSChapterImages} from './RCSChapterImages';
+import {
+  ReadChapterScreenContext,
+  iReadChapterScreenContext,
+} from './useReadChapterScreenContext';
+import {useFocusEffect} from '@react-navigation/native';
 
 type Props = StackScreenProps<RootStackParamsList, 'ReadChapterScreen'>;
 export enum READING_MODES {
@@ -84,7 +85,6 @@ export function ReadChapterScreen({route, navigation}: Props) {
   const [loading, setLoading] = useState(true);
   const [local, setLocal] = useState(false);
   const [localFiles, setLocalFiles] = useState<string[]>([]);
-  const [removeClippedSubviews, setRemoveClippedSubviews] = useState(false);
 
   const scanlator = chapters[currentChapter].relationships.find(
     rs => rs.type === 'scanlation_group',
@@ -94,7 +94,7 @@ export function ReadChapterScreen({route, navigation}: Props) {
     rs => rs.type === 'user',
   ) as res_get_user_$['data'];
 
-  const listRef = useAnimatedRef<Animated.FlatList<string>>();
+  const listRef = useRef<FlatList<string>>(null);
 
   const swipeUp = Gesture.Fling()
     .enabled(locReadingMode === READING_MODES.HORIZONTAL)
@@ -199,15 +199,24 @@ export function ReadChapterScreen({route, navigation}: Props) {
     setIsDataSaver(value);
   }
 
+  const value: iReadChapterScreenContext = {
+    navigation,
+    chapters,
+    currentChapter,
+    setCurrentChapter,
+    scanlator,
+    user,
+    readingModes,
+    locReadingMode,
+    setLocReadingMode,
+    setShowBottomOverlay,
+    isDataSaver,
+    onDataSaverSwitchChange,
+  };
+
   useEffect(() => {
     setLoading(true);
     setCurrentPage(0);
-
-    if (locReadingMode === READING_MODES.WEBTOON) {
-      setRemoveClippedSubviews(true);
-    } else {
-      setRemoveClippedSubviews(false);
-    }
 
     (async () => {
       await FastImage.clearMemoryCache();
@@ -230,6 +239,7 @@ export function ReadChapterScreen({route, navigation}: Props) {
         );
         const parsedDetails: ChapterDetails = JSON.parse(chapterDetails);
 
+        setLoading(false);
         setLocalFiles(parsedDetails.pageFileNames);
         return;
       }
@@ -241,15 +251,24 @@ export function ReadChapterScreen({route, navigation}: Props) {
         [chapters[currentChapter].id],
       );
 
-      if (data && data.result === 'ok') {
+      if (data.result === 'ok') {
         setChapterPages(data);
-      } else if (data && data.result === 'error') {
+      }
+
+      if (data.result === 'aborted') {
+        // TODO: handle error
+      }
+
+      if (data.result === 'internal-error') {
+        // TODO: handle error
+      }
+
+      if (data.result === 'error') {
         dispatch(setError(data));
         console.error(`${data?.errors[0].status}: ${data?.errors[0].title}`);
         console.error(`${data?.errors[0].detail}`);
-      } else {
-        console.error('Fetching Error.');
       }
+
       setLoading(false);
     })();
 
@@ -280,193 +299,129 @@ export function ReadChapterScreen({route, navigation}: Props) {
     return () => unsubscribe();
   }, [navigation]);
 
+  useFocusEffect(() => {
+    const backHandlerSub = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => {
+        if (showSettingsSheet) {
+          setShowSettingsSheet(false);
+          return true;
+        }
+        return false;
+      },
+    );
+
+    return () => backHandlerSub.remove();
+  });
+
   return (
-    <View style={styles.container}>
-      <GestureDetector gesture={gestures}>
-        <View style={styles.container}>
-          {!loading ? (
-            <Animated.FlatList
-              ref={listRef}
-              showsVerticalScrollIndicator={false}
-              showsHorizontalScrollIndicator={false}
-              data={
-                local
-                  ? localFiles
-                  : isDataSaver
-                  ? chapterPages?.chapter.dataSaver
-                  : chapterPages?.chapter.data
-              }
-              horizontal={locReadingMode === READING_MODES.HORIZONTAL}
-              snapToInterval={
-                locReadingMode === READING_MODES.HORIZONTAL
-                  ? width
-                  : locReadingMode === READING_MODES.VERTICAL
-                  ? height
-                  : undefined
-              }
-              decelerationRate={'normal'}
-              snapToAlignment={'start'}
-              scrollEnabled={!showSettingsSheet}
-              onScroll={onScroll}
-              renderItem={renderItem}
-              windowSize={locReadingMode === READING_MODES.WEBTOON ? 2 : 5}
-              initialNumToRender={
-                locReadingMode === READING_MODES.WEBTOON ? 2 : 10
-              }
-              maxToRenderPerBatch={
-                locReadingMode !== READING_MODES.WEBTOON ? 5 : 2
-              }
-              removeClippedSubviews={false}
-            />
-          ) : (
-            <View>
-              <Progress.CircleSnail />
-              <Text>loading</Text>
-            </View>
-          )}
-        </View>
-      </GestureDetector>
+    <ReadChapterScreenContext.Provider value={value}>
+      <View style={styles.container}>
+        <GestureDetector gesture={gestures}>
+          <View style={styles.container}>
+            {!loading ? (
+              <FlatList
+                ref={listRef}
+                showsVerticalScrollIndicator={false}
+                showsHorizontalScrollIndicator={false}
+                data={
+                  local
+                    ? localFiles
+                    : isDataSaver
+                    ? chapterPages?.chapter.dataSaver
+                    : chapterPages?.chapter.data
+                }
+                horizontal={locReadingMode === READING_MODES.HORIZONTAL}
+                snapToInterval={
+                  locReadingMode === READING_MODES.HORIZONTAL
+                    ? width
+                    : locReadingMode === READING_MODES.VERTICAL
+                    ? height
+                    : undefined
+                }
+                decelerationRate={'normal'}
+                snapToAlignment={'start'}
+                scrollEnabled={!showSettingsSheet}
+                onScroll={onScroll}
+                renderItem={renderItem}
+                windowSize={locReadingMode !== READING_MODES.WEBTOON ? 7 : 3}
+                initialNumToRender={
+                  locReadingMode !== READING_MODES.WEBTOON ? 10 : 2
+                }
+                maxToRenderPerBatch={
+                  locReadingMode !== READING_MODES.WEBTOON ? 10 : 2
+                }
+                removeClippedSubviews={false}
+              />
+            ) : (
+              <Progress.CircleSnail style={styles.loadingCircleSnail} />
+            )}
+          </View>
+        </GestureDetector>
 
-      <Animated.View style={[styles.chapterOverlay, chapterOverlayStyle]}>
-        <Animated.Text style={styles.chapterOverlayTitleLabel}>
-          {chapters[currentChapter].attributes.title
-            ? chapters[currentChapter].attributes.title
-            : 'Chapter ' + chapters[currentChapter].attributes.chapter}
-        </Animated.Text>
-        {chapters[currentChapter].attributes.title && (
-          <Animated.Text style={styles.chapterOverlayChapLabel}>
-            Chapter {chapters[currentChapter].attributes.chapter}
-          </Animated.Text>
-        )}
-      </Animated.View>
-
-      {showBottomOverlay && (
-        <Fragment>
-          {currentChapter !== 0 && (
-            <GestureDetector gesture={prevBtnTap}>
-              <Animated.View style={[styles.prevBtnContainer]}>
-                <Animated.Text style={styles.nextPrevLabels}>
-                  Prev Chapter
-                </Animated.Text>
-              </Animated.View>
-            </GestureDetector>
-          )}
-          {currentChapter < chapters.length - 1 && (
-            <GestureDetector gesture={nextBtnTap}>
-              <Animated.View style={[styles.nextBtnContainer]}>
-                <Animated.Text style={styles.nextPrevLabels}>
-                  Next Chapter
-                </Animated.Text>
-              </Animated.View>
-            </GestureDetector>
-          )}
-        </Fragment>
-      )}
-      {locReadingMode !== 'webtoon' && (
-        <Progress.Bar
-          progress={
-            chapterPages &&
-            parseFloat(
-              (
-                (currentPage + 1) /
-                chapterPages?.chapter.dataSaver.length
-              ).toPrecision(3),
-            )
-          }
-          style={styles.pageProgressBar}
-          width={width}
-          borderColor={white}
-          color={white}
-          height={1}
-          borderWidth={0}
-          borderRadius={0}
-        />
-      )}
-      <BottomSheet
-        showBottomSheet={showSettingsSheet}
-        setShowBottomSheet={setShowSettingsSheet}>
-        <ScrollView
-          contentContainerStyle={styles.settingsSheetScrollView}
-          showsVerticalScrollIndicator={false}
-          bounces={false}>
-          <Text style={styles.settingsSheetHeader}>
+        <Animated.View style={[styles.chapterOverlay, chapterOverlayStyle]}>
+          <Animated.Text style={styles.chapterOverlayTitleLabel}>
             {chapters[currentChapter].attributes.title
               ? chapters[currentChapter].attributes.title
-              : 'No Chapter Title'}
-          </Text>
-          <Text style={styles.settingsSheetSmall}>
-            {chapters[currentChapter].id}
-          </Text>
-          <Text style={styles.settingsSheetSmall}>
-            Chapter {chapters[currentChapter].attributes.chapter}
-          </Text>
+              : 'Chapter ' + chapters[currentChapter].attributes.chapter}
+          </Animated.Text>
+          {chapters[currentChapter].attributes.title && (
+            <Animated.Text style={styles.chapterOverlayChapLabel}>
+              Chapter {chapters[currentChapter].attributes.chapter}
+            </Animated.Text>
+          )}
+        </Animated.View>
 
-          <Text style={styles.settingsSheetSmall}>
-            Scanlator: {scanlator.attributes.name}{' '}
-          </Text>
-          <Text style={styles.settingsSheetSmall}>
-            Uploaded by User: {user.attributes.username ?? 'No User Available'}
-          </Text>
+        {showBottomOverlay && (
+          <Fragment>
+            {currentChapter !== 0 && (
+              <GestureDetector gesture={prevBtnTap}>
+                <Animated.View
+                  style={[styles.prevBtnContainer]}
+                  entering={SlideInLeft}
+                  exiting={SlideOutLeft}>
+                  <Animated.Text style={styles.nextPrevLabels}>
+                    Prev Chapter
+                  </Animated.Text>
+                </Animated.View>
+              </GestureDetector>
+            )}
+            {currentChapter < chapters.length - 1 && (
+              <GestureDetector gesture={nextBtnTap}>
+                <Animated.View
+                  style={[styles.nextBtnContainer]}
+                  entering={SlideInRight}
+                  exiting={SlideOutRight}>
+                  <Animated.Text style={styles.nextPrevLabels}>
+                    Next Chapter
+                  </Animated.Text>
+                </Animated.View>
+              </GestureDetector>
+            )}
+          </Fragment>
+        )}
 
-          <View style={styles.settingsSheetGroup}>
-            <Text style={styles.settingsSheetSmall}>Reading Mode</Text>
-            <GenericDropdown
-              items={readingModes}
-              selection={locReadingMode}
-              setSelection={setLocReadingMode}
-              onSelectionPress={() => {
-                console.log('pressed');
-                setShowBottomOverlay(false);
-              }}
-              atLeastOne
-            />
-          </View>
-          <View style={styles.settingsSheetGroup}>
-            <Text style={styles.settingsSheetSmall}>Chapter</Text>
-            <GenericDropdown
-              items={chapters.map((chapter, index) => {
-                return {
-                  label: 'Chapter ' + chapter.attributes.chapter,
-                  subLabel:
-                    (
-                      chapter.relationships.find(rs => {
-                        if (rs.type === 'scanlation_group') {
-                          return rs;
-                        }
-                      }) as res_get_group_$['data']
-                    )?.attributes.name ?? 'no scanlator',
-                  value: index,
-                };
-              })}
-              selection={currentChapter}
-              setSelection={
-                setCurrentChapter as React.Dispatch<
-                  SetStateAction<string | number | Array<string | number>>
-                >
-              }
-              onSelectionPress={() => {
-                setShowBottomOverlay(false);
-              }}
-            />
-          </View>
-          <View style={styles.settingsSheetGroupRow}>
-            <Text style={styles.settingsSheetReg}>Data Saver</Text>
-            <Switch
-              value={isDataSaver}
-              onValueChange={onDataSaverSwitchChange}
-            />
-          </View>
-
-          <Button
-            title="Go Back"
-            onButtonPress={() => {
-              navigation.goBack();
-            }}
-            containerStyle={{marginTop: 20}}
+        {locReadingMode !== 'webtoon' && (
+          <Progress.Bar
+            progress={
+              chapterPages &&
+              (currentPage + 1) / chapterPages?.chapter.dataSaver.length
+            }
+            style={styles.pageProgressBar}
+            width={width}
+            borderColor={white}
+            color={white}
+            height={1}
+            borderWidth={0}
+            borderRadius={0}
           />
-        </ScrollView>
-      </BottomSheet>
-    </View>
+        )}
+        <RCSBottomSheet
+          showBottomSheet={showSettingsSheet}
+          setShowBottomSheet={setShowSettingsSheet}
+        />
+      </View>
+    </ReadChapterScreenContext.Provider>
   );
 }
 
@@ -474,19 +429,10 @@ function getStyles(colorScheme: ColorScheme) {
   return StyleSheet.create({
     container: {
       flex: 1,
-      alignItems: 'center',
+      alignItems: 'stretch',
       justifyContent: 'center',
       width: '100%',
       backgroundColor: black,
-    },
-    bottomOverlay: {
-      alignItems: 'center',
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      position: 'absolute',
-      bottom: 20,
-      right: 0,
-      left: 0,
     },
     chapterOverlay: {
       borderRadius: 15,
@@ -519,7 +465,7 @@ function getStyles(colorScheme: ColorScheme) {
     prevBtnContainer: {
       position: 'absolute',
       bottom: 20,
-      right: 0,
+      left: 0,
       padding: 10,
       backgroundColor: colorScheme.colors.secondary,
     },
@@ -529,53 +475,13 @@ function getStyles(colorScheme: ColorScheme) {
       right: 0,
       left: 0,
     },
-    blurView: {
-      position: 'absolute',
-      top: 0,
-      bottom: 0,
-      left: 0,
-      right: 0,
-    },
-    settingsSheet: {
-      right: 0,
-      bottom: 0,
-      position: 'absolute',
-      backgroundColor: colorScheme.colors.main,
-      overflow: 'hidden',
-    },
-    settingsSheetScrollView: {
-      paddingTop: 10,
-      paddingHorizontal: 15,
-      paddingBottom: 60,
-    },
-    settingsSheetHeader: {
-      color: textColor(colorScheme.colors.main),
-      fontFamily: PRETENDARD_JP.BOLD,
-      fontSize: 18,
-    },
-    settingsSheetSmall: {
-      color: textColor(colorScheme.colors.main),
-      fontFamily: PRETENDARD_JP.REGULAR,
-      fontSize: 10,
-    },
-    settingsSheetReg: {
-      color: textColor(colorScheme.colors.main),
-      fontFamily: PRETENDARD_JP.REGULAR,
-      fontSize: 14,
+    loadingCircleSnail: {
+      alignSelf: 'center',
     },
     nextPrevLabels: {
-      color: textColor(colorScheme.colors.main),
+      color: textColor(colorScheme.colors.primary),
       fontFamily: PRETENDARD_JP.REGULAR,
       fontSize: 10,
-    },
-    settingsSheetGroup: {
-      marginBottom: 10,
-      justifyContent: 'center',
-    },
-    settingsSheetGroupRow: {
-      marginBottom: 10,
-      alignItems: 'center',
-      flexDirection: 'row',
     },
   });
 }

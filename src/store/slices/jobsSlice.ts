@@ -119,7 +119,6 @@ export const chapterDLJob = createAsyncThunk(
 
           const result = await promise;
           console.log(`${result.jobId}: ${result.statusCode}`);
-          return fulfillWithValue('success');
         }
       } catch (e) {
         console.error(e);
@@ -136,6 +135,7 @@ export const chapterDLJob = createAsyncThunk(
         return rejectWithValue('fail');
       }
       console.log('finished downloading chapter');
+      return fulfillWithValue('success');
     }
   },
 );

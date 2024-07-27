@@ -1,6 +1,5 @@
 import React, {memo} from 'react';
 import {Language} from '@constants';
-import Animated from 'react-native-reanimated';
 import FastImage, {ImageStyle} from 'react-native-fast-image';
 import {StyleProp} from 'react-native';
 
@@ -13,6 +12,7 @@ export const FlagIcon = memo(({language, style}: Props) => {
   if (!language) {
     return null;
   }
+
   if (language.includes('en')) {
     return (
       <FastImage
@@ -179,6 +179,15 @@ export const FlagIcon = memo(({language, style}: Props) => {
     return (
       <FastImage
         source={require('@assets/flagsPNG/fr.png')}
+        style={[style]}
+        resizeMode="contain"
+      />
+    );
+  }
+  if (language.includes('th')) {
+    return (
+      <FastImage
+        source={require('@assets/flagsPNG/th.png')}
         style={[style]}
         resizeMode="contain"
       />

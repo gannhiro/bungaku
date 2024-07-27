@@ -1,5 +1,7 @@
 import {ColorScheme} from '@constants';
+import {RootStackParamsList} from '@navigation';
 import {BlurView} from '@react-native-community/blur';
+import {StackNavigationProp} from '@react-navigation/stack';
 import {RootState} from '@store';
 import React, {Dispatch, ReactNode, SetStateAction, useEffect} from 'react';
 import {Dimensions, Keyboard, StyleSheet, View, ViewStyle} from 'react-native';
@@ -20,6 +22,11 @@ const {height: screenHeight, width} = Dimensions.get('screen');
 type Props = {
   showBottomSheet: boolean;
   setShowBottomSheet: Dispatch<SetStateAction<boolean>>;
+  navigation: StackNavigationProp<
+    RootStackParamsList,
+    'MangaChaptersScreen',
+    undefined
+  >;
   height?: number;
   enableHandleGesture?: boolean;
   children?: ReactNode | ReactNode[];

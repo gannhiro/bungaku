@@ -2,12 +2,13 @@ import {ColorScheme, PRETENDARD_JP} from '@constants';
 import {View, StyleSheet, Text} from 'react-native';
 import Animated, {
   SlideInRight,
+  SlideOutRight,
   useAnimatedStyle,
   useSharedValue,
   withSequence,
   withTiming,
 } from 'react-native-reanimated';
-import {GenericDropdownValues} from './GenericDropdown';
+import {GenericDropdownValues} from './Dropdown';
 import React, {Dispatch, SetStateAction, useEffect, useState} from 'react';
 import {RootState} from '@store';
 import {useSelector} from 'react-redux';
@@ -17,7 +18,7 @@ import {textColor} from '@utils';
 type Props = {
   item: GenericDropdownValues[0];
   renderBotBorder: boolean;
-  selection: string | number | null | Array<string | number>;
+  selection: string | number | null | Array<string | number | null>;
   setSelection: Dispatch<
     SetStateAction<string | number | null | Array<string | number | null>>
   >;
@@ -25,7 +26,7 @@ type Props = {
   onSelectionPress?: (value: string | number | null) => void;
 };
 
-export function GDRenderItem({
+export function DropdownRenderItem({
   item,
   selection,
   setSelection,
@@ -63,6 +64,8 @@ export function GDRenderItem({
       if (Array.isArray(selection)) {
         const temp = [...selection];
         const includedIndex = selection.findIndex(s => s === item.value);
+        console.log(includedIndex);
+        console.log(temp);
 
         if (includedIndex !== -1) {
           if (atLeastOne && temp.length === 1) {
@@ -75,7 +78,7 @@ export function GDRenderItem({
           return;
         }
 
-        temp.push(item.value ?? '');
+        temp.push(item.value);
         setSelection(temp);
         return;
       }
@@ -90,7 +93,7 @@ export function GDRenderItem({
 
   useEffect(() => {
     if (Array.isArray(selection)) {
-      const included = selection.includes(item.value ?? '');
+      const included = selection.includes(item.value);
 
       if (included) {
         setSelected(true);
@@ -118,7 +121,8 @@ export function GDRenderItem({
         </View>
         {selected && (
           <Animated.Image
-            entering={SlideInRight.delay(300)}
+            entering={SlideInRight}
+            exiting={SlideOutRight.delay(50)}
             source={require('@assets/icons/check.png')}
             style={[styles.selectionCheckIcon]}
           />

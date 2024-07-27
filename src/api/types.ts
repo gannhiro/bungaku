@@ -149,7 +149,7 @@ export type res_get_manga = {
       createdAt: string;
       updatedAt: string;
       version: number;
-      availableTranslatedLanguages: string[];
+      availableTranslatedLanguages: Array<string | null>;
       latestUploadedChapter: string;
     };
     relationships: Array<
@@ -264,7 +264,7 @@ export type get_manga_$_feed = {
   translatedLanguage?: string[];
   originalLanguage?: string[];
   excludedOriginalLanguage?: string[];
-  contentRating?: Array<CONTENT_RATING>;
+  contentRating?: Array<ContentRating>;
   excludedGroups?: string[];
   includeFutureUpdates?: string[];
   createdAtSince?: string;
@@ -604,4 +604,10 @@ export type gen_error = {
       context: string;
     },
   ];
+};
+
+export type internal_gen_error = {
+  result: 'internal-error';
+  title: string;
+  desc?: string;
 };

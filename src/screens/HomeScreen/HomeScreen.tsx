@@ -1,6 +1,6 @@
 import React from 'react';
 import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
-import {GenericTabBar} from '@components';
+import {TabBar} from '@components';
 import {AHomeScreen} from './AHomeScreen';
 import {LibraryScreen} from './LibraryScreen/LibraryScreen';
 import {SearchScreen} from './SearchScreen/SearchScreen';
@@ -18,7 +18,7 @@ export function HomeScreen() {
   return (
     <BottomTabs.Navigator
       tabBarPosition="bottom"
-      tabBar={GenericTabBar}
+      tabBar={TabBar}
       screenOptions={{lazy: true}}>
       <BottomTabs.Screen
         name="AHomeScreen"

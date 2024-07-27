@@ -1,5 +1,4 @@
 import {ColorScheme, PRETENDARD_JP} from '@constants';
-import MaskedView from '@react-native-masked-view/masked-view';
 import {RootState} from '@store';
 import {textColor} from '@utils';
 import React, {
@@ -17,22 +16,23 @@ import {
   ViewStyle,
 } from 'react-native';
 import Animated, {useAnimatedStyle, withTiming} from 'react-native-reanimated';
-import {Line, Svg} from 'react-native-svg';
 import {useSelector} from 'react-redux';
 
 type Props = {
   value: string;
   setValue: Dispatch<SetStateAction<string>>;
   style?: ViewStyle;
+  maxLength?: number;
   placeholder?: string;
   keyboardType?: KeyboardType;
   disabled?: boolean;
 };
 
-export function GenericTextInput({
+export function GTextInput({
   value,
   setValue,
   style,
+  maxLength,
   placeholder = '',
   keyboardType = 'default',
   disabled = false,
@@ -89,6 +89,7 @@ export function GenericTextInput({
         onBlur={onBlurTextInput}
         keyboardType={keyboardType}
         editable={!disabled}
+        maxLength={maxLength}
       />
     </Animated.View>
   );

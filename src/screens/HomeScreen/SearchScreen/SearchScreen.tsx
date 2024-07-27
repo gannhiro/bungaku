@@ -6,13 +6,12 @@ import {
   PUBLICATION_DEMOGRAPHIC,
   PublicationDemographic,
   get_manga,
-  res_get_author,
 } from '@api';
 import {
   BottomSheet,
   Button,
-  GenericDropdown,
-  GenericTextInput,
+  Dropdown,
+  GTextInput,
   MangaList,
 } from '@components';
 import {
@@ -44,7 +43,7 @@ import {
   View,
 } from 'react-native';
 import Animated, {
-  Layout,
+  LinearTransition,
   SlideInDown,
   SlideOutDown,
 } from 'react-native-reanimated';
@@ -63,7 +62,7 @@ export function SearchScreen({}: Props) {
     useNavigation<
       StackNavigationProp<RootStackParamsList, 'HomeScreen', undefined>
     >();
-  const {colorScheme} = useSelector(
+  const {colorScheme, pornographyOK} = useSelector(
     (state: RootState) => state.userPreferences,
   );
   const {tags} = useSelector((state: RootState) => state.mangaTags);
@@ -78,9 +77,6 @@ export function SearchScreen({}: Props) {
   const [artist, setArtist] = useState<string>('');
   const [authors, setAuthors] = useState<string[]>([]);
   const [artists, setArtists] = useState<string[]>([]);
-  const [fetchedAuthors, setFetchedAuthors] = useState<res_get_author['data']>(
-    [],
-  );
   const [includedTags, setIncludedTags] = useState<string[]>([]);
   const [publicationDemographic, setPubDemographic] = useState<
     PublicationDemographic[]
@@ -113,6 +109,7 @@ export function SearchScreen({}: Props) {
   }
 
   function onPressAddAuthorsBtn() {}
+  function onPressAddArtistsBtn() {}
 
   useEffect(() => {
     if (resetting) {
@@ -204,12 +201,10 @@ export function SearchScreen({}: Props) {
             shouldTintImage
           />
         </View>
-        <ScrollView
-          contentContainerStyle={styles.bottomSheetScrollView}
-          nestedScrollEnabled>
+        <ScrollView contentContainerStyle={styles.bottomSheetScrollView}>
           <View style={styles.filterGroup}>
             <Text style={styles.filterValueLabel}>Title</Text>
-            <GenericTextInput
+            <GTextInput
               placeholder="Title e.g. Saga of Tanya The Evil"
               value={title}
               setValue={setTitle}
@@ -220,7 +215,7 @@ export function SearchScreen({}: Props) {
               Authors (UNDER CONSTRUCTION)
             </Text>
             <View style={styles.filterInnerGroupRow}>
-              <GenericTextInput
+              <GTextInput
                 value={author}
                 setValue={setAuthor}
                 placeholder="Authors e.g. Kentaro Miura"
@@ -236,10 +231,12 @@ export function SearchScreen({}: Props) {
               />
             </View>
           </View>
-          {/* <View style={styles.filterGroup}>
-            <Text style={styles.filterValueLabel}>Artists</Text>
+          <View style={styles.filterGroup}>
+            <Text style={styles.filterValueLabel}>
+              Artists (UNDER CONSTRUCTION)
+            </Text>
             <View style={styles.filterInnerGroupRow}>
-              <GenericTextInput
+              <GTextInput
                 value={artist}
                 setValue={setArtist}
                 placeholder="Artists e.g. Yusuke Murata"
@@ -254,19 +251,20 @@ export function SearchScreen({}: Props) {
                 disabled
               />
             </View>
-          </View> */}
-          <Animated.View style={styles.filterGroup} layout={Layout}>
+          </View>
+          <Animated.View style={styles.filterGroup} layout={LinearTransition}>
             <Text style={styles.filterValueLabel}>Publication Year</Text>
-            <GenericTextInput
+            <GTextInput
               value={year}
               setValue={setYear}
               placeholder="Year e.g. 1960"
               keyboardType="number-pad"
+              maxLength={4}
             />
           </Animated.View>
           <View style={styles.filterGroup}>
             <Text style={styles.filterValueLabel}>Tags</Text>
-            <GenericDropdown
+            <Dropdown
               items={
                 tags
                   ? tags.data
@@ -284,9 +282,9 @@ export function SearchScreen({}: Props) {
               setSelection={setIncludedTags}
             />
           </View>
-          <Animated.View style={styles.filterGroup} layout={Layout}>
+          <Animated.View style={styles.filterGroup} layout={LinearTransition}>
             <Text style={styles.filterValueLabel}>Publication Demographic</Text>
-            <GenericDropdown
+            <Dropdown
               items={Object.values(PUBLICATION_DEMOGRAPHIC).map(demographic => {
                 return {
                   label: demographic,
@@ -297,9 +295,9 @@ export function SearchScreen({}: Props) {
               setSelection={setPubDemographic}
             />
           </Animated.View>
-          <Animated.View style={styles.filterGroup} layout={Layout}>
+          <Animated.View style={styles.filterGroup} layout={LinearTransition}>
             <Text style={styles.filterValueLabel}>Publication Status</Text>
-            <GenericDropdown
+            <Dropdown
               items={Object.values(MANGA_STATUS).map(status => {
                 return {
                   label: status,
@@ -310,11 +308,11 @@ export function SearchScreen({}: Props) {
               setSelection={setMangaStatus}
             />
           </Animated.View>
-          <Animated.View style={styles.filterGroup} layout={Layout}>
+          <Animated.View style={styles.filterGroup} layout={LinearTransition}>
             <Text style={styles.filterValueLabel}>
               Available Translated Languages
             </Text>
-            <GenericDropdown
+            <Dropdown
               items={Object.keys(ISO_LANGS).map(lang => {
                 return {
                   label: ISO_LANGS[lang as keyof typeof ISO_LANGS].name,
@@ -328,15 +326,25 @@ export function SearchScreen({}: Props) {
               setSelection={setLanguages}
             />
           </Animated.View>
-          <Animated.View style={styles.filterGroup} layout={Layout}>
+          <Animated.View style={styles.filterGroup} layout={LinearTransition}>
             <Text style={styles.filterValueLabel}>Content Rating</Text>
-            <GenericDropdown
-              items={Object.values(CONTENT_RATING).map(rating => {
-                return {
-                  label: rating,
-                  value: rating,
-                };
-              })}
+            <Dropdown
+              items={Object.values(CONTENT_RATING)
+                .map(rating => {
+                  return {
+                    label: rating,
+                    value: rating,
+                  };
+                })
+                .filter(value => {
+                  if (
+                    !pornographyOK &&
+                    value.value === CONTENT_RATING.PORNOGRAPHIC
+                  ) {
+                    return false;
+                  }
+                  return true;
+                })}
               selection={contentRating}
               setSelection={setContentRating}
             />

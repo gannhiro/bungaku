@@ -1,10 +1,8 @@
-import {Button} from '@components';
 import {
   ColorScheme,
   PRETENDARD_JP,
   TOP_OVERLAY_HEIGHT,
   mangaDexOrange,
-  neko,
 } from '@constants';
 import {RootState} from '@store';
 import {textColor} from '@utils';
@@ -14,13 +12,12 @@ import {
   Image,
   Linking,
   ScrollView,
-  StatusBar,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
-import {useSelector, useDispatch} from 'react-redux';
+import {useSelector} from 'react-redux';
 
 const {width} = Dimensions.get('screen');
 

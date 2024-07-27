@@ -1,7 +1,7 @@
 export * from './Button/Button';
 export * from './FlagIconV2/FlagIconV2';
-export * from './GenericDropdown/GenericDropdown';
-export * from './GenericTabBar/GenericTabBar';
+export * from './Dropdown/Dropdown';
+export * from './TabBar/TabBar';
 export * from './LibraryList/LibraryList';
 export * from './LibraryUpdates/LibraryUpdates';
 export * from './MangaList/MangaList';
@@ -14,4 +14,5 @@ export * from './MangaList/MangaListRenderItemRatingsIcon';
 export * from './MangaList/MangaListRenderItemStatIcon';
 export * from './DevelopersChoice/DevelopersChoice';
 export * from './BottomSheet/BottomSheet';
-export * from './GenericTextInput/GenericTextInput';
+export * from './GTextInput/GTextInput';
+export * from './BigIconButton/BigIconButton';
