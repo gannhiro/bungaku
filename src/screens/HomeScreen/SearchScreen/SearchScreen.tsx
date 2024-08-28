@@ -22,15 +22,11 @@ import {
   TOP_OVERLAY_HEIGHT,
   systemTeal,
 } from '@constants';
-import {RootStackParamsList} from '@navigation';
 import {MaterialTopTabScreenProps} from '@react-navigation/material-top-tabs';
-import {useFocusEffect, useNavigation} from '@react-navigation/native';
-import {StackNavigationProp} from '@react-navigation/stack';
 import {RootState} from '@store';
 import {textColor} from '@utils';
 import React, {useEffect, useState} from 'react';
 import {
-  BackHandler,
   Dimensions,
   Keyboard,
   NativeScrollEvent,
@@ -58,10 +54,6 @@ type Props = MaterialTopTabScreenProps<
 >;
 
 export function SearchScreen({}: Props) {
-  const navigation =
-    useNavigation<
-      StackNavigationProp<RootStackParamsList, 'HomeScreen', undefined>
-    >();
   const {colorScheme, pornographyOK} = useSelector(
     (state: RootState) => state.userPreferences,
   );
@@ -157,27 +149,6 @@ export function SearchScreen({}: Props) {
     title,
     year,
   ]);
-
-  useEffect(() => {
-    navigation.addListener('blur', () => {
-      setShowBottomSheet(false);
-    });
-  }, [navigation]);
-
-  useFocusEffect(() => {
-    const backHandlerSub = BackHandler.addEventListener(
-      'hardwareBackPress',
-      () => {
-        if (showBottomSheet) {
-          setShowBottomSheet(false);
-          return true;
-        }
-        return false;
-      },
-    );
-
-    return () => backHandlerSub.remove();
-  });
 
   return (
     <Animated.View style={[styles.container]}>

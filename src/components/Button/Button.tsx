@@ -16,6 +16,7 @@ import React, {useEffect, useState} from 'react';
 import Animated, {
   LinearTransition,
   runOnJS,
+  runOnUI,
   useAnimatedStyle,
   useSharedValue,
   withSequence,
@@ -60,11 +61,14 @@ export function Button({
     (state: RootState) => state.userPreferences,
   );
   const styles = getStyles(colorScheme);
-
   const [progressBarWidth, setProgressBarWidth] = useState(0);
 
   const actualTextColor =
     labelColor ?? textColor(btnColor ?? colorScheme.colors.primary);
+
+  const btnPressColor = btnColor
+    ? Color(btnColor).darken(0.7).rgb().toString()
+    : colorScheme.colors.secondary;
 
   const leftImageStyle = useAnimatedStyle(() => {
     return {
@@ -89,21 +93,15 @@ export function Button({
   });
 
   const tapGesture = Gesture.Tap()
-    .runOnJS(true)
     .enabled(!disabled)
     .onStart(() => {
-      Vibration.vibrate([0, 50], false);
       buttonBg.value = withSequence(
-        withTiming(
-          btnColor
-            ? Color(btnColor).darken(0.7).rgb().toString()
-            : colorScheme.colors.secondary,
-          {
-            duration: 100,
-          },
-        ),
+        withTiming(btnPressColor, {
+          duration: 100,
+        }),
         withTiming(btnColor ?? colorScheme.colors.primary, {duration: 100}),
       );
+      runOnJS(Vibration.vibrate)([0, 50], false);
     })
     .onEnd(() => {
       if (onButtonPress) {
@@ -116,8 +114,11 @@ export function Button({
   }
 
   useEffect(() => {
-    buttonBg.value = btnColor ?? colorScheme.colors.primary;
-    btnLabelColor.value = actualTextColor;
+    runOnUI(() => {
+      'worklet';
+      buttonBg.value = btnColor ?? colorScheme.colors.primary;
+      btnLabelColor.value = actualTextColor;
+    });
   }, [
     actualTextColor,
     btnColor,

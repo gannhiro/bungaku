@@ -9,6 +9,7 @@ import {
 import {
   CreditsScreen,
   HomeScreen,
+  KitchenSinkScreen,
   MangaChaptersScreen,
   ReadChapterScreen,
   SplashScreen,
@@ -103,6 +104,10 @@ export default function RootNavigation() {
         <Stack.Navigator
           screenOptions={stackNavOption}
           initialRouteName="SplashScreen">
+          <Stack.Screen
+            name="KitchenSinkScreen"
+            component={KitchenSinkScreen}
+          />
           <Stack.Screen name="SplashScreen" component={SplashScreen} />
           <Stack.Screen name="TestScreen" component={TestScreen} />
           <Stack.Screen name="HomeScreen" component={HomeScreen} />

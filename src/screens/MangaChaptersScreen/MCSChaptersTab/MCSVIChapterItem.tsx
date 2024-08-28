@@ -18,6 +18,7 @@ import FS from 'react-native-fs';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import * as Progress from 'react-native-progress';
 import Animated, {
+  FadeIn,
   SlideInLeft,
   runOnJS,
   useAnimatedStyle,
@@ -48,6 +49,7 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
     manga,
     chapters,
     statistics,
+    order,
     selectMode,
     setSelectMode,
     selectedChapters,
@@ -187,18 +189,19 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
     }
 
     const chapterLang = chapter?.attributes.translatedLanguage;
-    let tempInitialIndex = 0;
     const tempChapters = chapters.filter(item => {
       if (item.attributes.translatedLanguage === chapterLang) {
         return item;
       }
     });
 
-    tempChapters.forEach((item, index) => {
-      if (item.id === chapter?.id) {
-        tempInitialIndex = index;
-      }
-    });
+    let tempInitialIndex =
+      tempChapters.findIndex(item => {
+        if (item.id === chapter?.id) {
+          return true;
+        }
+        return false;
+      }) ?? 0;
 
     navigation.navigate('ReadChapterScreen', {
       mangaId: manga?.id ?? '',
@@ -252,7 +255,9 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
 
   return (
     <GestureDetector gesture={gestures}>
-      <Animated.View style={[styles.container, chapterPressableStyle]}>
+      <Animated.View
+        entering={FadeIn}
+        style={[styles.container, chapterPressableStyle]}>
         {selectMode && (
           <Animated.View entering={SlideInLeft} style={[styles.leftCheckbox]}>
             {isSelected ? (
@@ -334,7 +339,7 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
             style={styles.progBar}
             indeterminate
             borderWidth={0}
-            height={2}
+            height={3}
             width={width - 40}
             color={systemCyan}
           />

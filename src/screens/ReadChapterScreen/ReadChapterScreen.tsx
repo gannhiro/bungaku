@@ -320,7 +320,7 @@ export function ReadChapterScreen({route, navigation}: Props) {
         <GestureDetector gesture={gestures}>
           <View style={styles.container}>
             {!loading ? (
-              <FlatList
+              <Animated.FlatList
                 ref={listRef}
                 showsVerticalScrollIndicator={false}
                 showsHorizontalScrollIndicator={false}
@@ -344,13 +344,10 @@ export function ReadChapterScreen({route, navigation}: Props) {
                 scrollEnabled={!showSettingsSheet}
                 onScroll={onScroll}
                 renderItem={renderItem}
-                windowSize={locReadingMode !== READING_MODES.WEBTOON ? 7 : 3}
                 initialNumToRender={
-                  locReadingMode !== READING_MODES.WEBTOON ? 10 : 2
+                  locReadingMode !== READING_MODES.WEBTOON ? 10 : 5
                 }
-                maxToRenderPerBatch={
-                  locReadingMode !== READING_MODES.WEBTOON ? 10 : 2
-                }
+                maxToRenderPerBatch={10}
                 removeClippedSubviews={false}
               />
             ) : (
@@ -439,6 +436,8 @@ function getStyles(colorScheme: ColorScheme) {
       backgroundColor: colorScheme.colors.main + 90,
       width: width * 0.6,
       position: 'absolute',
+      left: 0,
+      right: 0,
       bottom: height * 0.3,
       alignItems: 'center',
       justifyContent: 'center',

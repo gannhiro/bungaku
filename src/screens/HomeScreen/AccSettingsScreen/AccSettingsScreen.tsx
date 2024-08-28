@@ -1,3 +1,19 @@
+import {
+  APP_BUILD,
+  APP_NAME,
+  ColorScheme,
+  OTOMANOPEE,
+  PRETENDARD_JP,
+  systemGray1,
+  systemGray2,
+  systemTeal,
+} from '@constants';
+import {RootStackParamsList} from '@navigation';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {useNavigation} from '@react-navigation/native';
+import {StackNavigationProp} from '@react-navigation/stack';
+import {RootState, setDataSaver, setPornographyVis} from '@store';
+import {textColor} from '@utils';
 import React, {Fragment} from 'react';
 import {
   Alert,
@@ -11,37 +27,14 @@ import {
   StyleSheet,
   Switch,
   Text,
-  ToastAndroid,
   TouchableOpacity,
   View,
 } from 'react-native';
-import {useDispatch, useSelector} from 'react-redux';
-import {
-  APP_BUILD,
-  APP_NAME,
-  ColorScheme,
-  OTOMANOPEE,
-  PRETENDARD_JP,
-  systemGray1,
-  systemGray2,
-  systemTeal,
-} from '@constants';
-import {
-  RootState,
-  setDataSaver,
-  setPornographyVis,
-  setReadingMode,
-} from '@store';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import {useNavigation} from '@react-navigation/native';
-import {RootStackParamsList} from '@navigation';
-import {StackNavigationProp} from '@react-navigation/stack';
-import {textColor} from '@utils';
-import {READING_MODES} from '@screens';
 import {
   InAppBrowser,
   InAppBrowserAndroidOptions,
 } from 'react-native-inappbrowser-reborn';
+import {useDispatch, useSelector} from 'react-redux';
 
 export type Settings = {
   title: string;
@@ -65,8 +58,9 @@ export function AccSettingsScreen() {
     >();
   const dispatch = useDispatch();
   const preferences = useSelector((state: RootState) => state.userPreferences);
-  const {colorScheme, preferDataSaver, pornographyOK, readingMode} =
-    useSelector((state: RootState) => state.userPreferences);
+  const {colorScheme, preferDataSaver, pornographyOK} = useSelector(
+    (state: RootState) => state.userPreferences,
+  );
   const styles = getStyles(colorScheme);
   const browserSettings: InAppBrowserAndroidOptions = {
     enableUrlBarHiding: false,
@@ -233,6 +227,12 @@ export function AccSettingsScreen() {
       label: 'Clear AsyncStorage',
       onPress: async () => {
         await AsyncStorage.clear();
+      },
+    },
+    {
+      label: 'Go to kitchen sink',
+      onPress: async () => {
+        navigation.navigate('KitchenSinkScreen');
       },
     },
   ];

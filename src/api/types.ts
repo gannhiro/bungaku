@@ -78,6 +78,13 @@ export enum RELATIONSHIP_TYPES {
   CUSTOM_LIST = 'custom_list',
 }
 
+export enum ORDER {
+  ASCENDING = 'asc',
+  DESCENDING = 'desc',
+}
+
+export type Ordering = `${ORDER}`;
+
 export type get_manga = {
   limit: number;
   offset: number;

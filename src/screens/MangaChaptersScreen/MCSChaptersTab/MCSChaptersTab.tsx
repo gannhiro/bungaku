@@ -1,4 +1,4 @@
-import {res_get_author_$, res_get_manga_$_feed} from '@api';
+import {ORDER, Ordering, res_get_author_$, res_get_manga_$_feed} from '@api';
 import {
   BigIconButton,
   BottomSheet,
@@ -12,7 +12,6 @@ import {
   ISO_LANGS,
   PRETENDARD_JP,
   TOP_OVERLAY_HEIGHT,
-  white,
 } from '@constants';
 import Clipboard from '@react-native-clipboard/clipboard';
 import {MaterialTopTabScreenProps} from '@react-navigation/material-top-tabs';
@@ -24,6 +23,7 @@ import {
   Dimensions,
   ScrollView,
   StyleSheet,
+  Switch,
   Text,
   TouchableOpacity,
   View,
@@ -51,11 +51,6 @@ type Props = MaterialTopTabScreenProps<
 
 const {height, width} = Dimensions.get('screen');
 
-const orderingValues: GenericDropdownValues = [
-  {label: 'Ascending', value: 'asc'},
-  {label: 'Descending', value: 'desc'},
-];
-
 export function MCSChaptersTab({}: Props) {
   const jobs = useSelector((state: RootState) => state.jobs);
   const {colorScheme} = useSelector(
@@ -66,10 +61,15 @@ export function MCSChaptersTab({}: Props) {
   const {
     manga,
     chapters,
+    setChapters,
     onAddToLibPress,
     loading,
     loadingProgress,
     loadingText,
+    showDownloadedChapters,
+    setShowDownloadedChapters,
+    order,
+    setOrder,
   } = useMangaChaptersScreenContext();
 
   const listRef = useRef<FlashList<res_get_manga_$_feed['data'][0]>>(null);
@@ -141,8 +141,22 @@ export function MCSChaptersTab({}: Props) {
     Clipboard.setString(url);
   }
 
-  function filterIconOnPress() {
+  function onPressFilterIcon() {
     setShowBottomSheet(!showBottomSheet);
+  }
+
+  function onPressShowDownloadedChaptersSwitch() {
+    setShowDownloadedChapters(!showDownloadedChapters);
+  }
+
+  function onPressOrderSwitch() {
+    setChapters(chapters.reverse());
+    if (order === ORDER.ASCENDING) {
+      setOrder(ORDER.DESCENDING);
+    }
+    if (order === ORDER.DESCENDING) {
+      setOrder(ORDER.ASCENDING);
+    }
   }
 
   return (
@@ -196,20 +210,19 @@ export function MCSChaptersTab({}: Props) {
           <FlashList
             ref={listRef}
             contentContainerStyle={styles.chapListContent}
-            // data={chapters.filter(chapter => {
-            //   let shouldReturn = true;
-            //   if (
-            //     languages.length > 0 &&
-            //     !languages.includes(chapter.attributes.translatedLanguage)
-            //   ) {
-            //     shouldReturn = false;
-            //   }
+            data={chapters.filter(chapter => {
+              let shouldReturn = true;
+              if (
+                languages.length > 0 &&
+                !languages.includes(chapter.attributes.translatedLanguage)
+              ) {
+                shouldReturn = false;
+              }
 
-            //   return shouldReturn;
-            // })}
-            data={chapters}
+              return shouldReturn;
+            })}
             renderItem={renderItem}
-            showsVerticalScrollIndicator={false}
+            showsVerticalScrollIndicator={true}
             estimatedItemSize={height / 13 + 10}
             estimatedListSize={{height, width}}
           />
@@ -225,7 +238,7 @@ export function MCSChaptersTab({}: Props) {
             size={width * 0.3}
             thickness={2}
             borderWidth={0}
-            color={colorScheme.colors.primary}
+            color={textColor(colorScheme.colors.main)}
             style={styles.loadingCircleSnail}
           />
           <Text style={styles.loadingLabel}>{loadingText}</Text>
@@ -236,40 +249,57 @@ export function MCSChaptersTab({}: Props) {
         setShowBottomSheet={setShowBottomSheet}
         style={styles.bottomSheet}>
         <ScrollView contentContainerStyle={styles.bottomSheetScrollView}>
+          {inLibrary && (
+            <Animated.View
+              style={styles.bottomSheetGroupRow}
+              layout={LinearTransition}>
+              <Text style={styles.bottomSheetLabel}>
+                Downloaded Chapters Only
+              </Text>
+              <Switch
+                value={showDownloadedChapters}
+                onChange={onPressShowDownloadedChaptersSwitch}
+              />
+            </Animated.View>
+          )}
           {availableLanguages.length > 1 && (
-            <View>
-              <Text>Languages</Text>
+            <Animated.View
+              style={styles.bottomSheetGroup}
+              layout={LinearTransition}>
+              <Text style={styles.bottomSheetLabel}>Languages</Text>
               <Dropdown
                 items={availableLanguages}
                 selection={languages}
                 setSelection={setLanguages}
-                onDropdownPress={() => {
-                  console.log(availableLanguages.length);
-                }}
               />
-            </View>
+            </Animated.View>
           )}
-          <Animated.View layout={LinearTransition}>
-            <Text>Ordering</Text>
-            <Dropdown
-              items={availableLanguages}
-              selection={languages}
-              setSelection={setLanguages}
-              onDropdownPress={() => {
-                console.log(availableLanguages.length);
-              }}
+          <Animated.View
+            style={styles.bottomSheetGroupRow}
+            layout={LinearTransition}>
+            <Text style={styles.bottomSheetLabel}>
+              {order === ORDER.ASCENDING ? 'Ascending' : 'Descending'}
+            </Text>
+            <Switch
+              value={order === ORDER.DESCENDING}
+              onChange={onPressOrderSwitch}
             />
           </Animated.View>
         </ScrollView>
       </BottomSheet>
-      <Animated.View style={[styles.filterContainer]}>
-        <TouchableOpacity onPress={filterIconOnPress}>
-          <Animated.Image
-            source={require('@assets/icons/filter-multiple.png')}
-            style={styles.filterIcon}
-          />
-        </TouchableOpacity>
-      </Animated.View>
+      {!loading && (
+        <Animated.View
+          style={[styles.filterContainer]}
+          entering={FadeIn}
+          exiting={FadeOut}>
+          <TouchableOpacity onPress={onPressFilterIcon}>
+            <Animated.Image
+              source={require('@assets/icons/filter-multiple.png')}
+              style={styles.filterIcon}
+            />
+          </TouchableOpacity>
+        </Animated.View>
+      )}
     </View>
   );
 }
@@ -304,29 +334,14 @@ function getStyles(colorScheme: ColorScheme) {
       marginRight: 5,
       color: textColor(colorScheme.colors.main),
     },
-    libraryIconPressable: {
-      padding: 5,
-      borderWidth: 2,
-      borderColor: colorScheme.colors.primary,
-      borderRadius: 8,
-      marginRight: 10,
-    },
-    libraryIcon: {
-      height: 30,
-      width: 30,
-      tintColor: colorScheme.colors.primary,
-    },
     dotsIconCont: {
       position: 'absolute',
       top: TOP_OVERLAY_HEIGHT,
       right: 20,
     },
-    dotsIcon: {
-      height: 30,
-      width: 30,
-      tintColor: white,
-    },
     loadingContainer: {
+      alignItems: 'center',
+      justifyContent: 'center',
       position: 'absolute',
       top: '50%',
     },
@@ -376,6 +391,23 @@ function getStyles(colorScheme: ColorScheme) {
       padding: 15,
       paddingBottom: 80,
     },
+    bottomSheetGroup: {
+      alignItems: 'stretch',
+      justifyContent: 'center',
+      marginBottom: 10,
+    },
+    bottomSheetGroupRow: {
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      flexDirection: 'row',
+      marginBottom: 10,
+    },
+    bottomSheetLabel: {
+      fontSize: 12,
+      fontFamily: PRETENDARD_JP.SEMIBOLD,
+      color: textColor(colorScheme.colors.main),
+      marginBottom: 5,
+    },
     pressableIcons: {
       width: 30,
       height: 30,
@@ -389,6 +421,8 @@ function getStyles(colorScheme: ColorScheme) {
     },
     flashListContainer: {
       flex: 1,
+      alignSelf: 'stretch',
+      alignItems: 'stretch',
     },
   });
 }

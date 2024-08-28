@@ -1,5 +1,5 @@
 import {ColorScheme} from '@constants';
-import React, {memo, useInsertionEffect, useState} from 'react';
+import React, {memo, useEffect, useState} from 'react';
 import {Dimensions, Image, StyleSheet} from 'react-native';
 import FastImage from 'react-native-fast-image';
 import {Gesture} from 'react-native-gesture-handler';
@@ -54,7 +54,7 @@ export const RCSChapterImages = memo(
       }
     }
 
-    useInsertionEffect(() => {
+    useEffect(() => {
       if (locReadingMode === READING_MODES.WEBTOON) {
         Image.getSize(
           url,

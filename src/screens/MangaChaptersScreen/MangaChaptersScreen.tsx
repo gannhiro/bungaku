@@ -1,4 +1,6 @@
 import {
+  ORDER,
+  Ordering,
   get_manga_$_feed,
   get_statistics_manga,
   mangadexAPI,
@@ -12,7 +14,6 @@ import {RootStackParamsList} from '@navigation';
 import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
 import {StackScreenProps} from '@react-navigation/stack';
 import {RootState, setError} from '@store';
-import {ChapterDetails, MangaDetails} from '@types';
 import {useInternetConn} from '@utils';
 import React, {useEffect, useRef, useState} from 'react';
 import {Dimensions, Image, StyleSheet, View} from 'react-native';
@@ -61,6 +62,12 @@ export function MangaChaptersScreen({route, navigation}: Props) {
         };
       }
     });
+
+  const orderItems: GenericDropdownValues = [
+    {label: 'Ascending', value: 'asc'},
+    {label: 'Descending', value: 'desc'},
+  ];
+
   const coverItem = manga.relationships.find(rs => rs.type === 'cover_art') as
     | res_get_cover_$['data']
     | undefined;
@@ -71,12 +78,15 @@ export function MangaChaptersScreen({route, navigation}: Props) {
   const [statistics, setStatistics] = useState<res_get_statistics_manga | null>(
     null,
   );
+  const [sourceChapters, setSourcecChapters] = useState<
+    res_get_manga_$_feed['data'] | null
+  >(null);
   const [chapters, setChapters] = useState<res_get_manga_$_feed['data']>([]);
   const [loading, setLoading] = useState(true);
   const [languages, setLanguages] = useState<Array<Language>>([]);
   const [selectMode, setSelectMode] = useState(false);
   const [selectedChapters, setSelectedChapters] = useState<string[]>([]);
-  const [order, setOrder] = useState<string[]>([]);
+  const [order, setOrder] = useState<Ordering>('desc');
   const [showDownloadedChapters, setShowDownloadedChapters] = useState(false);
 
   const abortController = useRef<AbortController | null>(null);
@@ -96,6 +106,7 @@ export function MangaChaptersScreen({route, navigation}: Props) {
     loading,
     loadingProgress,
     loadingText,
+    setChapters,
     setLoadingProgress,
     setLoadingText,
     setLoading,
@@ -103,6 +114,11 @@ export function MangaChaptersScreen({route, navigation}: Props) {
     setSelectMode,
     selectedChapters,
     setSelectedChapters,
+    showDownloadedChapters,
+    setShowDownloadedChapters,
+    order,
+    setOrder,
+    orderItems,
   };
 
   useEffect(() => {
@@ -110,9 +126,8 @@ export function MangaChaptersScreen({route, navigation}: Props) {
       setLoading(true);
       setLoadingProgress(0);
 
-      //check for internet
       const tempDownloadedChapters: res_get_manga_$_feed['data'] = [];
-      if (intError || showDownloadedChapters) {
+      if (showDownloadedChapters) {
         // check for stats locally
         const mangaData = JSON.parse(
           await FS.readFile(
@@ -125,6 +140,7 @@ export function MangaChaptersScreen({route, navigation}: Props) {
         const directories = await FS.readDir(
           `${FS.DocumentDirectoryPath}/manga/${manga.id}`,
         );
+
         for (let i = 0; i < directories.length; i++) {
           if (directories[i].isFile()) {
             continue;
@@ -132,6 +148,11 @@ export function MangaChaptersScreen({route, navigation}: Props) {
           const langDirectories = await FS.readDir(
             `${FS.DocumentDirectoryPath}/manga/${manga.id}/${directories[i].name}`,
           );
+
+          if (langDirectories.length === 0) {
+            continue;
+          }
+
           for (let j = 0; j < langDirectories.length; j++) {
             const chapDetails = JSON.parse(
               await FS.readFile(
@@ -199,7 +220,7 @@ export function MangaChaptersScreen({route, navigation}: Props) {
           {
             limit: limit,
             offset: offset,
-            order: {volume: 'desc', chapter: 'desc'},
+            order: {volume: ORDER.DESCENDING, chapter: ORDER.DESCENDING},
             includes: ['scanlation_group', 'user'],
             contentRating: ['safe', 'suggestive', 'erotica', 'pornographic'],
           },
@@ -242,11 +263,12 @@ export function MangaChaptersScreen({route, navigation}: Props) {
       setLoadingProgress(1);
 
       setTimeout(() => {
+        setSourcecChapters(tempChapters);
         setChapters(tempChapters);
         setLoading(false);
       }, 500);
     })();
-  }, [dispatch, languages, manga, intError, showDownloadedChapters]);
+  }, [dispatch, languages, manga, showDownloadedChapters]);
 
   useEffect(() => {
     const navSubscription = navigation.addListener('blur', () => {
