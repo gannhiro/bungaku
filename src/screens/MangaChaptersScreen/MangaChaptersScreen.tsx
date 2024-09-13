@@ -127,7 +127,7 @@ export function MangaChaptersScreen({route, navigation}: Props) {
       setLoadingProgress(0);
 
       const tempDownloadedChapters: res_get_manga_$_feed['data'] = [];
-      if (showDownloadedChapters) {
+      if (showDownloadedChapters || intError) {
         // check for stats locally
         const mangaData = JSON.parse(
           await FS.readFile(

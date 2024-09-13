@@ -21,7 +21,7 @@ import {useDispatch, useSelector} from 'react-redux';
 
 type Props = StackScreenProps<RootStackParamsList, 'SplashScreen'>;
 
-export function SplashScreen({navigation}: Props) {
+export function SplashScreen({navigation, route}: Props) {
   const preferences = useSelector((state: RootState) => state.userPreferences);
   const {tags} = useSelector((state: RootState) => state.mangaTags);
   const styles = getStyles(preferences.colorScheme);
@@ -90,10 +90,11 @@ export function SplashScreen({navigation}: Props) {
           {},
           [],
         );
-        if (data && data.result === 'ok') {
+        if (data.result === 'ok') {
           dispatch(setMangaTags(data));
           await AsyncStorage.setItem('tags', JSON.stringify(data));
-        } else if (data && data.result === 'error') {
+        }
+        if (data.result === 'error') {
           dispatch(setError(data));
         }
       } else {

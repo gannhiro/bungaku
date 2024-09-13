@@ -32,6 +32,7 @@ import {
 } from 'react-native-gesture-handler';
 import * as Progress from 'react-native-progress';
 import Animated, {
+  runOnJS,
   SlideInLeft,
   SlideInRight,
   SlideOutLeft,
@@ -88,21 +89,20 @@ export function ReadChapterScreen({route, navigation}: Props) {
 
   const scanlator = chapters[currentChapter].relationships.find(
     rs => rs.type === 'scanlation_group',
-  ) as res_get_group_$['data'];
+  ) as res_get_group_$['data'] | undefined;
 
   const user = chapters[currentChapter].relationships.find(
     rs => rs.type === 'user',
-  ) as res_get_user_$['data'];
+  ) as res_get_user_$['data'] | undefined;
 
   const listRef = useRef<FlatList<string>>(null);
 
   const swipeUp = Gesture.Fling()
     .enabled(locReadingMode === READING_MODES.HORIZONTAL)
-    .runOnJS(true)
     .direction(Directions.UP)
     .onEnd(() => {
       console.log('swiped up!');
-      setShowSettingsSheet(!showSettingsSheet);
+      runOnJS(setShowSettingsSheet)(!showSettingsSheet);
     });
 
   const swipeLeft = Gesture.Fling()
@@ -125,7 +125,7 @@ export function ReadChapterScreen({route, navigation}: Props) {
         setShowSettingsSheet(false);
         return;
       }
-      if (locReadingMode === 'webtoon') {
+      if (locReadingMode === READING_MODES.WEBTOON) {
         return;
       }
       if (!endReached) {
@@ -213,6 +213,8 @@ export function ReadChapterScreen({route, navigation}: Props) {
     isDataSaver,
     onDataSaverSwitchChange,
   };
+
+  useEffect(() => {}, []);
 
   useEffect(() => {
     setLoading(true);
@@ -347,7 +349,7 @@ export function ReadChapterScreen({route, navigation}: Props) {
                 initialNumToRender={
                   locReadingMode !== READING_MODES.WEBTOON ? 10 : 5
                 }
-                maxToRenderPerBatch={10}
+                windowSize={5}
                 removeClippedSubviews={false}
               />
             ) : (
@@ -439,6 +441,7 @@ function getStyles(colorScheme: ColorScheme) {
       left: 0,
       right: 0,
       bottom: height * 0.3,
+      alignSelf: 'center',
       alignItems: 'center',
       justifyContent: 'center',
       padding: 10,

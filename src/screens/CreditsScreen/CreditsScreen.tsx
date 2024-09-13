@@ -17,6 +17,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import InAppBrowser from 'react-native-inappbrowser-reborn';
 import {useSelector} from 'react-redux';
 
 const {width} = Dimensions.get('screen');
@@ -29,29 +30,17 @@ export function CreditsScreen() {
 
   async function onSupportBtnPress() {
     const url = 'https://namicomi.com/en/org/3Hb7HnWG/mangadex/subscriptions';
-    const canOpen = await Linking.canOpenURL(url);
-
-    if (canOpen) {
-      Linking.openURL(url);
-    }
+    InAppBrowser.open(url);
   }
 
   async function onNekoBtnPress() {
     const url = 'https://github.com/nekomangaorg/Neko/releases';
-    const canOpen = await Linking.canOpenURL(url);
-
-    if (canOpen) {
-      Linking.openURL(url);
-    }
+    InAppBrowser.open(url);
   }
 
   async function onPressMe() {
     const url = 'https://github.com/gannhiro/gannhiro';
-    const canOpen = await Linking.canOpenURL(url);
-
-    if (canOpen) {
-      await Linking.openURL(url);
-    }
+    InAppBrowser.open(url);
   }
 
   return (

@@ -3,7 +3,8 @@ import {ColorScheme, PRETENDARD_JP, mangaDexOrange, neko} from '@constants';
 import {RootState} from '@store';
 import {textColor} from '@utils';
 import React from 'react';
-import {Linking, ScrollView, StyleSheet, View} from 'react-native';
+import {ScrollView, StyleSheet, View} from 'react-native';
+import InAppBrowser from 'react-native-inappbrowser-reborn';
 import {useSelector} from 'react-redux';
 import {HSJumboList} from './HSJumboList/HSJumboList';
 
@@ -15,20 +16,12 @@ export function AHomeScreen() {
 
   async function onSupportBtnPress() {
     const url = 'https://namicomi.com/en/org/3Hb7HnWG/mangadex/subscriptions';
-    const canOpen = await Linking.canOpenURL(url);
-
-    if (canOpen) {
-      Linking.openURL(url);
-    }
+    InAppBrowser.open(url);
   }
 
   async function onNekoBtnPress() {
     const url = 'https://github.com/nekomangaorg/Neko/releases';
-    const canOpen = await Linking.canOpenURL(url);
-
-    if (canOpen) {
-      Linking.openURL(url);
-    }
+    InAppBrowser.open(url);
   }
 
   return (

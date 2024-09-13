@@ -1,5 +1,12 @@
 import React, {useEffect, useState} from 'react';
-import {Dimensions, Image, StatusBar, StyleSheet, Text} from 'react-native';
+import {
+  Dimensions,
+  Image,
+  SafeAreaView,
+  StatusBar,
+  StyleSheet,
+  Text,
+} from 'react-native';
 import Animated, {
   SlideInDown,
   SlideInUp,
@@ -47,11 +54,13 @@ export function Overlay({children}: Props) {
           entering={SlideInUp}
           exiting={SlideOutUp}
           style={[styles.internetErrorOverlay]}>
-          <Text style={styles.noInternetLabel}>No Internet</Text>
-          <Image
-            source={require('@assets/icons/wifi-off.png')}
-            style={styles.wifiSlashIcon}
-          />
+          <SafeAreaView style={{flexDirection: 'row', alignItems: 'center'}}>
+            <Text style={styles.noInternetLabel}>No Internet</Text>
+            <Image
+              source={require('@assets/icons/wifi-off.png')}
+              style={styles.wifiSlashIcon}
+            />
+          </SafeAreaView>
         </Animated.View>
       )}
       {error && (
@@ -83,12 +92,10 @@ function getStyles(colorScheme: ColorScheme) {
       paddingTop: StatusBar.currentHeight ?? 0,
       backgroundColor: systemRed,
       alignItems: 'center',
-      justifyContent: 'center',
       position: 'absolute',
       top: 0,
       left: 0,
       right: 0,
-      flexDirection: 'row',
     },
     noInternetLabel: {
       fontFamily: PRETENDARD_JP.REGULAR,

@@ -16,6 +16,7 @@ import React, {memo, useEffect, useState} from 'react';
 import {Dimensions, Image, StyleSheet, Text, Vibration} from 'react-native';
 import FS from 'react-native-fs';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
+import InAppBrowser from 'react-native-inappbrowser-reborn';
 import * as Progress from 'react-native-progress';
 import Animated, {
   FadeIn,
@@ -47,9 +48,9 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
   const styles = getStyles(colorScheme);
   const {
     manga,
+    order,
     chapters,
     statistics,
-    order,
     selectMode,
     setSelectMode,
     selectedChapters,
@@ -185,6 +186,11 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
       } else {
         setSelectedChapters([...selectedChapters, chapter.id]);
       }
+      return;
+    }
+    console.log(chapter.attributes.externalUrl);
+    if (chapter.attributes.externalUrl) {
+      InAppBrowser.open(chapter.attributes.externalUrl);
       return;
     }
 

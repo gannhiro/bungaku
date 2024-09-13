@@ -5,6 +5,7 @@ import {AHomeScreen} from './AHomeScreen';
 import {LibraryScreen} from './LibraryScreen/LibraryScreen';
 import {SearchScreen} from './SearchScreen/SearchScreen';
 import {AccSettingsScreen} from './AccSettingsScreen/AccSettingsScreen';
+import {useLabels} from '@constants';
 
 export type HomeBottomTabsParamsList = {
   AHomeScreen: undefined;
@@ -15,6 +16,8 @@ export type HomeBottomTabsParamsList = {
 const BottomTabs = createMaterialTopTabNavigator<HomeBottomTabsParamsList>();
 
 export function HomeScreen() {
+  const labels = useLabels();
+
   return (
     <BottomTabs.Navigator
       tabBarPosition="bottom"
@@ -23,22 +26,22 @@ export function HomeScreen() {
       <BottomTabs.Screen
         name="AHomeScreen"
         component={AHomeScreen}
-        options={{title: 'Home'}}
+        options={{title: labels.homeScreen.home}}
       />
       <BottomTabs.Screen
         name="SearchScreen"
         component={SearchScreen}
-        options={{title: 'Search'}}
+        options={{title: labels.homeScreen.search}}
       />
       <BottomTabs.Screen
         name="LibraryScreen"
         component={LibraryScreen}
-        options={{title: 'Library'}}
+        options={{title: labels.homeScreen.library}}
       />
       <BottomTabs.Screen
         name="AccSettingsScreen"
         component={AccSettingsScreen}
-        options={{title: 'Account'}}
+        options={{title: labels.homeScreen.account}}
       />
     </BottomTabs.Navigator>
   );

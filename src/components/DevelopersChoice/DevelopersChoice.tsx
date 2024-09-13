@@ -48,14 +48,14 @@ export function DevelopersChoice({}: Props) {
         },
         [],
       );
-
-      if (data?.result === 'error' || !data) {
+      if (data?.result === 'ok') {
+        setMangas(data.data);
+      }
+      if (data?.result === 'error') {
         setError(true);
-        setLoading(false);
         return;
       }
 
-      setMangas(data.data);
       setLoading(false);
     })();
   }, []);
@@ -68,9 +68,8 @@ export function DevelopersChoice({}: Props) {
         renderItem={renderItem}
         contentContainerStyle={styles.listCont}
         showsHorizontalScrollIndicator={false}
-        snapToInterval={width}
-        snapToAlignment="start"
         initialNumToRender={Object.keys(DEVS_CHOICE).length}
+        ItemSeparatorComponent={<View style={{width: 15}} />}
         horizontal
       />
     </View>
@@ -81,13 +80,12 @@ function getStyles(colorScheme: ColorScheme) {
   return StyleSheet.create({
     container: {
       marginBottom: 50,
-      height: height * 0.3 + 22,
+      marginHorizontal: 15,
     },
     header: {
       color: textColor(colorScheme.colors.main),
       fontFamily: PRETENDARD_JP.SEMIBOLD,
       fontSize: 12,
-      marginLeft: 15,
       marginBottom: 5,
     },
     listCont: {},

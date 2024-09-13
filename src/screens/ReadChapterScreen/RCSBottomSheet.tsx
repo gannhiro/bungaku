@@ -56,10 +56,10 @@ export function RCSBottomSheet({showBottomSheet, setShowBottomSheet}: Props) {
         </Text>
 
         <Text style={styles.settingsSheetSmall}>
-          Scanlator: {scanlator.attributes.name}{' '}
+          Scanlator: {scanlator?.attributes.name ?? 'No Scanlator'}
         </Text>
         <Text style={styles.settingsSheetSmall}>
-          Uploaded by User: {user.attributes.username ?? 'No User Available'}
+          Uploaded by User: {user?.attributes.username ?? 'No User Available'}
         </Text>
 
         <View style={styles.settingsSheetGroup}>

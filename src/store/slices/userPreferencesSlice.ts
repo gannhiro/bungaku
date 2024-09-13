@@ -1,6 +1,6 @@
 import {createSlice} from '@reduxjs/toolkit';
 import {PayloadAction} from '@reduxjs/toolkit';
-import type {RootState} from '../store';
+import type {RootState} from '@store';
 import {CONFIG, Config} from '../../../config';
 import {ColorScheme, Language} from '@constants';
 import {READING_MODES} from '@screens';
@@ -26,7 +26,7 @@ export const userPreferencesSlice = createSlice({
     setDataSaver: (state, action: PayloadAction<boolean>) => {
       state.preferDataSaver = action.payload;
     },
-    setPrefLanguage: (state, action: PayloadAction<Language>) => {
+    setInterfaceLanguage: (state, action: PayloadAction<Language>) => {
       state.language = action.payload;
     },
     setConfig: (state, action: PayloadAction<Config>) => {
@@ -55,6 +55,7 @@ export const {
   setPreferSystemColor,
   setDataSaver,
   setPornographyVis,
+  setInterfaceLanguage,
 } = userPreferencesSlice.actions;
 export const userPreferences = (state: RootState) => state.userPreferences;
 export default userPreferencesSlice.reducer;

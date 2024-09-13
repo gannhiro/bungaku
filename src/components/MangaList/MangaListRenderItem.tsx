@@ -48,15 +48,25 @@ export const MangaListRenderItem = memo(({manga}: Props) => {
     (state: RootState) => state.userPreferences,
   );
   const {libraryList} = useSelector((state: RootState) => state.libraryList);
+  const {language} = useSelector((state: RootState) => state.userPreferences);
   const [loadingCover, setLoadingCover] = useState(true);
   const [coverRetries, setCoverRetries] = useState(0);
   const [coverError, setCoverError] = useState(false);
 
+  const mangaTitle =
+    manga.attributes.title[language] ??
+    manga.attributes.altTitles.find(altTitle => {
+      if (altTitle[language]) {
+        return true;
+      }
+      return false;
+    })?.[language] ??
+    manga.attributes.title.en ??
+    'NO TITLE!';
   const coverItem = manga.relationships.find(rs => rs.type === 'cover_art') as
     | res_get_cover_$['data']
     | undefined;
   const url = `https://uploads.mangadex.org/covers/${manga.id}/${coverItem?.attributes.fileName}`;
-
   const inLibrary = libraryList.findIndex(id => id === manga.id);
 
   const itemScale = useSharedValue(1);
@@ -139,9 +149,7 @@ export const MangaListRenderItem = memo(({manga}: Props) => {
               />
             </View>
             <Text style={styles.overlayDetailsTitle} numberOfLines={2}>
-              {manga.attributes.title.en !== undefined
-                ? manga.attributes.title.en
-                : 'No Title'}
+              {mangaTitle}
             </Text>
           </View>
         </View>

@@ -14,8 +14,8 @@ export interface iReadChapterScreenContext {
   chapters: res_get_manga_$_feed['data'];
   currentChapter: number;
   setCurrentChapter: Dispatch<SetStateAction<number>>;
-  scanlator: res_get_group_$['data'];
-  user: res_get_user_$['data'];
+  scanlator?: res_get_group_$['data'];
+  user?: res_get_user_$['data'];
   readingModes: GenericDropdownValues;
   locReadingMode: ReadingMode;
   setLocReadingMode: Dispatch<SetStateAction<ReadingMode>>;

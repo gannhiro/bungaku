@@ -21,11 +21,11 @@ import React, {useEffect, useState} from 'react';
 import {StatusBar, useColorScheme} from 'react-native';
 import changeNavigationBarColor from 'react-native-navigation-bar-color';
 import {useDispatch, useSelector} from 'react-redux';
-import {ThemeModal, AddToLibraryModal} from '@modals';
+import {ThemeModal, AddToLibraryModal, LanguageModal} from '@modals';
 import {RootStackParamsList} from './types';
 import {UpdatedMangaData} from '@types';
 
-const Stack = createStackNavigator<RootStackParamsList>();
+export const Stack = createStackNavigator<RootStackParamsList>();
 
 export default function RootNavigation() {
   const dispatch = useDispatch();
@@ -122,6 +122,11 @@ export default function RootNavigation() {
           <Stack.Screen
             name="ThemeModal"
             component={ThemeModal}
+            options={{presentation: 'transparentModal'}}
+          />
+          <Stack.Screen
+            name="LanguageModal"
+            component={LanguageModal}
             options={{presentation: 'transparentModal'}}
           />
           <Stack.Screen

@@ -9,6 +9,7 @@ import {
 import {ReadingMode} from '@screens';
 
 export type RootStackParamsList = {
+  KitchenSinkScreen: undefined;
   SplashScreen: undefined;
   HomeScreen: undefined;
   TestScreen: undefined;
@@ -30,5 +31,5 @@ export type RootStackParamsList = {
     manga: res_get_manga['data'][0];
     statistics?: res_get_statistics_manga;
   };
-  KitchenSinkScreen: undefined;
+  LanguageModal: undefined;
 };

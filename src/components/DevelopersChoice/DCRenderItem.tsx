@@ -1,11 +1,11 @@
 import {res_get_cover_$, res_get_manga} from '@api';
 import {ColorScheme, DEVS_CHOICE, OTOMANOPEE, PRETENDARD_JP} from '@constants';
+import {useNavigation} from '@react-navigation/native';
 import {RootState} from '@store';
 import {textColor} from '@utils';
 import React from 'react';
-import {Dimensions, StyleSheet, Text, View} from 'react-native';
-import FastImage from 'react-native-fast-image';
-import LinearGradient from 'react-native-linear-gradient';
+import {Dimensions, Image, StyleSheet, Text, View} from 'react-native';
+import Animated from 'react-native-reanimated';
 import {useDispatch, useSelector} from 'react-redux';
 
 const {height, width} = Dimensions.get('window');
@@ -15,6 +15,7 @@ type Props = {
 };
 
 export function DCRenderItem({manga}: Props) {
+  const navigation = useNavigation();
   const dispatch = useDispatch();
   const {colorScheme} = useSelector(
     (state: RootState) => state.userPreferences,
@@ -27,57 +28,51 @@ export function DCRenderItem({manga}: Props) {
   const coverSrc = `https://uploads.mangadex.org/covers/${manga.id}/${coverItem?.attributes.fileName}`;
 
   return (
-    <View style={styles.container}>
-      <View style={{flex: 1, marginRight: 15}}>
-        <Text style={styles.titleLabel}>
-          {manga?.attributes.title.en ?? 'no title'}
-        </Text>
-      </View>
-      <FastImage source={{uri: coverSrc}} style={styles.cover} />
-      <LinearGradient
-        start={{x: 1, y: 0}}
-        end={{x: -1, y: 0}}
-        colors={['#0000', colorScheme.colors.main, colorScheme.colors.main]}
-        style={styles.imageGradient}
-      />
-    </View>
+    <Animated.View style={styles.container}>
+      <Animated.ScrollView
+        showsVerticalScrollIndicator={false}
+        nestedScrollEnabled
+        style={{
+          flex: 1,
+          width: '100%',
+        }}>
+        <Image source={{uri: coverSrc}} style={styles.cover} />
+        <View style={{marginHorizontal: 5, marginVertical: 10}}>
+          <Text style={styles.titleLabel}>{manga.attributes.title.en}</Text>
+          <Text style={styles.desc}>
+            {DEVS_CHOICE[manga.id as keyof typeof DEVS_CHOICE]}
+          </Text>
+        </View>
+      </Animated.ScrollView>
+    </Animated.View>
   );
 }
 
 function getStyles(colorScheme: ColorScheme) {
   return StyleSheet.create({
     container: {
-      width: width,
+      width: (width - 15) / 2 - 15,
       height: height * 0.3,
-      paddingHorizontal: 15,
       flexDirection: 'row',
+      borderRadius: 10,
+      overflow: 'hidden',
+
+      borderColor: colorScheme.colors.primary,
+      borderWidth: 2,
     },
     cover: {
+      width: (width - 15) / 2 - 15,
       height: height * 0.3,
-      width: '40%',
-      borderTopRightRadius: 10,
-      borderBottomRightRadius: 10,
-    },
-    imageGradient: {
-      height: height * 0.3,
-      width: 100,
-      position: 'absolute',
-      bottom: 0,
-      left: '61%',
-    },
-    rightGroup: {
-      flex: 1,
-      paddingLeft: 10,
     },
     titleLabel: {
       fontFamily: OTOMANOPEE,
       color: textColor(colorScheme.colors.main),
       fontSize: 18,
     },
-    description: {
-      fontFamily: PRETENDARD_JP.LIGHT,
+    desc: {
+      fontFamily: PRETENDARD_JP.REGULAR,
       color: textColor(colorScheme.colors.main),
-      textAlign: 'justify',
+      fontSize: 14,
     },
   });
 }
