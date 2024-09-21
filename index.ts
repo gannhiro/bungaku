@@ -12,7 +12,6 @@ import notifee, {
 } from '@notifee/react-native';
 import FS from 'react-native-fs';
 import {
-  gen_error,
   get_manga_$_feed,
   mangadexAPI,
   res_at_home_$,
@@ -28,7 +27,6 @@ async function getChapters(mangaId: string) {
   let chapterCount = 0;
 
   // reading manga details and date of addition to library
-  console.log('reading from manga-details.json');
   const {
     manga,
     stayUpdated,
@@ -42,16 +40,14 @@ async function getChapters(mangaId: string) {
 
   // skip if user doesn't want this manga updated
   if (!stayUpdated) {
-    console.log('skipping...');
     return;
   }
 
   // getting chapters in regards to stayUpdatedAfterDate in order to see if there are new chapters
-  console.log('fetching chapters...');
   const limit = 500;
   let offset = 0;
   let done = false;
-  let tempChapters: res_get_manga_$_feed['data'] = [];
+  let chapters: res_get_manga_$_feed['data'] = [];
 
   while (!done) {
     const chapterData = await mangadexAPI<
@@ -73,8 +69,8 @@ async function getChapters(mangaId: string) {
       [mangaId],
     );
 
-    if (chapterData?.result === 'ok') {
-      tempChapters = [...tempChapters, ...chapterData.data];
+    if (chapterData.result === 'ok') {
+      chapters = [...chapters, ...chapterData.data];
 
       if (offset + limit < chapterData.total) {
         offset += limit;
@@ -88,8 +84,7 @@ async function getChapters(mangaId: string) {
   }
 
   // check if the array has chapters that can be updated
-  if (tempChapters.length === 0) {
-    console.log('no new chapters');
+  if (chapters.length === 0) {
     return;
   }
 
@@ -105,65 +100,73 @@ async function getChapters(mangaId: string) {
     }
   }
 
-  for (const chapter of tempChapters) {
-    // skip if chapter already exists or has 0 pages
-    if (allChapterIds.includes(chapter.id) || chapter.attributes.pages === 0) {
+  for (const chapter of chapters) {
+    // skip if chapter already exists, has 0 pages, or has an external url
+    if (
+      allChapterIds.includes(chapter.id) ||
+      chapter.attributes.pages === 0 ||
+      chapter.attributes.externalUrl
+    ) {
       continue;
     }
 
     // download chapter data
     let retries = 0;
-    let chapterData: res_at_home_$ | gen_error | null = null;
+    let finalChapterData: res_at_home_$ | undefined;
     let finished = false;
     while (retries < 5 && !finished) {
-      chapterData = await mangadexAPI<res_at_home_$, {}>(
+      const tempChapterData = await mangadexAPI<res_at_home_$, {}>(
         'get',
         '/at-home/server/$',
         {},
         [chapter.id],
       );
 
-      // error downloading chapter data
-      if (!chapterData || chapterData.result === 'error') {
+      if (
+        tempChapterData.result === 'error' ||
+        tempChapterData.result === 'internal-error' ||
+        tempChapterData.result === 'aborted'
+      ) {
         retries++;
-      } else {
-        finished = true;
+        continue;
       }
+      finalChapterData = tempChapterData;
+      finished = true;
     }
 
-    // for lint checker
-    if (!chapterData || chapterData.result === 'error') {
+    if (!finalChapterData) {
       continue;
     }
 
     const chapterDetails: ChapterDetails = {
       chapter,
-      pageFileNames: chapterData.chapter.data,
+      pageFileNames: finalChapterData.chapter.data,
     };
-
     await FS.mkdir(
       `${FS.DocumentDirectoryPath}/manga/${mangaId}/${chapter.attributes.translatedLanguage}/${chapter.id}`,
     );
-
     await FS.writeFile(
       `${FS.DocumentDirectoryPath}/manga/${mangaId}/${chapter.attributes.translatedLanguage}/${chapter.id}/chapter.json`,
       JSON.stringify(chapterDetails),
     );
 
+    // download pages
     let lastIndex = 0;
     retries = 0;
-    // download pages
-    while (retries < 5 && lastIndex + 1 < chapterData.chapter.data.length) {
+    while (
+      retries < 5 &&
+      lastIndex + 1 < finalChapterData.chapter.data.length
+    ) {
       try {
-        for (let i = lastIndex; i < chapterData.chapter.data.length; i++) {
+        for (let i = lastIndex; i < finalChapterData.chapter.data.length; i++) {
           lastIndex = i;
           const {promise} = FS.downloadFile({
-            fromUrl: `${chapterData.baseUrl}/data/${chapterData.chapter.hash}/${chapterData.chapter.data[i]}`,
-            toFile: `${FS.DocumentDirectoryPath}/manga/${mangaId}/${chapter.attributes.translatedLanguage}/${chapter.id}/${chapterData.chapter.data[i]}`,
+            fromUrl: `${finalChapterData.baseUrl}/data/${finalChapterData.chapter.hash}/${finalChapterData.chapter.data[i]}`,
+            toFile: `${FS.DocumentDirectoryPath}/manga/${mangaId}/${chapter.attributes.translatedLanguage}/${chapter.id}/${finalChapterData.chapter.data[i]}`,
           });
 
           const {statusCode} = await promise;
-          console.log(`${chapterData.chapter.data[i]}: ${statusCode}`);
+          console.log(`${finalChapterData.chapter.data[i]}: ${statusCode}`);
         }
       } catch (e) {
         // an error has occured fetching one of the pages
@@ -190,33 +193,36 @@ async function getChapters(mangaId: string) {
     return;
   }
 
-  let previousChapterCount: UpdatedMangaData[] = JSON.parse(
+  let previousChaptersTracker: UpdatedMangaData[] = JSON.parse(
     (await AsyncStorage.getItem('library-updates')) ?? '[]',
   );
-  const mangaIdExists = previousChapterCount.findIndex(
+  const mangaIdExists = previousChaptersTracker.findIndex(
     val => val.mangaId === mangaId,
   );
 
-  if (mangaIdExists > -1) {
-    previousChapterCount[mangaIdExists].newChapterCount =
-      previousChapterCount[mangaIdExists].newChapterCount + chapterCount;
-  } else {
-    previousChapterCount = [
-      ...previousChapterCount,
+  if (mangaIdExists === -1) {
+    previousChaptersTracker = [
+      ...previousChaptersTracker,
       {mangaId, newChapterCount: chapterCount},
     ];
+  } else {
+    previousChaptersTracker[mangaIdExists] = {
+      ...previousChaptersTracker[mangaIdExists],
+      newChapterCount:
+        previousChaptersTracker[mangaIdExists].newChapterCount + chapterCount,
+    };
   }
 
   await AsyncStorage.setItem(
     'library-updates',
-    JSON.stringify(previousChapterCount),
+    JSON.stringify(previousChaptersTracker),
   );
 
   const mangaListNotifId = await notifee.createChannel({
     id: `${mangaId}-updates-notif`,
     name: `${manga.attributes.title.en ?? 'no title'}`,
     vibration: false,
-    importance: AndroidImportance.LOW,
+    importance: AndroidImportance.DEFAULT,
   });
   await notifee.displayNotification({
     id: mangaListNotifId,
@@ -224,8 +230,7 @@ async function getChapters(mangaId: string) {
     body: `${chapterCount} Chapters has been downloaded!`,
     android: {
       channelId: mangaListNotifId,
-      badgeIconType: AndroidBadgeIconType.LARGE,
-      importance: AndroidImportance.LOW,
+      badgeIconType: AndroidBadgeIconType.SMALL,
     },
   });
 }

@@ -8,8 +8,10 @@ import {
   setConfig,
   setError,
   setLibraryList,
+  setLibraryUpdates,
   setMangaTags,
 } from '@store';
+import {UpdatedMangaData} from '@types';
 import {textColor} from '@utils';
 import {Config} from 'config';
 import React, {useEffect, useState} from 'react';
@@ -121,9 +123,10 @@ export function SplashScreen({navigation, route}: Props) {
       );
       const libraryList = libraryDirList.map(dir => dir.name);
       dispatch(setLibraryList(libraryList));
+
+      setLoadingText('welcome');
+      setLoading(false);
     })();
-    setLoadingText('welcome');
-    setLoading(false);
   }, [preferences, dispatch, initialLoad, loading, navigation, tags]);
 
   useEffect(() => {

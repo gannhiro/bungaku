@@ -188,7 +188,7 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
       }
       return;
     }
-    console.log(chapter.attributes.externalUrl);
+
     if (chapter.attributes.externalUrl) {
       InAppBrowser.open(chapter.attributes.externalUrl);
       return;
@@ -200,9 +200,11 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
         return item;
       }
     });
+    const finalChapters =
+      order === 'asc' ? tempChapters : tempChapters.reverse();
 
-    let tempInitialIndex =
-      tempChapters.findIndex(item => {
+    let initialIndex =
+      finalChapters.findIndex(item => {
         if (item.id === chapter?.id) {
           return true;
         }
@@ -210,9 +212,9 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
       }) ?? 0;
 
     navigation.navigate('ReadChapterScreen', {
-      mangaId: manga?.id ?? '',
-      chapters: tempChapters,
-      initialChapterIndex: tempInitialIndex,
+      mangaId: manga.id,
+      chapters: finalChapters,
+      initialChapterIndex: initialIndex,
     });
   }
 

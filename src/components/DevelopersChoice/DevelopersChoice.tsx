@@ -32,7 +32,7 @@ export function DevelopersChoice({}: Props) {
     item,
     index,
   }: ListRenderItemInfo<res_get_manga['data'][0]>) {
-    return <DCRenderItem manga={item} />;
+    return <DCRenderItem manga={item} index={index} />;
   }
 
   useEffect(() => {
@@ -41,7 +41,7 @@ export function DevelopersChoice({}: Props) {
         'get',
         '/manga',
         {
-          limit: 5,
+          limit: Object.keys(DEVS_CHOICE).length,
           offset: 0,
           ids: Object.keys(DEVS_CHOICE),
           includes: ['artist', 'author', 'cover_art'],
@@ -69,7 +69,6 @@ export function DevelopersChoice({}: Props) {
         contentContainerStyle={styles.listCont}
         showsHorizontalScrollIndicator={false}
         initialNumToRender={Object.keys(DEVS_CHOICE).length}
-        ItemSeparatorComponent={<View style={{width: 15}} />}
         horizontal
       />
     </View>
@@ -80,12 +79,12 @@ function getStyles(colorScheme: ColorScheme) {
   return StyleSheet.create({
     container: {
       marginBottom: 50,
-      marginHorizontal: 15,
     },
     header: {
       color: textColor(colorScheme.colors.main),
       fontFamily: PRETENDARD_JP.SEMIBOLD,
       fontSize: 12,
+      marginLeft: 15,
       marginBottom: 5,
     },
     listCont: {},

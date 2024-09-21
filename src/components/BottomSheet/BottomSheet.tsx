@@ -216,6 +216,8 @@ function getStyles(colorScheme: ColorScheme) {
       borderTopLeftRadius: 30,
       borderTopRightRadius: 30,
 
+      backgroundColor: colorScheme.colors.main,
+
       zIndex: 1000,
     },
     containerBlur: {

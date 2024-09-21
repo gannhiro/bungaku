@@ -4,7 +4,14 @@ import {useNavigation} from '@react-navigation/native';
 import {RootState} from '@store';
 import {textColor} from '@utils';
 import React from 'react';
-import {Dimensions, Image, StyleSheet, Text, View} from 'react-native';
+import {
+  Dimensions,
+  Image,
+  StyleSheet,
+  Text,
+  View,
+  ViewStyle,
+} from 'react-native';
 import Animated from 'react-native-reanimated';
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -12,15 +19,19 @@ const {height, width} = Dimensions.get('window');
 
 type Props = {
   manga: res_get_manga['data'][0];
+  index: number;
 };
 
-export function DCRenderItem({manga}: Props) {
+export function DCRenderItem({manga, index}: Props) {
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const {colorScheme} = useSelector(
     (state: RootState) => state.userPreferences,
   );
   const styles = getStyles(colorScheme);
+  const marginStyles: ViewStyle = {
+    marginLeft: index === 0 ? 15 : 0,
+  };
 
   const coverItem = manga.relationships.find(rs => rs.type === 'cover_art') as
     | res_get_cover_$['data']
@@ -28,7 +39,7 @@ export function DCRenderItem({manga}: Props) {
   const coverSrc = `https://uploads.mangadex.org/covers/${manga.id}/${coverItem?.attributes.fileName}`;
 
   return (
-    <Animated.View style={styles.container}>
+    <Animated.View style={[styles.container, marginStyles]}>
       <Animated.ScrollView
         showsVerticalScrollIndicator={false}
         nestedScrollEnabled
@@ -53,6 +64,7 @@ function getStyles(colorScheme: ColorScheme) {
     container: {
       width: (width - 15) / 2 - 15,
       height: height * 0.3,
+      marginRight: 15,
       flexDirection: 'row',
       borderRadius: 10,
       overflow: 'hidden',

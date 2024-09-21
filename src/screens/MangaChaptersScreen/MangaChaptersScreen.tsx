@@ -129,12 +129,14 @@ export function MangaChaptersScreen({route, navigation}: Props) {
       const tempDownloadedChapters: res_get_manga_$_feed['data'] = [];
       if (showDownloadedChapters || intError) {
         // check for stats locally
-        const mangaData = JSON.parse(
-          await FS.readFile(
-            `${FS.DocumentDirectoryPath}/manga/${manga.id}/manga-details.json`,
-          ),
-        );
-        setStatistics(mangaData.statistics as res_get_statistics_manga);
+        if (intError) {
+          const mangaData = JSON.parse(
+            await FS.readFile(
+              `${FS.DocumentDirectoryPath}/manga/${manga.id}/manga-details.json`,
+            ),
+          );
+          setStatistics(mangaData.statistics as res_get_statistics_manga);
+        }
 
         // check for chapters locally
         const directories = await FS.readDir(

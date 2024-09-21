@@ -7,12 +7,8 @@ export interface Props<P> {
   additionalParams: string[];
 }
 
-export const API_URL = __DEV__
-  ? 'https://api.mangadex.dev'
-  : 'https://api.mangadex.org';
-export const API_COVER_URL = __DEV__
-  ? 'https://uploads.mangadex.dev/covers'
-  : 'https://uploads.mangadex.org/covers';
+export const API_URL = 'https://api.mangadex.org';
+export const API_COVER_URL = 'https://uploads.mangadex.org/covers';
 
 export type endpoints =
   | '/manga'

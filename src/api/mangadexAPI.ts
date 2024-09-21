@@ -6,14 +6,14 @@ import {
   internal_gen_error,
 } from './types';
 
-export async function mangadexAPI<R, P extends Object>(
+export const mangadexAPI = async <R, P extends Object>(
   method: 'get' | 'post',
   endpoint: endpoints,
   parameters: P,
   additionalParams: string[],
   token?: string,
   signal?: AbortSignal,
-): Promise<R | gen_error | aborted_request | internal_gen_error> {
+): Promise<R | gen_error | aborted_request | internal_gen_error> => {
   let request = API_URL + endpoint;
 
   if (Object.keys(parameters).length > 0) {
@@ -134,4 +134,4 @@ export async function mangadexAPI<R, P extends Object>(
     console.log('Details: ' + internalError);
     return internalError;
   }
-}
+};

@@ -47,12 +47,11 @@ export function LibraryListRenderItem({mangaId}: Props) {
   const {colorScheme} = useSelector(
     (state: RootState) => state.userPreferences,
   );
-  const libraryUpdatesLocal = useSelector(
+  const {updatedMangaList} = useSelector(
     (state: RootState) => state.libraryUpdates,
   );
   const badgeCount =
-    libraryUpdatesLocal.find(val => val.mangaId === mangaId)?.newChapterCount ??
-    0;
+    updatedMangaList.find(val => val.mangaId === mangaId)?.newChapterCount ?? 0;
   const styles = getStyles(colorScheme);
   const coverPath = `file://${FS.DocumentDirectoryPath}/manga/${mangaId}/cover.png`;
 
@@ -80,13 +79,13 @@ export function LibraryListRenderItem({mangaId}: Props) {
   );
 
   async function goToChapters() {
-    dispatch(rmLibraryUpdateAsync({mangaId: mangaId}));
     Vibration.vibrate([0, 50], false);
+
+    dispatch(rmLibraryUpdateAsync({mangaId: mangaId}));
 
     const mangaDetails = await FS.readFile(
       `${FS.DocumentDirectoryPath}/manga/${mangaId}/manga-details.json`,
     );
-
     const parsedMangaDetails: MangaDetails = JSON.parse(mangaDetails);
 
     navigation.navigate('MangaChaptersScreen', {

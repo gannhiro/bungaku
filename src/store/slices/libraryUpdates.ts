@@ -3,8 +3,11 @@ import {PayloadAction} from '@reduxjs/toolkit';
 import type {RootState} from '../store';
 import {UpdatedMangaData} from '@types';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import notifee from '@notifee/react-native';
 
-const initialState: UpdatedMangaData[] = [];
+const initialState: {updatedMangaList: UpdatedMangaData[]} = {
+  updatedMangaList: [],
+};
 
 type RmLibraryUpdateAsyncProps = {
   mangaId: string;
@@ -14,11 +17,12 @@ export const rmLibraryUpdateAsync = createAsyncThunk<
   void,
   RmLibraryUpdateAsyncProps,
   {state: RootState}
->('libraryUpdates/rmLibraryUpdate', async ({mangaId}, {getState}) => {
-  const libraryUpdates = getState().libraryUpdates;
-  const index = libraryUpdates.findIndex(val => val.mangaId === mangaId);
-  libraryUpdates.splice(index, 1);
-  await AsyncStorage.setItem('library-updates', JSON.stringify(libraryUpdates));
+>('libraryUpdates/rmLibraryUpdate', async ({mangaId}, {getState, dispatch}) => {
+  const finalList = getState().libraryUpdates.updatedMangaList.filter(
+    update => update.mangaId !== mangaId,
+  );
+  await AsyncStorage.setItem('library-updates', JSON.stringify(finalList));
+  dispatch(setLibraryUpdates(finalList));
 });
 
 export const libraryUpdatesSlice = createSlice({
@@ -26,16 +30,11 @@ export const libraryUpdatesSlice = createSlice({
   initialState: initialState,
   reducers: {
     setLibraryUpdates: (state, action: PayloadAction<UpdatedMangaData[]>) => {
-      state = action.payload;
+      state.updatedMangaList = action.payload;
     },
   },
   extraReducers: builder => {
-    builder.addCase(rmLibraryUpdateAsync.fulfilled, (state, action) => {
-      const index = state.findIndex(
-        val => val.mangaId === action.meta.arg.mangaId,
-      );
-      state.splice(index, 1);
-    });
+    builder.addCase(rmLibraryUpdateAsync.fulfilled, (state, action) => {});
   },
 });
 

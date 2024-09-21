@@ -26,6 +26,14 @@ type Labels = {
       };
       searchTab: {
         searchLabel: string;
+        bottomsheet: {
+          titleLabel: string;
+          titleExampleLabel: string;
+          authorsLabel: string;
+          artistsLabel: string;
+          pubYearLabel: string;
+          tagsLabel: string;
+        };
       };
       libraryTab: {
         libraryLabel: string;

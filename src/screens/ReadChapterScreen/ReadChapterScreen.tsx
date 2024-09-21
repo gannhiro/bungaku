@@ -165,9 +165,7 @@ export function ReadChapterScreen({route, navigation}: Props) {
       ? `${chapterPages?.baseUrl}/data-saver/${chapterPages?.chapter.hash}/${item}`
       : `${chapterPages?.baseUrl}/data/${chapterPages?.chapter.hash}/${item}`;
 
-    return (
-      <RCSChapterImages key={item} url={url} readingMode={locReadingMode} />
-    );
+    return <RCSChapterImages url={url} readingMode={locReadingMode} />;
   }
 
   function onScroll(e: NativeSyntheticEvent<NativeScrollEvent>) {
@@ -349,8 +347,9 @@ export function ReadChapterScreen({route, navigation}: Props) {
                 initialNumToRender={
                   locReadingMode !== READING_MODES.WEBTOON ? 10 : 5
                 }
-                windowSize={5}
+                windowSize={locReadingMode === READING_MODES.WEBTOON ? 21 : 5}
                 removeClippedSubviews={false}
+                keyExtractor={item => item}
               />
             ) : (
               <Progress.CircleSnail style={styles.loadingCircleSnail} />
