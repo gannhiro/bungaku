@@ -270,7 +270,7 @@ export function MangaChaptersScreen({route, navigation}: Props) {
         setLoading(false);
       }, 500);
     })();
-  }, [dispatch, languages, manga, showDownloadedChapters]);
+  }, [dispatch, intError, languages, manga, showDownloadedChapters]);
 
   useEffect(() => {
     const navSubscription = navigation.addListener('blur', () => {

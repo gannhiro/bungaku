@@ -96,6 +96,14 @@ export const LABELS: Labels = {
       },
       searchTab: {
         searchLabel: 'Search',
+        bottomsheet: {
+          artistsLabel: 'Artists',
+          authorsLabel: 'Authors',
+          pubYearLabel: 'Date of Publication',
+          tagsLabel: 'Tags',
+          titleLabel: 'Title',
+          titleExampleLabel: 'Title e.g. The Saga of Tanya the Evil',
+        },
       },
       accountTab: {
         accountSection: {

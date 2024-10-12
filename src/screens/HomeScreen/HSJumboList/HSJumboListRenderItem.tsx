@@ -6,6 +6,7 @@ import {
   API_COVER_URL,
   get_statistics_manga,
 } from '@api';
+import {Chip} from '@components';
 import {ColorScheme, PRETENDARD_JP} from '@constants';
 import {RootStackParamsList} from '@navigation';
 import {useNavigation} from '@react-navigation/native';
@@ -65,8 +66,6 @@ export function HSJumboListRenderItem({
   function goToChapters() {
     navigation.navigate('MangaChaptersScreen', {
       manga: manga,
-      statistics: mangaRatings as res_get_statistics_manga,
-      mangaCover: mangaCoverSrc,
     });
     Vibration.vibrate([0, 50], false);
   }
@@ -105,7 +104,7 @@ export function HSJumboListRenderItem({
         [mangaCoverId],
       );
 
-      if (data && data.result !== 'error') {
+      if (data.result === 'ok') {
         setMangaCoverSrc(
           `${API_COVER_URL}/${manga.id}/${data.data.attributes.fileName}`,
         );
@@ -164,12 +163,7 @@ export function HSJumboListRenderItem({
           <View style={styles.tagsContainer}>
             {manga.attributes.tags.map((tag, i) => {
               if (i < 5) {
-                return (
-                  <View key={tag.id} style={styles.tagContainer}>
-                    <View style={styles.tagDot} />
-                    <Text style={styles.tagName}>{tag.attributes.name.en}</Text>
-                  </View>
-                );
+                return <Chip label={tag.attributes.name.en} />;
               }
             })}
             {manga.attributes.tags.length > 5 && (
@@ -223,22 +217,6 @@ function getStyles(colorScheme: ColorScheme) {
       alignItems: 'center',
       flexWrap: 'wrap',
       flexDirection: 'row',
-    },
-    tagContainer: {
-      padding: 5,
-      borderRadius: 3,
-      backgroundColor: colorScheme.colors.secondary,
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginTop: 3,
-      marginRight: 3,
-    },
-    tagDot: {
-      width: 3,
-      height: 3,
-      borderRadius: 10,
-      marginRight: 3,
-      backgroundColor: textColor(colorScheme.colors.secondary),
     },
     tagName: {
       fontSize: 8,

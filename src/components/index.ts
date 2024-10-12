@@ -16,3 +16,4 @@ export * from './DevelopersChoice/DevelopersChoice';
 export * from './BottomSheet/BottomSheet';
 export * from './GTextInput/GTextInput';
 export * from './BigIconButton/BigIconButton';
+export * from './Chip/Chip';

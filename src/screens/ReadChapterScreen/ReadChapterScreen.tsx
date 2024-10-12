@@ -212,8 +212,6 @@ export function ReadChapterScreen({route, navigation}: Props) {
     onDataSaverSwitchChange,
   };
 
-  useEffect(() => {}, []);
-
   useEffect(() => {
     setLoading(true);
     setCurrentPage(0);
