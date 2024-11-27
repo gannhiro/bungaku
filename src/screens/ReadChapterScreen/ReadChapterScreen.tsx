@@ -23,7 +23,7 @@ import {
   Vibration,
   View,
 } from 'react-native';
-import FastImage from 'react-native-fast-image';
+import FastImage, {Source} from 'react-native-fast-image';
 import FS from 'react-native-fs';
 import {
   Directions,
@@ -197,7 +197,7 @@ export function ReadChapterScreen({route, navigation}: Props) {
     setIsDataSaver(value);
   }
 
-  const value: iReadChapterScreenContext = {
+  const context: iReadChapterScreenContext = {
     navigation,
     chapters,
     currentChapter,
@@ -287,16 +287,6 @@ export function ReadChapterScreen({route, navigation}: Props) {
     locReadingMode,
   ]);
 
-  useEffect(() => {
-    const unsubscribe = navigation.addListener('blur', async () => {
-      console.log('remove cached images');
-      await FastImage.clearMemoryCache();
-      await FastImage.clearDiskCache();
-    });
-
-    return () => unsubscribe();
-  }, [navigation]);
-
   useFocusEffect(() => {
     const backHandlerSub = BackHandler.addEventListener(
       'hardwareBackPress',
@@ -305,6 +295,9 @@ export function ReadChapterScreen({route, navigation}: Props) {
           setShowSettingsSheet(false);
           return true;
         }
+
+        FastImage.clearMemoryCache();
+        FastImage.clearDiskCache();
         return false;
       },
     );
@@ -313,7 +306,7 @@ export function ReadChapterScreen({route, navigation}: Props) {
   });
 
   return (
-    <ReadChapterScreenContext.Provider value={value}>
+    <ReadChapterScreenContext.Provider value={context}>
       <View style={styles.container}>
         <GestureDetector gesture={gestures}>
           <View style={styles.container}>
@@ -345,7 +338,7 @@ export function ReadChapterScreen({route, navigation}: Props) {
                 initialNumToRender={
                   locReadingMode !== READING_MODES.WEBTOON ? 10 : 5
                 }
-                windowSize={locReadingMode === READING_MODES.WEBTOON ? 21 : 5}
+                windowSize={locReadingMode === READING_MODES.WEBTOON ? 41 : 5}
                 removeClippedSubviews={false}
                 keyExtractor={item => item}
               />
@@ -435,8 +428,7 @@ function getStyles(colorScheme: ColorScheme) {
       backgroundColor: colorScheme.colors.main + 90,
       width: width * 0.6,
       position: 'absolute',
-      left: 0,
-      right: 0,
+      left: '25%',
       bottom: height * 0.3,
       alignSelf: 'center',
       alignItems: 'center',

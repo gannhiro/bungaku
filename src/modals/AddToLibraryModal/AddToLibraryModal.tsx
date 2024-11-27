@@ -30,7 +30,7 @@ import Animated, {
   FadeIn,
   FadeInLeft,
   FadeOut,
-  Layout,
+  LinearTransition,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
@@ -267,7 +267,10 @@ export function AddToLibraryModal({route, navigation}: Props) {
         blurType={colorScheme.type}
         blurRadius={3}
       />
-      <Animated.View entering={FadeIn} layout={Layout} style={styles.innerCont}>
+      <Animated.View
+        entering={FadeIn}
+        layout={LinearTransition}
+        style={styles.innerCont}>
         <Text style={styles.addToLibLabel}>Adding To Library</Text>
         <Text style={styles.mangaTitleLabel}>{manga.attributes.title.en}</Text>
         <View style={styles.groupRow}>
@@ -385,7 +388,7 @@ export function AddToLibraryModal({route, navigation}: Props) {
             style={styles.group}
             entering={FadeInLeft.delay(200)}
             exiting={FadeOut}
-            layout={Layout.delay(100)}>
+            layout={LinearTransition.delay(100)}>
             <Button
               title="Update Settings"
               btnColor={systemIndigo}
