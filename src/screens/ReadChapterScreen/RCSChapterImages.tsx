@@ -24,7 +24,7 @@ export const RCSChapterImages = memo(
     const styles = getStyles(colorScheme);
 
     const [loading, setLoading] = useState(true);
-    const [imHeight, setImHeight] = useState(height);
+    const [imHeight, setImHeight] = useState<number | null>(null);
 
     const imageScale = useSharedValue(1);
     const imageX = useSharedValue(0);
@@ -72,13 +72,17 @@ export const RCSChapterImages = memo(
     }, [locReadingMode, url]);
 
     return (
-      <FastImage
-        source={{uri: url}}
-        resizeMode="contain"
-        style={{height: imHeight, width: width}}
-        onLoadEnd={onLoadEnd}
-        onLoadStart={onLoadStart}
-      />
+      <>
+        {imHeight ? (
+          <FastImage
+            source={{uri: url}}
+            resizeMode="cover"
+            style={{height: imHeight, width: width}}
+            onLoadEnd={onLoadEnd}
+            onLoadStart={onLoadStart}
+          />
+        ) : null}
+      </>
     );
   },
   (prev, next) => prev.readingMode === next.readingMode,

@@ -336,9 +336,10 @@ export function ReadChapterScreen({route, navigation}: Props) {
                 onScroll={onScroll}
                 renderItem={renderItem}
                 initialNumToRender={
-                  locReadingMode !== READING_MODES.WEBTOON ? 10 : 5
+                  locReadingMode === READING_MODES.WEBTOON ? 1 : 10
                 }
-                windowSize={locReadingMode === READING_MODES.WEBTOON ? 41 : 5}
+                windowSize={locReadingMode === READING_MODES.WEBTOON ? 5 : 10}
+                maxToRenderPerBatch={2}
                 removeClippedSubviews={false}
                 keyExtractor={item => item}
               />
@@ -428,7 +429,6 @@ function getStyles(colorScheme: ColorScheme) {
       backgroundColor: colorScheme.colors.main + 90,
       width: width * 0.6,
       position: 'absolute',
-      left: '25%',
       bottom: height * 0.3,
       alignSelf: 'center',
       alignItems: 'center',

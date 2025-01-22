@@ -7,7 +7,7 @@ import {RootState, setColorScheme, setPreferSystemColor} from '@store';
 import {textColor} from '@utils';
 import React, {useEffect, useState} from 'react';
 import {Dimensions, StyleSheet, Text, View} from 'react-native';
-import Animated, {Layout} from 'react-native-reanimated';
+import Animated, {LinearTransition} from 'react-native-reanimated';
 import {useDispatch, useSelector} from 'react-redux';
 
 const {width} = Dimensions.get('screen');
@@ -54,7 +54,7 @@ export function ThemeModal({navigation}: Props) {
   return (
     <View style={[styles.container]}>
       <BlurView style={styles.blur} blurType={colorScheme.type} />
-      <Animated.View style={styles.innerCont} layout={Layout}>
+      <Animated.View style={styles.innerCont} layout={LinearTransition}>
         <Text style={styles.label}>Theme</Text>
         <Dropdown
           items={choices}

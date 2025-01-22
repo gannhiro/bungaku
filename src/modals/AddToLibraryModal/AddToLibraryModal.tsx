@@ -352,7 +352,7 @@ export function AddToLibraryModal({route, navigation}: Props) {
           </Fragment>
         )}
 
-        <Animated.View layout={Layout} style={styles.groupRow}>
+        <Animated.View layout={LinearTransition} style={styles.groupRow}>
           <Button
             title="Back"
             containerStyle={styles.navButtonCancel}
