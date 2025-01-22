@@ -76,7 +76,7 @@ export const RCSChapterImages = memo(
         {imHeight ? (
           <FastImage
             source={{uri: url}}
-            resizeMode="cover"
+            resizeMode="contain"
             style={{height: imHeight, width: width}}
             onLoadEnd={onLoadEnd}
             onLoadStart={onLoadStart}
