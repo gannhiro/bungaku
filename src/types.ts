@@ -1,9 +1,16 @@
 import {
+  res_at_home_$,
   res_get_manga,
   res_get_manga_$_feed,
   res_get_statistics_manga,
 } from '@api';
 import {Language} from './constants/languages';
+
+export type PageDownload = {
+  imageUrl: string;
+  manga: res_get_manga['data'][0] | undefined;
+  chapter: res_at_home_$ | undefined;
+};
 
 export type MangaDetails = {
   dateAdded: string;

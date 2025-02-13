@@ -6,6 +6,7 @@ import {
   res_get_statistics_manga,
   res_get_user_$,
 } from '@api';
+import {Language} from '@constants';
 import {ReadingMode} from '@screens';
 
 export type RootStackParamsList = {
@@ -21,6 +22,7 @@ export type RootStackParamsList = {
     mangaId: string;
     chapters: res_get_manga_$_feed['data'];
     initialChapterIndex: number;
+    originalLanguage: Language;
     scanlator?: res_get_group['data'][0];
     user?: res_get_user_$ | gen_error | undefined | null;
     oReadingMode?: ReadingMode;

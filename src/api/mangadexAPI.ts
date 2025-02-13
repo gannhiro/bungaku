@@ -14,11 +14,7 @@ export const mangadexAPI = async <R, P extends Object>(
   token?: string,
   signal?: AbortSignal,
 ): Promise<R | gen_error | aborted_request | internal_gen_error> => {
-  let request = API_URL + endpoint;
-
-  if (Object.keys(parameters).length > 0) {
-    request += '?';
-  }
+  let request = API_URL + endpoint + '?';
 
   if (additionalParams.length > 0) {
     additionalParams.forEach(param => {

@@ -7,7 +7,7 @@ import {
   res_get_statistics_manga,
 } from '@api';
 import {PayloadAction, createAsyncThunk, createSlice} from '@reduxjs/toolkit';
-import {ChapterDetails, MangaDetails} from '@types';
+import {ChapterDetails, MangaDetails, PageDownload} from '@types';
 import {getDateMDEX} from '@utils';
 import {ToastAndroid} from 'react-native';
 import FS, {ReadDirItem} from 'react-native-fs';

@@ -214,6 +214,7 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
     navigation.navigate('ReadChapterScreen', {
       mangaId: manga.id,
       chapters: finalChapters,
+      originalLanguage: manga.attributes.originalLanguage,
       initialChapterIndex: initialIndex,
     });
   }

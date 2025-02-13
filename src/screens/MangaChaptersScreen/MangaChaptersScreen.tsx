@@ -95,7 +95,7 @@ export function MangaChaptersScreen({route, navigation}: Props) {
     navigation.navigate('AddToLibraryModal', {manga});
   }
 
-  const value: iMangaChaptersScreenContext = {
+  const context: iMangaChaptersScreenContext = {
     manga,
     statistics,
     chapters,
@@ -128,6 +128,7 @@ export function MangaChaptersScreen({route, navigation}: Props) {
 
       const tempDownloadedChapters: res_get_manga_$_feed['data'] = [];
       if (showDownloadedChapters || intError) {
+        console.log('int error');
         // check for stats locally
         if (intError) {
           const mangaData = JSON.parse(
@@ -262,13 +263,11 @@ export function MangaChaptersScreen({route, navigation}: Props) {
           done = true;
         }
       }
-      setLoadingProgress(1);
 
-      setTimeout(() => {
-        setSourcecChapters(tempChapters);
-        setChapters(tempChapters);
-        setLoading(false);
-      }, 500);
+      setLoadingProgress(1);
+      setSourcecChapters(tempChapters);
+      setChapters(tempChapters);
+      setLoading(false);
     })();
   }, [dispatch, intError, languages, manga, showDownloadedChapters]);
 
@@ -283,7 +282,7 @@ export function MangaChaptersScreen({route, navigation}: Props) {
   }, [navigation]);
 
   return (
-    <MangaChaptersScreenContext.Provider value={value}>
+    <MangaChaptersScreenContext.Provider value={context}>
       <View style={styles.container}>
         <Animated.View style={styles.mangaCoverHeader} entering={FadeIn}>
           <Image source={{uri: coverSrc}} style={styles.cover} />

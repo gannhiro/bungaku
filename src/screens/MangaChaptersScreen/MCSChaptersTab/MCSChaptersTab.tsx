@@ -1,4 +1,4 @@
-import {ORDER, Ordering, res_get_author_$, res_get_manga_$_feed} from '@api';
+import {ORDER, res_get_author_$, res_get_manga_$_feed} from '@api';
 import {
   BigIconButton,
   BottomSheet,

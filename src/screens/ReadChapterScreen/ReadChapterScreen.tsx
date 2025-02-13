@@ -23,7 +23,7 @@ import {
   Vibration,
   View,
 } from 'react-native';
-import FastImage, {Source} from 'react-native-fast-image';
+import FastImage from 'react-native-fast-image';
 import FS from 'react-native-fs';
 import {
   Directions,
@@ -68,15 +68,19 @@ const {width, height} = Dimensions.get('screen');
 
 export function ReadChapterScreen({route, navigation}: Props) {
   const dispatch = useDispatch();
-  const {mangaId, chapters, initialChapterIndex} = route.params;
+  const {mangaId, chapters, originalLanguage, initialChapterIndex} =
+    route.params;
   const {colorScheme, preferDataSaver, readingMode} = useSelector(
     (state: RootState) => state.userPreferences,
   );
   const jobs = useSelector((state: RootState) => state.jobs);
   const styles = getStyles(colorScheme);
 
-  const [locReadingMode, setLocReadingMode] =
-    useState<ReadingMode>(readingMode);
+  const [locReadingMode, setLocReadingMode] = useState<ReadingMode>(
+    originalLanguage === 'ko' || originalLanguage === 'ko-ro'
+      ? 'webtoon'
+      : 'horizontal',
+  );
   const [currentPage, setCurrentPage] = useState(0);
   const [chapterPages, setChapterPages] = useState<res_at_home_$>();
   const [showSettingsSheet, setShowSettingsSheet] = useState(false);
@@ -84,7 +88,7 @@ export function ReadChapterScreen({route, navigation}: Props) {
   const [showBottomOverlay, setShowBottomOverlay] = useState(false);
   const [isDataSaver, setIsDataSaver] = useState(preferDataSaver);
   const [loading, setLoading] = useState(true);
-  const [local, setLocal] = useState(false);
+  const [isLocallyAvailable, setLocal] = useState(false);
   const [localFiles, setLocalFiles] = useState<string[]>([]);
 
   const scanlator = chapters[currentChapter].relationships.find(
@@ -159,11 +163,12 @@ export function ReadChapterScreen({route, navigation}: Props) {
   });
 
   function renderItem({item}: ListRenderItemInfo<string>) {
-    const url = local
-      ? `file://${FS.DocumentDirectoryPath}/manga/${mangaId}/${chapters[currentChapter].attributes.translatedLanguage}/${chapters[currentChapter].id}/${item}`
-      : isDataSaver
+    const imageUrl = isDataSaver
       ? `${chapterPages?.baseUrl}/data-saver/${chapterPages?.chapter.hash}/${item}`
       : `${chapterPages?.baseUrl}/data/${chapterPages?.chapter.hash}/${item}`;
+    const url = isLocallyAvailable
+      ? `file://${FS.DocumentDirectoryPath}/manga/${mangaId}/${chapters[currentChapter].attributes.translatedLanguage}/${chapters[currentChapter].id}/${item}`
+      : imageUrl;
 
     return <RCSChapterImages url={url} readingMode={locReadingMode} />;
   }
@@ -282,7 +287,6 @@ export function ReadChapterScreen({route, navigation}: Props) {
     dispatch,
     isDataSaver,
     jobs,
-    listRef,
     mangaId,
     locReadingMode,
   ]);
@@ -311,12 +315,11 @@ export function ReadChapterScreen({route, navigation}: Props) {
         <GestureDetector gesture={gestures}>
           <View style={styles.container}>
             {!loading ? (
-              <Animated.FlatList
-                ref={listRef}
+              <FlatList
                 showsVerticalScrollIndicator={false}
                 showsHorizontalScrollIndicator={false}
                 data={
-                  local
+                  isLocallyAvailable
                     ? localFiles
                     : isDataSaver
                     ? chapterPages?.chapter.dataSaver
@@ -335,12 +338,6 @@ export function ReadChapterScreen({route, navigation}: Props) {
                 scrollEnabled={!showSettingsSheet}
                 onScroll={onScroll}
                 renderItem={renderItem}
-                initialNumToRender={
-                  locReadingMode === READING_MODES.WEBTOON ? 1 : 10
-                }
-                windowSize={locReadingMode === READING_MODES.WEBTOON ? 5 : 10}
-                maxToRenderPerBatch={2}
-                removeClippedSubviews={false}
                 keyExtractor={item => item}
               />
             ) : (
@@ -422,7 +419,7 @@ function getStyles(colorScheme: ColorScheme) {
       alignItems: 'stretch',
       justifyContent: 'center',
       width: '100%',
-      backgroundColor: black,
+      backgroundColor: colorScheme.colors.main,
     },
     chapterOverlay: {
       borderRadius: 15,

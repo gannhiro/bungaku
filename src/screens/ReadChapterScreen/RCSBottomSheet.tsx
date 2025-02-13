@@ -7,6 +7,7 @@ import {RootState} from '@store';
 import {useSelector} from 'react-redux';
 import {ColorScheme, PRETENDARD_JP} from '@constants';
 import {textColor} from '@utils';
+import Animated, {LinearTransition} from 'react-native-reanimated';
 
 type Props = {
   showBottomSheet: boolean;
@@ -48,21 +49,23 @@ export function RCSBottomSheet({showBottomSheet, setShowBottomSheet}: Props) {
             ? chapters[currentChapter].attributes.title
             : 'No Chapter Title'}
         </Text>
-        <Text style={styles.settingsSheetSmall}>
-          {chapters[currentChapter].id}
-        </Text>
-        <Text style={styles.settingsSheetSmall}>
-          Chapter {chapters[currentChapter].attributes.chapter}
-        </Text>
-
-        <Text style={styles.settingsSheetSmall}>
-          Scanlator: {scanlator?.attributes.name ?? 'No Scanlator'}
-        </Text>
-        <Text style={styles.settingsSheetSmall}>
-          Uploaded by User: {user?.attributes.username ?? 'No User Available'}
-        </Text>
-
         <View style={styles.settingsSheetGroup}>
+          <Text style={styles.settingsSheetSmall}>
+            Chapter {chapters[currentChapter].attributes.chapter}
+          </Text>
+          <Text style={styles.settingsSheetSmall}>
+            {chapters[currentChapter].id}
+          </Text>
+          <Text style={styles.settingsSheetSmall}>
+            Scanlator: {scanlator?.attributes.name ?? 'No Scanlator'}
+          </Text>
+          <Text style={styles.settingsSheetSmall}>
+            Uploaded by User: {user?.attributes.username ?? 'No User Available'}
+          </Text>
+        </View>
+        <Animated.View
+          layout={LinearTransition}
+          style={styles.settingsSheetGroup}>
           <Text style={styles.settingsSheetSmall}>Reading Mode</Text>
           <Dropdown
             items={readingModes}
@@ -74,8 +77,10 @@ export function RCSBottomSheet({showBottomSheet, setShowBottomSheet}: Props) {
             }}
             atLeastOne
           />
-        </View>
-        <View style={styles.settingsSheetGroup}>
+        </Animated.View>
+        <Animated.View
+          layout={LinearTransition}
+          style={styles.settingsSheetGroup}>
           <Text style={styles.settingsSheetSmall}>Chapter</Text>
           <Dropdown
             items={chapters.map((chapter, index) => {
@@ -102,19 +107,25 @@ export function RCSBottomSheet({showBottomSheet, setShowBottomSheet}: Props) {
               setShowBottomOverlay(false);
             }}
           />
-        </View>
-        <View style={styles.settingsSheetGroupRow}>
+        </Animated.View>
+        <Animated.View
+          layout={LinearTransition}
+          style={styles.settingsSheetGroupRow}>
           <Text style={styles.settingsSheetReg}>Data Saver</Text>
           <Switch value={isDataSaver} onValueChange={onDataSaverSwitchChange} />
-        </View>
+        </Animated.View>
 
-        <Button
-          title="Go Back"
-          onButtonPress={() => {
-            navigation.goBack();
-          }}
-          containerStyle={{marginTop: 20}}
-        />
+        <Animated.View
+          layout={LinearTransition}
+          style={styles.settingsSheetGroupRow}>
+          <Button
+            title="Go Back"
+            onButtonPress={() => {
+              navigation.goBack();
+            }}
+            containerStyle={{marginTop: 20}}
+          />
+        </Animated.View>
       </ScrollView>
     </BottomSheet>
   );
