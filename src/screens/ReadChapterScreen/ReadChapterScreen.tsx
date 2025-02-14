@@ -90,7 +90,11 @@ export function ReadChapterScreen({route, navigation}: Props) {
   const [loading, setLoading] = useState(true);
   const [isLocallyAvailable, setLocal] = useState(false);
   const [localFiles, setLocalFiles] = useState<string[]>([]);
+  const [pages, setPages] = useState<
+    {pagePromise?: Promise<FS.DownloadResult>; path: string}[]
+  >([]);
 
+  const cacheDirectory = `${FS.CachesDirectoryPath}/${mangaId}/${chapters[currentChapter].id}`;
   const scanlator = chapters[currentChapter].relationships.find(
     rs => rs.type === 'scanlation_group',
   ) as res_get_group_$['data'] | undefined;
@@ -162,15 +166,19 @@ export function ReadChapterScreen({route, navigation}: Props) {
     };
   });
 
-  function renderItem({item}: ListRenderItemInfo<string>) {
-    const imageUrl = isDataSaver
-      ? `${chapterPages?.baseUrl}/data-saver/${chapterPages?.chapter.hash}/${item}`
-      : `${chapterPages?.baseUrl}/data/${chapterPages?.chapter.hash}/${item}`;
-    const url = isLocallyAvailable
-      ? `file://${FS.DocumentDirectoryPath}/manga/${mangaId}/${chapters[currentChapter].attributes.translatedLanguage}/${chapters[currentChapter].id}/${item}`
-      : imageUrl;
-
-    return <RCSChapterImages url={url} readingMode={locReadingMode} />;
+  function renderItem({
+    item,
+  }: ListRenderItemInfo<{
+    pagePromise: Promise<FS.DownloadResult>;
+    path: string;
+  }>) {
+    return (
+      <RCSChapterImages
+        pagePromise={item.pagePromise}
+        path={item.path}
+        readingMode={locReadingMode}
+      />
+    );
   }
 
   function onScroll(e: NativeSyntheticEvent<NativeScrollEvent>) {
@@ -229,21 +237,45 @@ export function ReadChapterScreen({route, navigation}: Props) {
       const isCurrentJob = jobs.some(
         job => job === chapters[currentChapter].id,
       );
-      const chaptersDetailsExists = await FS.exists(
+      const isDownloaded = await FS.exists(
         `${FS.DocumentDirectoryPath}/manga/${mangaId}/${chapters[currentChapter].attributes.translatedLanguage}/${chapters[currentChapter].id}/chapter.json`,
       );
 
-      if (isCurrentJob || !chaptersDetailsExists) {
-        setLocal(false);
-      } else if (!isCurrentJob && chaptersDetailsExists) {
+      if (!isCurrentJob && isDownloaded) {
+        console.log('chapter is downloaded');
         setLocal(true);
         const chapterDetails = await FS.readFile(
           `${FS.DocumentDirectoryPath}/manga/${mangaId}/${chapters[currentChapter].attributes.translatedLanguage}/${chapters[currentChapter].id}/chapter.json`,
         );
         const parsedDetails: ChapterDetails = JSON.parse(chapterDetails);
 
+        const finalPageObjects = parsedDetails.pageFileNames.map(item => {
+          return {
+            path: `file://${FS.DocumentDirectoryPath}/manga/${mangaId}/${chapters[currentChapter].attributes.translatedLanguage}/${chapters[currentChapter].id}/${item}`,
+          };
+        });
+
         setLoading(false);
-        setLocalFiles(parsedDetails.pageFileNames);
+        setPages(finalPageObjects);
+        return;
+      }
+
+      const isCached = await FS.exists(cacheDirectory);
+      if (isCached) {
+        console.log('chapter is cached');
+        const pageDirectories = await FS.readDir(cacheDirectory);
+        const sortedPageDirectories = pageDirectories.sort((a, b) => {
+          const numA = parseInt(a.name.split('-')[0], 10);
+          const numB = parseInt(b.name.split('-')[0], 10);
+
+          return numA - numB;
+        });
+        const finalPageObjects = sortedPageDirectories.map(item => {
+          return {path: `file://${item.path}`};
+        });
+
+        setPages(finalPageObjects);
+        setLoading(false);
         return;
       }
 
@@ -255,6 +287,23 @@ export function ReadChapterScreen({route, navigation}: Props) {
       );
 
       if (data.result === 'ok') {
+        await FS.mkdir(cacheDirectory);
+        const pagePromises = data.chapter.dataSaver.map(pageId => {
+          const pageUrl = `${data.baseUrl}/data-saver/${data.chapter.hash}/${pageId}`;
+          const localPath = `${FS.CachesDirectoryPath}/${mangaId}/${chapters[currentChapter].id}/${pageId}`;
+
+          const pageDownloadPromise = FS.downloadFile({
+            fromUrl: pageUrl,
+            toFile: localPath,
+          }).promise;
+
+          return {
+            pagePromise: pageDownloadPromise,
+            path: `file://${localPath}`,
+          };
+        });
+
+        setPages(pagePromises);
         setChapterPages(data);
       }
 
@@ -289,6 +338,7 @@ export function ReadChapterScreen({route, navigation}: Props) {
     jobs,
     mangaId,
     locReadingMode,
+    cacheDirectory,
   ]);
 
   useFocusEffect(() => {
@@ -318,13 +368,7 @@ export function ReadChapterScreen({route, navigation}: Props) {
               <FlatList
                 showsVerticalScrollIndicator={false}
                 showsHorizontalScrollIndicator={false}
-                data={
-                  isLocallyAvailable
-                    ? localFiles
-                    : isDataSaver
-                    ? chapterPages?.chapter.dataSaver
-                    : chapterPages?.chapter.data
-                }
+                data={pages}
                 horizontal={locReadingMode === READING_MODES.HORIZONTAL}
                 snapToInterval={
                   locReadingMode === READING_MODES.HORIZONTAL
@@ -338,7 +382,8 @@ export function ReadChapterScreen({route, navigation}: Props) {
                 scrollEnabled={!showSettingsSheet}
                 onScroll={onScroll}
                 renderItem={renderItem}
-                keyExtractor={item => item}
+                keyExtractor={item => item.path}
+                maxToRenderPerBatch={3}
               />
             ) : (
               <Progress.CircleSnail style={styles.loadingCircleSnail} />

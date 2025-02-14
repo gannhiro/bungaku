@@ -9,15 +9,17 @@ import {useSelector} from 'react-redux';
 import {RootState} from '../../store/store';
 import {READING_MODES, ReadingMode} from './ReadChapterScreen';
 import {useReadChapterScreenContext} from './useReadChapterScreenContext';
+import FS from 'react-native-fs';
 
 type Props = {
-  url: string;
+  path: string;
   readingMode: ReadingMode;
+  pagePromise?: Promise<FS.DownloadResult>;
 };
 
 const {width, height} = Dimensions.get('screen');
 
-export function RCSChapterImages({url}: Props) {
+export const RCSChapterImages = memo(({pagePromise, path}: Props) => {
   const colorScheme = useSelector(
     (state: RootState) => state.userPreferences.colorScheme,
   );
@@ -51,23 +53,35 @@ export function RCSChapterImages({url}: Props) {
   };
 
   useEffect(() => {
-    console.log(`loading page: ${url}`);
-    if (locReadingMode === READING_MODES.WEBTOON) {
-      Image.getSize(
-        url,
-        (iWidth, iHeight) => {
-          const ratio = iWidth / iHeight;
-          const finalHeight = Math.round(width / ratio);
-          setImHeight(finalHeight);
-        },
-        () => {
+    (async () => {
+      if (pagePromise) {
+        try {
+          const {statusCode} = await pagePromise;
+
+          if (statusCode === 200) {
+            Image.getSize(path, (iWidth, iHeight) => {
+              const ratio = iWidth / iHeight;
+              const finalHeight = Math.round(width / ratio);
+              setImHeight(finalHeight);
+            });
+          } else {
+            throw `An error has occured: ${statusCode}`;
+          }
+        } catch (e) {
+          console.log('FAILED!: ' + e);
           setIsError(true);
-        },
-      );
-    } else {
-      setImHeight(height);
-    }
-  }, [locReadingMode, url]);
+        }
+
+        return;
+      }
+
+      Image.getSize(path, (iWidth, iHeight) => {
+        const ratio = iWidth / iHeight;
+        const finalHeight = Math.round(width / ratio);
+        setImHeight(finalHeight);
+      });
+    })();
+  }, [pagePromise, path]);
 
   if (isError) {
     return (
@@ -81,7 +95,7 @@ export function RCSChapterImages({url}: Props) {
     <View style={[styles.container, {height: imHeight ?? undefined}]}>
       {imHeight ? (
         <FastImage
-          source={{uri: url, priority: 'high'}}
+          source={{uri: path, priority: 'high'}}
           resizeMode="contain"
           style={{flex: 1, width: width}}
           onError={onPageError}
@@ -93,13 +107,15 @@ export function RCSChapterImages({url}: Props) {
       )}
     </View>
   );
-}
+});
 
 function getStyles(colorScheme: ColorScheme) {
   return StyleSheet.create({
     container: {
       height: height * 0.3,
       width: width,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     loadingContainer: {
       flex: 1,
