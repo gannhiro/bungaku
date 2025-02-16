@@ -128,8 +128,6 @@ export function MangaChaptersScreen({route, navigation}: Props) {
 
       const tempDownloadedChapters: res_get_manga_$_feed['data'] = [];
       if (showDownloadedChapters || intError) {
-        console.log('int error');
-        // check for stats locally
         if (intError) {
           const mangaData = JSON.parse(
             await FS.readFile(
@@ -139,7 +137,6 @@ export function MangaChaptersScreen({route, navigation}: Props) {
           setStatistics(mangaData.statistics as res_get_statistics_manga);
         }
 
-        // check for chapters locally
         const directories = await FS.readDir(
           `${FS.DocumentDirectoryPath}/manga/${manga.id}`,
         );

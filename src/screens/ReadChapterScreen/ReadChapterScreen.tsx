@@ -88,13 +88,13 @@ export function ReadChapterScreen({route, navigation}: Props) {
   const [showBottomOverlay, setShowBottomOverlay] = useState(false);
   const [isDataSaver, setIsDataSaver] = useState(preferDataSaver);
   const [loading, setLoading] = useState(true);
-  const [isLocallyAvailable, setLocal] = useState(false);
-  const [localFiles, setLocalFiles] = useState<string[]>([]);
   const [pages, setPages] = useState<
     {pagePromise?: Promise<FS.DownloadResult>; path: string}[]
   >([]);
 
   const cacheDirectory = `${FS.CachesDirectoryPath}/${mangaId}/${chapters[currentChapter].id}`;
+  const downloadsDirectory = `${FS.DocumentDirectoryPath}/manga/${mangaId}/${chapters[currentChapter].attributes.translatedLanguage}/${chapters[currentChapter].id}`;
+
   const scanlator = chapters[currentChapter].relationships.find(
     rs => rs.type === 'scanlation_group',
   ) as res_get_group_$['data'] | undefined;
@@ -169,7 +169,7 @@ export function ReadChapterScreen({route, navigation}: Props) {
   function renderItem({
     item,
   }: ListRenderItemInfo<{
-    pagePromise: Promise<FS.DownloadResult>;
+    pagePromise?: Promise<FS.DownloadResult>;
     path: string;
   }>) {
     return (
@@ -233,7 +233,6 @@ export function ReadChapterScreen({route, navigation}: Props) {
       await FastImage.clearMemoryCache();
       await FastImage.clearDiskCache();
 
-      // check if chapter exists locally and is not a current job
       const isCurrentJob = jobs.some(
         job => job === chapters[currentChapter].id,
       );
@@ -243,15 +242,14 @@ export function ReadChapterScreen({route, navigation}: Props) {
 
       if (!isCurrentJob && isDownloaded) {
         console.log('chapter is downloaded');
-        setLocal(true);
         const chapterDetails = await FS.readFile(
-          `${FS.DocumentDirectoryPath}/manga/${mangaId}/${chapters[currentChapter].attributes.translatedLanguage}/${chapters[currentChapter].id}/chapter.json`,
+          `${downloadsDirectory}/chapter.json`,
         );
         const parsedDetails: ChapterDetails = JSON.parse(chapterDetails);
 
         const finalPageObjects = parsedDetails.pageFileNames.map(item => {
           return {
-            path: `file://${FS.DocumentDirectoryPath}/manga/${mangaId}/${chapters[currentChapter].attributes.translatedLanguage}/${chapters[currentChapter].id}/${item}`,
+            path: `file://${downloadsDirectory}/${item}`,
           };
         });
 
@@ -263,15 +261,14 @@ export function ReadChapterScreen({route, navigation}: Props) {
       const isCached = await FS.exists(cacheDirectory);
       if (isCached) {
         console.log('chapter is cached');
-        const pageDirectories = await FS.readDir(cacheDirectory);
-        const sortedPageDirectories = pageDirectories.sort((a, b) => {
-          const numA = parseInt(a.name.split('-')[0], 10);
-          const numB = parseInt(b.name.split('-')[0], 10);
+        const chapterDetails: ChapterDetails = JSON.parse(
+          await FS.readFile(`${cacheDirectory}/chapter.json`),
+        );
 
-          return numA - numB;
-        });
-        const finalPageObjects = sortedPageDirectories.map(item => {
-          return {path: `file://${item.path}`};
+        const finalPageObjects = chapterDetails.pageFileNames.map(item => {
+          return {
+            path: `file://${cacheDirectory}/${item}`,
+          };
         });
 
         setPages(finalPageObjects);
@@ -288,9 +285,25 @@ export function ReadChapterScreen({route, navigation}: Props) {
 
       if (data.result === 'ok') {
         await FS.mkdir(cacheDirectory);
-        const pagePromises = data.chapter.dataSaver.map(pageId => {
+
+        const downloadedChapters = isDataSaver
+          ? data.chapter.dataSaver
+          : data.chapter.data;
+
+        const chapterDetails: ChapterDetails = {
+          chapter: chapters[currentChapter],
+          pageFileNames: downloadedChapters,
+          isDataSaver,
+        };
+
+        await FS.writeFile(
+          `${cacheDirectory}/chapter.json`,
+          JSON.stringify(chapterDetails),
+        );
+
+        const pagePromises = downloadedChapters.map(pageId => {
           const pageUrl = `${data.baseUrl}/data-saver/${data.chapter.hash}/${pageId}`;
-          const localPath = `${FS.CachesDirectoryPath}/${mangaId}/${chapters[currentChapter].id}/${pageId}`;
+          const localPath = `${cacheDirectory}/${pageId}`;
 
           const pageDownloadPromise = FS.downloadFile({
             fromUrl: pageUrl,
@@ -339,6 +352,7 @@ export function ReadChapterScreen({route, navigation}: Props) {
     mangaId,
     locReadingMode,
     cacheDirectory,
+    downloadsDirectory,
   ]);
 
   useFocusEffect(() => {

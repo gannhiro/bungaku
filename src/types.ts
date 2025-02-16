@@ -24,6 +24,7 @@ export type MangaDetails = {
 export type ChapterDetails = {
   chapter: res_get_manga_$_feed['data'][0];
   pageFileNames: string[];
+  isDataSaver: boolean;
 };
 
 export type UpdatedMangaData = {
