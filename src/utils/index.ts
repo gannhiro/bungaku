@@ -1,5 +1,2 @@
-export * from './numberShorten';
-export * from './themeConverter';
-export * from './textColor';
+export * from './utils';
 export * from './hooks/useInternetConn';
-export * from './getDateMDEX';
