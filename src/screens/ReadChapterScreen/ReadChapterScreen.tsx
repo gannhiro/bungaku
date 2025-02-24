@@ -5,7 +5,7 @@ import {
   res_get_user_$,
 } from '@api';
 import {GenericDropdownValues} from '@components';
-import {ColorScheme, PRETENDARD_JP, black, white} from '@constants';
+import {ColorScheme, PRETENDARD_JP, white} from '@constants';
 import {RootStackParamsList} from '@navigation';
 import {StackScreenProps} from '@react-navigation/stack';
 import {RootState, setError} from '@store';
@@ -397,7 +397,7 @@ export function ReadChapterScreen({route, navigation}: Props) {
                 onScroll={onScroll}
                 renderItem={renderItem}
                 keyExtractor={item => item.path}
-                maxToRenderPerBatch={3}
+                maxToRenderPerBatch={10}
               />
             ) : (
               <Progress.CircleSnail style={styles.loadingCircleSnail} />

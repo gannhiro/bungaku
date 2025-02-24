@@ -10,6 +10,7 @@ import {RootState} from '../../store/store';
 import {READING_MODES, ReadingMode} from './ReadChapterScreen';
 import {useReadChapterScreenContext} from './useReadChapterScreenContext';
 import FS from 'react-native-fs';
+import {Button} from '@components';
 
 type Props = {
   path: string;
@@ -87,12 +88,17 @@ export const RCSChapterImages = memo(({pagePromise, path}: Props) => {
     return (
       <View style={styles.errorContainer}>
         <Text>an error has occured!</Text>
+        <Button title="Retry" />
       </View>
     );
   }
 
   return (
-    <View style={[styles.container, {height: imHeight ?? undefined}]}>
+    <View
+      style={[
+        styles.container,
+        {height: locReadingMode === 'webtoon' ? imHeight ?? undefined : height},
+      ]}>
       {imHeight ? (
         <FastImage
           source={{uri: path, priority: 'high'}}
@@ -118,7 +124,7 @@ function getStyles(colorScheme: ColorScheme) {
       justifyContent: 'center',
     },
     loadingContainer: {
-      flex: 1,
+      height: height,
       alignItems: 'center',
       justifyContent: 'center',
     },

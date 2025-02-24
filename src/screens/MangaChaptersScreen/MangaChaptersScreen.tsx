@@ -329,11 +329,11 @@ function getStyles(_colorScheme: ColorScheme) {
     },
     cover: {
       width: width,
-      height: height * 0.6,
+      height: height * 0.8,
       opacity: 0.5,
     },
     mangaCoverGradient: {
-      height: height * 0.6,
+      height: height * 0.8,
       width: '100%',
       position: 'absolute',
       top: 0,
