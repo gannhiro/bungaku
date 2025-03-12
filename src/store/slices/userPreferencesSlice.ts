@@ -15,7 +15,7 @@ export const userPreferencesSlice = createSlice({
       state.colorScheme = action.payload;
     },
     setPornographyVis: (state, action: PayloadAction<boolean>) => {
-      state.pornographyOK = action.payload;
+      state.allowPornography = action.payload;
     },
     setReadingMode: (state, action: PayloadAction<READING_MODES>) => {
       state.readingMode = action.payload;
@@ -33,14 +33,14 @@ export const userPreferencesSlice = createSlice({
       const {
         colorScheme,
         language,
-        pornographyOK,
+        allowPornography,
         preferDataSaver,
         preferSystemColor,
         readingMode,
       } = action.payload;
       state.colorScheme = colorScheme;
       state.language = language;
-      state.pornographyOK = pornographyOK;
+      state.allowPornography = allowPornography;
       state.preferDataSaver = preferDataSaver;
       state.preferSystemColor = preferSystemColor;
       state.readingMode = readingMode;

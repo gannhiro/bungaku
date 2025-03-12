@@ -6,11 +6,7 @@ export function useInternetConn() {
 
   useEffect(() => {
     const unsubscribe = NetInfo.addEventListener(state => {
-      if (state.isInternetReachable) {
-        setInternetError(false);
-      } else {
-        setInternetError(true);
-      }
+      setInternetError(!(state.isInternetReachable ?? false));
     });
     return () => unsubscribe();
   }, []);

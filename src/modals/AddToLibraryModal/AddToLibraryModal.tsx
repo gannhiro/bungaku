@@ -51,8 +51,8 @@ export function AddToLibraryModal({route, navigation}: Props) {
   );
   const {libraryList} = useSelector((state: RootState) => state.libraryList);
   const jobs = useSelector((state: RootState) => state.jobs);
-  const inLibrary = libraryList.some(id => manga.id === id);
-  const isJob = jobs.some(id => id === manga.id);
+  const inLibrary = libraryList.includes(manga.id);
+  const isJob = jobs.includes(manga.id);
   const styles = getStyles(colorScheme);
 
   const [dateError, setDateError] = useState(false);
@@ -172,6 +172,7 @@ export function AddToLibraryModal({route, navigation}: Props) {
           ? `0${parseInt(stayUpdatedDyLoc, 10)}`
           : stayUpdatedDyLoc
       }T09:00:00`,
+      isDataSaver: false,
     };
 
     dispatch(updateMangaSettingsJob(mangaDetails));
@@ -388,7 +389,7 @@ export function AddToLibraryModal({route, navigation}: Props) {
             style={styles.group}
             entering={FadeInLeft.delay(200)}
             exiting={FadeOut}
-            layout={LinearTransition.delay(100)}>
+            layout={LinearTransition}>
             <Button
               title="Update Settings"
               btnColor={systemIndigo}

@@ -59,7 +59,7 @@ export function AccSettingsScreen() {
     >();
   const dispatch = useDispatch();
   const preferences = useSelector((state: RootState) => state.userPreferences);
-  const {colorScheme, preferDataSaver, pornographyOK} = useSelector(
+  const {colorScheme, preferDataSaver, allowPornography} = useSelector(
     (state: RootState) => state.userPreferences,
   );
   const labels = useLabels();
@@ -172,7 +172,7 @@ export function AccSettingsScreen() {
           }}
           thumbColor={colorScheme.colors.secondary}
           onTouchStart={() => {
-            if (!pornographyOK) {
+            if (!allowPornography) {
               Alert.alert(
                 'Are you 18+?',
                 'bungaku will be fetching pornographic material that are not suitable for ages below 18',
@@ -186,7 +186,7 @@ export function AccSettingsScreen() {
                         'settings',
                         JSON.stringify({
                           ...preferences,
-                          pornographyOK: false,
+                          allowPornography: false,
                         }),
                       );
                     },
@@ -198,12 +198,12 @@ export function AccSettingsScreen() {
               );
             }
           }}
-          value={pornographyOK}
+          value={allowPornography}
           onValueChange={async value => {
             dispatch(setPornographyVis(value));
             await AsyncStorage.setItem(
               'settings',
-              JSON.stringify({...preferences, pornographyOK: value}),
+              JSON.stringify({...preferences, allowPornography: value}),
             );
           }}
         />

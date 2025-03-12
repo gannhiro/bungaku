@@ -114,9 +114,8 @@ export function BottomSheet({
       () => {
         if (showBottomSheet) {
           setShowBottomSheet(false);
-          return true;
         }
-        return false;
+        return showBottomSheet;
       },
     );
 

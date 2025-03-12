@@ -57,9 +57,9 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
     setSelectedChapters,
   } = useMangaChaptersScreenContext();
   const [isDownloaded, setIsDownloaded] = useState(false);
-  const isDownloading = jobs.some(id => id === chapter.id);
-  const inLibrary = libraryList.some(id => id === manga.id);
-  const isSelected = selectedChapters.some(id => id === chapter.id);
+  const isDownloading = jobs.includes(chapter.id);
+  const inLibrary = libraryList.includes(manga.id);
+  const isSelected = selectedChapters.includes(chapter.id);
   const scanlator = chapter?.relationships.find(
     rs => rs.type === 'scanlation_group',
   ) as res_get_group_$['data'] | undefined;
@@ -99,7 +99,6 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
     .onEnd(() => {
       runOnJS(goToReadChapter)();
     });
-
   const longPressGest = Gesture.LongPress()
     .onStart(() => {
       if (isDownloading) {
@@ -127,7 +126,6 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
       console.log('long pressed');
       // runOnJS(onChapterLongPress)();
     });
-
   const panLeftGest = Gesture.Pan()
     .enabled(!isDownloading && !selectMode)
     .minVelocityX(-200)
@@ -147,7 +145,6 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
       }
       rightGroupWidth.value = withTiming(0);
     });
-
   const gestures = Gesture.Race(tapGesture, longPressGest, panLeftGest);
 
   async function downloadChapter() {
@@ -205,10 +202,7 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
 
     let initialIndex =
       finalChapters.findIndex(item => {
-        if (item.id === chapter?.id) {
-          return true;
-        }
-        return false;
+        return item.id === chapter?.id;
       }) ?? 0;
 
     navigation.navigate('ReadChapterScreen', {

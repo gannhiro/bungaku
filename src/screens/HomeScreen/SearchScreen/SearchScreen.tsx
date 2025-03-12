@@ -11,6 +11,7 @@ import {
   BottomSheet,
   Button,
   Dropdown,
+  GenericDropdownValues,
   GTextInput,
   MangaList,
 } from '@components';
@@ -54,7 +55,7 @@ type Props = MaterialTopTabScreenProps<
 >;
 
 export function SearchScreen({}: Props) {
-  const {colorScheme, pornographyOK} = useSelector(
+  const {colorScheme, allowPornography} = useSelector(
     (state: RootState) => state.userPreferences,
   );
   const {tags} = useSelector((state: RootState) => state.mangaTags);
@@ -79,6 +80,19 @@ export function SearchScreen({}: Props) {
   const [year, setYear] = useState<string>('');
   const [languages, setLanguages] = useState<Language[]>([]);
   const [resetting, setResetting] = useState(false);
+
+  function retrieveContentRatingDropdownItems(): GenericDropdownValues {
+    return Object.values(CONTENT_RATING)
+      .map(rating => {
+        return {
+          label: rating,
+          value: rating,
+        };
+      })
+      .filter(value => {
+        return !allowPornography && value.value === CONTENT_RATING.PORNOGRAPHIC;
+      });
+  }
 
   function searchIconOnPress() {
     setShowBottomSheet(!showBottomSheet);
@@ -300,22 +314,7 @@ export function SearchScreen({}: Props) {
           <Animated.View style={styles.filterGroup} layout={LinearTransition}>
             <Text style={styles.filterValueLabel}>Content Rating</Text>
             <Dropdown
-              items={Object.values(CONTENT_RATING)
-                .map(rating => {
-                  return {
-                    label: rating,
-                    value: rating,
-                  };
-                })
-                .filter(value => {
-                  if (
-                    !pornographyOK &&
-                    value.value === CONTENT_RATING.PORNOGRAPHIC
-                  ) {
-                    return false;
-                  }
-                  return true;
-                })}
+              items={retrieveContentRatingDropdownItems()}
               selection={contentRating}
               setSelection={setContentRating}
             />

@@ -7,7 +7,7 @@ export type Config = {
   readingMode: ReadingMode;
   preferDataSaver: boolean;
   preferSystemColor: boolean;
-  pornographyOK: boolean;
+  allowPornography: boolean;
   SearchScreenConfig: {
     showSearchBar: boolean;
     showMangaList: boolean;
@@ -19,7 +19,7 @@ export const CONFIG: Config = {
   language: 'en',
   preferSystemColor: true,
   preferDataSaver: true,
-  pornographyOK: false,
+  allowPornography: false,
   readingMode: 'horizontal',
   SearchScreenConfig: {
     showSearchBar: true,

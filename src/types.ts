@@ -14,6 +14,7 @@ export type PageDownload = {
 
 export type MangaDetails = {
   dateAdded: string;
+  isDataSaver: boolean;
   stayUpdated: boolean;
   stayUpdatedAfterDate: string;
   stayUpdatedLanguages: Language[];

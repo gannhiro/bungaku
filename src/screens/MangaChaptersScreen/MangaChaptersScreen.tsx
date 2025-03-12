@@ -14,6 +14,7 @@ import {RootStackParamsList} from '@navigation';
 import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
 import {StackScreenProps} from '@react-navigation/stack';
 import {RootState, setError} from '@store';
+import {MangaDetails} from '@types';
 import {useInternetConn} from '@utils';
 import React, {useEffect, useRef, useState} from 'react';
 import {Dimensions, Image, StyleSheet, View} from 'react-native';
@@ -75,9 +76,8 @@ export function MangaChaptersScreen({route, navigation}: Props) {
 
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [loadingText, setLoadingText] = useState('loading');
-  const [statistics, setStatistics] = useState<res_get_statistics_manga | null>(
-    null,
-  );
+  const [statistics, setStatistics] =
+    useState<res_get_statistics_manga | null>();
   const [sourceChapters, setSourcecChapters] = useState<
     res_get_manga_$_feed['data'] | null
   >(null);
@@ -133,8 +133,8 @@ export function MangaChaptersScreen({route, navigation}: Props) {
             await FS.readFile(
               `${FS.DocumentDirectoryPath}/manga/${manga.id}/manga-details.json`,
             ),
-          );
-          setStatistics(mangaData.statistics as res_get_statistics_manga);
+          ) as MangaDetails;
+          setStatistics(mangaData.statistics);
         }
 
         const directories = await FS.readDir(

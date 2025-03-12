@@ -7,7 +7,7 @@ import {
   res_get_statistics_manga,
 } from '@api';
 import {PayloadAction, createAsyncThunk, createSlice} from '@reduxjs/toolkit';
-import {ChapterDetails, MangaDetails, PageDownload} from '@types';
+import {ChapterDetails, MangaDetails} from '@types';
 import {getDateMDEX} from '@utils';
 import {ToastAndroid} from 'react-native';
 import FS, {ReadDirItem} from 'react-native-fs';
@@ -19,33 +19,17 @@ const initialState: string[] = [];
 type ChapterDLJobProps = {
   chapter: res_get_manga_$_feed['data'][0];
   manga: res_get_manga['data'][0];
-  statistics: res_get_statistics_manga | null;
+  statistics?: res_get_statistics_manga | null;
 };
 
 export const updateMangaSettingsJob = createAsyncThunk(
   'jobs/updateMangaSettingsJob',
-  async ({
-    manga,
-    statistics,
-    stayUpdated,
-    stayUpdatedAfterDate,
-    stayUpdatedLanguages,
-  }: MangaDetails) => {
-    // write to manga-details.json
-    console.log('writing to manga-details.json');
-    const toFile: MangaDetails = {
-      manga,
-      statistics,
-      stayUpdated,
-      stayUpdatedAfterDate,
-      stayUpdatedLanguages,
-      dateAdded: getDateMDEX(),
-    };
+  async (mangaDetails: MangaDetails) => {
     await FS.writeFile(
-      `${FS.DocumentDirectoryPath}/manga/${manga.id}/manga-details.json`,
-      JSON.stringify(toFile),
+      `${FS.DocumentDirectoryPath}/manga/${mangaDetails.manga.id}/manga-details.json`,
+      JSON.stringify(mangaDetails),
     );
-    ToastAndroid.show('Updated Settings.', 500);
+    ToastAndroid.show('Updated Settings', 500);
   },
 );
 
@@ -58,17 +42,6 @@ export const chapterDLJob = createAsyncThunk(
     console.log('JOB TYPE: CHAPTER DOWNLOAD');
     console.log('JOB requestId: ' + requestId);
 
-    // check for translated language folder
-    const langFolderExists = await FS.exists(
-      `${FS.DocumentDirectoryPath}/manga/${manga.id}/${chapter.attributes.translatedLanguage}`,
-    );
-    if (!langFolderExists) {
-      await FS.mkdir(
-        `${FS.DocumentDirectoryPath}/manga/${manga.id}/${chapter.attributes.translatedLanguage}`,
-      );
-    }
-
-    // check if chapter id exists for removal
     const chapterExists = await FS.exists(
       `${FS.DocumentDirectoryPath}/manga/${manga.id}/${chapter.attributes.translatedLanguage}/${chapter.id}`,
     );
@@ -78,9 +51,17 @@ export const chapterDLJob = createAsyncThunk(
       await FS.unlink(
         `${FS.DocumentDirectoryPath}/manga/${manga.id}/${chapter.attributes.translatedLanguage}/${chapter.id}`,
       );
-
-      ToastAndroid.show('Removed Chapter.', 1000);
       return;
+    }
+
+    // check for translated language folder
+    const langFolderExists = await FS.exists(
+      `${FS.DocumentDirectoryPath}/manga/${manga.id}/${chapter.attributes.translatedLanguage}`,
+    );
+    if (!langFolderExists) {
+      await FS.mkdir(
+        `${FS.DocumentDirectoryPath}/manga/${manga.id}/${chapter.attributes.translatedLanguage}`,
+      );
     }
 
     // download chapter details
@@ -244,22 +225,23 @@ export const jobsSlice = createSlice({
     },
   },
   extraReducers(builder) {
-    builder.addCase(chapterDLJob.pending, (state, action) => {
-      console.log('chapterDLJob.pending: ' + action.meta.arg.chapter.id);
-      state.push(action.meta.arg.chapter.id);
-    });
-    builder.addCase(chapterDLJob.fulfilled, (state, action) => {
-      console.log('chapterDLJob.fulfilled:' + action.meta.arg.chapter.id);
-      state.splice(state.indexOf(action.meta.arg.chapter.id), 1);
-    });
-    builder.addCase(addRemToLibraryJob.pending, (state, action) => {
-      console.log('addRemToLibraryJob.pending:' + action.meta.arg.manga.id);
-      state.push(action.meta.arg.manga.id);
-    });
-    builder.addCase(addRemToLibraryJob.fulfilled, (state, action) => {
-      console.log('addRemToLibraryJob.fulfilled:' + action.meta.arg.manga.id);
-      state.splice(state.indexOf(action.meta.arg.manga.id), 1);
-    });
+    builder
+      .addCase(chapterDLJob.pending, (state, action) => {
+        console.log('chapterDLJob.pending: ' + action.meta.arg.chapter.id);
+        state.push(action.meta.arg.chapter.id);
+      })
+      .addCase(chapterDLJob.fulfilled, (state, action) => {
+        console.log('chapterDLJob.fulfilled:' + action.meta.arg.chapter.id);
+        state.splice(state.indexOf(action.meta.arg.chapter.id), 1);
+      })
+      .addCase(addRemToLibraryJob.pending, (state, action) => {
+        console.log('addRemToLibraryJob.pending:' + action.meta.arg.manga.id);
+        state.push(action.meta.arg.manga.id);
+      })
+      .addCase(addRemToLibraryJob.fulfilled, (state, action) => {
+        console.log('addRemToLibraryJob.fulfilled:' + action.meta.arg.manga.id);
+        state.splice(state.indexOf(action.meta.arg.manga.id), 1);
+      });
   },
 });
 

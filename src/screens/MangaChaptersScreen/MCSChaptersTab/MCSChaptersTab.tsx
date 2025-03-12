@@ -85,8 +85,8 @@ export function MCSChaptersTab({}: Props) {
       };
     });
 
-  const addingLibLoad = jobs.some(id => id === manga.id);
-  const inLibrary = libraryList.some(id => manga.id === id);
+  const addingLibLoad = jobs.includes(manga.id);
+  const inLibrary = libraryList.includes(manga.id);
   const author = manga.relationships.find(
     rs => rs.type === 'author',
   ) as res_get_author_$['data'];

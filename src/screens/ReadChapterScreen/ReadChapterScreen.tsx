@@ -233,9 +233,7 @@ export function ReadChapterScreen({route, navigation}: Props) {
       await FastImage.clearMemoryCache();
       await FastImage.clearDiskCache();
 
-      const isCurrentJob = jobs.some(
-        job => job === chapters[currentChapter].id,
-      );
+      const isCurrentJob = jobs.includes(chapters[currentChapter].id);
       const isDownloaded = await FS.exists(
         `${FS.DocumentDirectoryPath}/manga/${mangaId}/${chapters[currentChapter].attributes.translatedLanguage}/${chapters[currentChapter].id}/chapter.json`,
       );
