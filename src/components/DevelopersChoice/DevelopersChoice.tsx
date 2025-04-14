@@ -1,6 +1,6 @@
 import {get_manga, mangadexAPI, res_get_manga} from '@api';
 import {ColorScheme, DEVS_CHOICE, PRETENDARD_JP} from '@constants';
-import {RootState} from '@store';
+import {RootState, useAppDispatch, useAppSelector} from '@store';
 import {textColor} from '@utils';
 import {useEffect, useState} from 'react';
 import React, {
@@ -11,7 +11,6 @@ import React, {
   Text,
   View,
 } from 'react-native';
-import {useDispatch, useSelector} from 'react-redux';
 import {DCRenderItem} from './DCRenderItem';
 
 const {width, height} = Dimensions.get('screen');
@@ -19,8 +18,8 @@ const {width, height} = Dimensions.get('screen');
 type Props = {};
 
 export function DevelopersChoice({}: Props) {
-  const dispatch = useDispatch();
-  const {colorScheme} = useSelector(
+  const dispatch = useAppDispatch();
+  const {colorScheme} = useAppSelector(
     (state: RootState) => state.userPreferences,
   );
   const styles = getStyles(colorScheme);

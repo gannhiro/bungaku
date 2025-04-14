@@ -1,5 +1,5 @@
 import {ColorScheme, PRETENDARD_JP} from '@constants';
-import {RootState} from '@store';
+import {RootState, useAppSelector} from '@store';
 import {textColor} from '@utils';
 import React, {Dispatch, SetStateAction, useState} from 'react';
 import {
@@ -23,7 +23,6 @@ import Animated, {
   withSpring,
   withTiming,
 } from 'react-native-reanimated';
-import {useSelector} from 'react-redux';
 import {DropdownRenderItem} from './DropdownRenderItem';
 
 export type GenericDropdownValues = {
@@ -51,7 +50,7 @@ export function Dropdown({
   onDropdownPress,
   style,
 }: Props) {
-  const {colorScheme} = useSelector(
+  const {colorScheme} = useAppSelector(
     (state: RootState) => state.userPreferences,
   );
   const styles = getStyles(colorScheme);

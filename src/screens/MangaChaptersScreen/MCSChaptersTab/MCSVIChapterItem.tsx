@@ -6,11 +6,17 @@ import {
   systemCyan,
   systemCyanLight,
   systemGreen,
+  systemOrange,
   systemRed,
 } from '@constants';
 import {RootStackParamsList} from '@navigation';
 import {NavigationProp, useNavigation} from '@react-navigation/native';
-import {RootState, chapterDLJob} from '@store';
+import {
+  downloadChapter,
+  RootState,
+  useAppDispatch,
+  useAppSelector,
+} from '@store';
 import {textColor} from '@utils';
 import React, {memo, useEffect, useState} from 'react';
 import {Dimensions, Image, StyleSheet, Text, Vibration} from 'react-native';
@@ -20,15 +26,14 @@ import InAppBrowser from 'react-native-inappbrowser-reborn';
 import * as Progress from 'react-native-progress';
 import Animated, {
   FadeIn,
-  SlideInLeft,
   runOnJS,
+  SlideInLeft,
   useAnimatedStyle,
   useSharedValue,
   withRepeat,
   withSequence,
   withTiming,
 } from 'react-native-reanimated';
-import {useDispatch, useSelector} from 'react-redux';
 import {useMangaChaptersScreenContext} from '../useMangaChaptersScreenContext';
 
 const {width, height} = Dimensions.get('screen');
@@ -38,13 +43,13 @@ type Props = {
 };
 
 export const MCSVIChapterItem = memo(({chapter}: Props) => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const navigation = useNavigation<NavigationProp<RootStackParamsList>>();
-  const {colorScheme} = useSelector(
+  const {colorScheme} = useAppSelector(
     (state: RootState) => state.userPreferences,
   );
-  const jobs = useSelector((state: RootState) => state.jobs);
-  const {libraryList} = useSelector((state: RootState) => state.libraryList);
+  const jobs = useAppSelector((state: RootState) => state.jobs);
+  const {libraryList} = useAppSelector((state: RootState) => state.libraryList);
   const styles = getStyles(colorScheme);
   const {
     manga,
@@ -67,16 +72,14 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
     | res_get_user_$['data']
     | undefined;
 
-  const chapterTransX = useSharedValue(0);
+  const chapterTranslationX = useSharedValue(0);
   const chapterPressableBG = useSharedValue('#0000');
+  const chapterPressableBorderColor = useSharedValue('#0000');
   const chapterPressableStyle = useAnimatedStyle(() => {
     return {
       backgroundColor: chapterPressableBG.value,
-      transform: [{translateX: chapterTransX.value}],
-      borderColor:
-        isDownloaded && !isDownloading
-          ? systemGreen
-          : colorScheme.colors.primary,
+      transform: [{translateX: chapterTranslationX.value}],
+      borderColor: chapterPressableBorderColor.value,
     };
   });
 
@@ -108,7 +111,7 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
         withTiming(colorScheme.colors.secondary + 99, {duration: 100}),
         withTiming('#0000'),
       );
-      chapterTransX.value = withRepeat(
+      chapterTranslationX.value = withRepeat(
         withSequence(
           withTiming(2, {duration: 40}),
           withTiming(-2, {duration: 40}),
@@ -117,7 +120,7 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
         false,
         finished => {
           if (finished) {
-            chapterTransX.value = 0;
+            chapterTranslationX.value = 0;
           }
         },
       );
@@ -141,15 +144,15 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
     .onEnd(event => {
       if (event.translationX < -61) {
         console.log('swiped threshold reached');
-        runOnJS(downloadChapter)();
+        runOnJS(shouldDownloadChapter)();
       }
       rightGroupWidth.value = withTiming(0);
     });
   const gestures = Gesture.Race(tapGesture, longPressGest, panLeftGest);
 
-  async function downloadChapter() {
+  async function shouldDownloadChapter() {
     if (inLibrary) {
-      dispatch(chapterDLJob({chapter, manga, statistics}));
+      dispatch(downloadChapter({chapter, mangaId: manga.id}));
     } else {
       navigation.navigate('AddToLibraryModal', {
         manga,
@@ -248,13 +251,26 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
       const isDL = await FS.exists(
         `${FS.DocumentDirectoryPath}/manga/${manga.id}/${chapter.attributes.translatedLanguage}/${chapter.id}`,
       );
-      if (isDL) {
-        setIsDownloaded(true);
-      } else {
-        setIsDownloaded(false);
-      }
+      const isCD = await FS.exists(
+        `${FS.CachesDirectoryPath}/${manga.id}/${chapter.id}`,
+      );
+
+      setIsDownloaded(isDL);
+
+      chapterPressableBorderColor.value = isDL
+        ? systemGreen
+        : isCD
+        ? systemOrange
+        : colorScheme.colors.primary;
     })();
-  }, [chapter, manga, libraryList, jobs]);
+  }, [
+    chapter,
+    manga,
+    libraryList,
+    jobs,
+    chapterPressableBorderColor,
+    colorScheme,
+  ]);
 
   return (
     <GestureDetector gesture={gestures}>
@@ -278,6 +294,10 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
         )}
         <Animated.View style={styles.leftGroup}>
           <Animated.View style={styles.topRow}>
+            <FlagIcon
+              language={chapter?.attributes.translatedLanguage}
+              style={styles.flagIcon}
+            />
             <Animated.Text
               style={[styles.chapterTitleLabel]}
               ellipsizeMode={'tail'}
@@ -288,10 +308,6 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
                   : chapter?.attributes.title
                 : 'Chapter ' + chapter?.attributes.chapter}
             </Animated.Text>
-            <FlagIcon
-              language={chapter?.attributes.translatedLanguage}
-              style={styles.flagIcon}
-            />
           </Animated.View>
           <Animated.View style={styles.bottomRow}>
             <Animated.Text style={styles.chapterGenericLabel}>
@@ -385,7 +401,7 @@ function getStyles(colorScheme: ColorScheme) {
     chapterTitleLabel: {
       fontFamily: PRETENDARD_JP.BOLD,
       color: textColor(colorScheme.colors.main),
-      marginRight: 5,
+      marginLeft: 5,
       fontSize: 16,
     },
     chapterGenericLabel: {

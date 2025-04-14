@@ -1,7 +1,7 @@
 import {res_get_cover_$, res_get_manga} from '@api';
 import {ColorScheme, DEVS_CHOICE, OTOMANOPEE, PRETENDARD_JP} from '@constants';
 import {useNavigation} from '@react-navigation/native';
-import {RootState} from '@store';
+import {RootState, useAppDispatch, useAppSelector} from '@store';
 import {textColor} from '@utils';
 import React from 'react';
 import {
@@ -13,7 +13,6 @@ import {
   ViewStyle,
 } from 'react-native';
 import Animated from 'react-native-reanimated';
-import {useDispatch, useSelector} from 'react-redux';
 
 const {height, width} = Dimensions.get('window');
 
@@ -24,8 +23,8 @@ type Props = {
 
 export function DCRenderItem({manga, index}: Props) {
   const navigation = useNavigation();
-  const dispatch = useDispatch();
-  const {colorScheme} = useSelector(
+  const dispatch = useAppDispatch();
+  const {colorScheme} = useAppSelector(
     (state: RootState) => state.userPreferences,
   );
   const styles = getStyles(colorScheme);

@@ -1,3 +1,4 @@
+import {res_get_cover_$, res_get_manga} from '@api';
 import {
   PRETENDARD_JP,
   systemLightGray3,
@@ -5,9 +6,10 @@ import {
   systemRed,
   white,
 } from '@constants';
+import {RootStackParamsList} from '@navigation';
 import {useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
-import {RootState} from '@store';
+import {RootState, useAppSelector} from '@store';
 import {textColor, useInternetConn} from '@utils';
 import React, {memo, useEffect, useState} from 'react';
 import {Dimensions, StyleSheet, Text, Vibration, View} from 'react-native';
@@ -23,10 +25,7 @@ import Animated, {
   withSpring,
   withTiming,
 } from 'react-native-reanimated';
-import {useSelector} from 'react-redux';
 import {FlagIcon} from '..';
-import {res_get_cover_$, res_get_manga} from '@api';
-import {RootStackParamsList} from '@navigation';
 import {MangaListRenderItemContRatIcon} from './MangaListRenderItemContRatIcon';
 import {MangaListRenderItemStatIcon} from './MangaListRenderItemStatIcon';
 
@@ -44,23 +43,22 @@ export const MangaListRenderItem = memo(({manga}: Props) => {
     useNavigation<
       StackNavigationProp<RootStackParamsList, 'HomeScreen', undefined>
     >();
-  const {colorScheme} = useSelector(
+  const {colorScheme} = useAppSelector(
     (state: RootState) => state.userPreferences,
   );
-  const {libraryList} = useSelector((state: RootState) => state.libraryList);
-  const {language} = useSelector((state: RootState) => state.userPreferences);
+  const {libraryList} = useAppSelector((state: RootState) => state.libraryList);
+  const {language} = useAppSelector(
+    (state: RootState) => state.userPreferences,
+  );
   const [loadingCover, setLoadingCover] = useState(true);
   const [coverRetries, setCoverRetries] = useState(0);
   const [coverError, setCoverError] = useState(false);
 
   const mangaTitle =
     manga.attributes.title[language] ??
-    manga.attributes.altTitles.find(altTitle => {
-      if (altTitle[language]) {
-        return true;
-      }
-      return false;
-    })?.[language] ??
+    manga.attributes.altTitles.find(altTitle => altTitle[language])?.[
+      language
+    ] ??
     manga.attributes.title.en ??
     'NO TITLE!';
   const coverItem = manga.relationships.find(rs => rs.type === 'cover_art') as
@@ -80,7 +78,7 @@ export const MangaListRenderItem = memo(({manga}: Props) => {
     };
   });
 
-  const tapGesture = Gesture.Tap()
+  const onPressItem = Gesture.Tap()
     .onStart(() => {
       runOnJS(Vibration.vibrate)([0, 50], false);
       itemScale.value = withSequence(
@@ -124,7 +122,7 @@ export const MangaListRenderItem = memo(({manga}: Props) => {
   }, [intError]);
 
   return (
-    <GestureDetector gesture={tapGesture}>
+    <GestureDetector gesture={onPressItem}>
       <Animated.View
         style={[styles.container, contAnimStyle]}
         entering={FadeIn}>

@@ -17,7 +17,6 @@ import {
   PRETENDARD_JP,
   systemRed,
 } from '@constants';
-import {useDispatch, useSelector} from 'react-redux';
 import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
 import React, {useEffect, useRef, useState} from 'react';
 import {Button} from '@components';
@@ -30,7 +29,14 @@ import {
   res_get_user_me,
 } from '@api';
 import {RootStackParamsList} from '@navigation';
-import {RootState, setError, setUserDetails, setUserTokens} from '@store';
+import {
+  RootState,
+  setError,
+  setUserDetails,
+  setUserTokens,
+  useAppDispatch,
+  useAppSelector,
+} from '@store';
 import {textColor} from '@utils';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 
@@ -42,10 +48,10 @@ enum ERROR_DESCS {
 type Props = StackScreenProps<RootStackParamsList, 'LoginScreen'>;
 
 export function LoginScreen({navigation}: Props) {
-  const {colorScheme} = useSelector(
+  const {colorScheme} = useAppSelector(
     (state: RootState) => state.userPreferences,
   );
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const styles = getStyles(colorScheme);
 
   const [usernameEmail, setUsernameEmail] = useState('');

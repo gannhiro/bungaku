@@ -1,15 +1,14 @@
 import {Button, DevelopersChoice, LibraryUpdates} from '@components';
 import {ColorScheme, PRETENDARD_JP, mangaDexOrange, neko} from '@constants';
-import {RootState} from '@store';
+import {RootState, useAppSelector} from '@store';
 import {textColor} from '@utils';
 import React from 'react';
 import {ScrollView, StyleSheet, View} from 'react-native';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
-import {useSelector} from 'react-redux';
 import {HSJumboList} from './HSJumboList/HSJumboList';
 
 export function AHomeScreen() {
-  const {colorScheme} = useSelector(
+  const {colorScheme} = useAppSelector(
     (state: RootState) => state.userPreferences,
   );
   const styles = getStyles(colorScheme);

@@ -1,9 +1,8 @@
-import {RootState} from '@store';
-import {useSelector} from 'react-redux';
+import {RootState, useAppSelector} from '@store';
 import {Language} from './languages';
 
 export function useLabels() {
-  const language = useSelector(
+  const language = useAppSelector(
     (state: RootState) => state.userPreferences.language,
   );
 

@@ -3,20 +3,25 @@ import {AVAILABLE_COLOR_SCHEMES, ColorScheme, PRETENDARD_JP} from '@constants';
 import {RootStackParamsList} from '@navigation';
 import {BlurView} from '@react-native-community/blur';
 import {StackScreenProps} from '@react-navigation/stack';
-import {RootState, setColorScheme, setPreferSystemColor} from '@store';
+import {
+  RootState,
+  setColorScheme,
+  setPreferSystemColor,
+  useAppDispatch,
+  useAppSelector,
+} from '@store';
 import {textColor} from '@utils';
 import React, {useEffect, useState} from 'react';
 import {Dimensions, StyleSheet, Text, View} from 'react-native';
 import Animated, {LinearTransition} from 'react-native-reanimated';
-import {useDispatch, useSelector} from 'react-redux';
 
 const {width} = Dimensions.get('screen');
 
 type Props = StackScreenProps<RootStackParamsList, 'ThemeModal'>;
 
 export function ThemeModal({navigation}: Props) {
-  const dispatch = useDispatch();
-  const {colorScheme, preferSystemColor} = useSelector(
+  const dispatch = useAppDispatch();
+  const {colorScheme, preferSystemColor} = useAppSelector(
     (state: RootState) => state.userPreferences,
   );
   const styles = getStyles(colorScheme);

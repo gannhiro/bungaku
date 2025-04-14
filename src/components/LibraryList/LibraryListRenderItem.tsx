@@ -8,7 +8,12 @@ import {
 import {RootStackParamsList} from '@navigation';
 import {useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
-import {RootState, rmLibraryUpdateAsync} from '@store';
+import {
+  removeLibraryUpdateNotifs,
+  RootState,
+  useAppDispatch,
+  useAppSelector,
+} from '@store';
 import {MangaDetails} from '@types';
 import {textColor} from '@utils';
 import React, {useEffect, useState} from 'react';
@@ -29,7 +34,6 @@ import Animated, {
   withSequence,
   withTiming,
 } from 'react-native-reanimated';
-import {useDispatch, useSelector} from 'react-redux';
 
 const {width} = Dimensions.get('screen');
 
@@ -39,15 +43,15 @@ type Props = {
 };
 
 export function LibraryListRenderItem({mangaId}: Props) {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const navigation =
     useNavigation<
       StackNavigationProp<RootStackParamsList, 'HomeScreen', undefined>
     >();
-  const {colorScheme} = useSelector(
+  const {colorScheme, language} = useAppSelector(
     (state: RootState) => state.userPreferences,
   );
-  const {updatedMangaList} = useSelector(
+  const {updatedMangaList} = useAppSelector(
     (state: RootState) => state.libraryUpdates,
   );
   const badgeCount =
@@ -81,7 +85,7 @@ export function LibraryListRenderItem({mangaId}: Props) {
   async function goToChapters() {
     Vibration.vibrate([0, 50], false);
 
-    dispatch(rmLibraryUpdateAsync({mangaId: mangaId}));
+    dispatch(removeLibraryUpdateNotifs({mangaId: mangaId}));
 
     const mangaDetails = await FS.readFile(
       `${FS.DocumentDirectoryPath}/manga/${mangaId}/manga-details.json`,
@@ -100,13 +104,15 @@ export function LibraryListRenderItem({mangaId}: Props) {
       );
       const {manga}: MangaDetails = JSON.parse(mangaDetails);
 
-      if (mangaDetails) {
-        if (manga.attributes.title.en) {
-          setMangaTitle(manga.attributes.title.en);
-        }
-      }
+      const title =
+        manga.attributes.title[language] ??
+        manga.attributes.altTitles.find(keyValue => keyValue[language])?.[
+          language
+        ] ??
+        manga.attributes.title.en;
+      setMangaTitle(title);
     })();
-  }, [mangaId]);
+  }, [mangaId, language]);
 
   return (
     <GestureDetector gesture={gestures}>

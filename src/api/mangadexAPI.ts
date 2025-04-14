@@ -1,6 +1,6 @@
 import {
-  API_URL,
   aborted_request,
+  API_URL,
   endpoints,
   gen_error,
   internal_gen_error,
@@ -118,7 +118,7 @@ export const mangadexAPI = async <R, P extends Object>(
     return data;
   } catch (e) {
     if (signal?.aborted) {
-      console.log('Request Aborted: ' + request);
+      console.log(`ABORTED REQUEST: ${request}`);
       return {result: 'aborted'};
     }
     const internalError: internal_gen_error = {
@@ -126,8 +126,9 @@ export const mangadexAPI = async <R, P extends Object>(
       title: JSON.stringify(e),
     };
 
-    console.log('Internal Error: ' + request);
-    console.log('Details: ' + internalError);
+    console.error(`ERROR OCCURED WITH REQUEST: ${request}
+      \n${internalError.title}
+      \n- ${internalError.desc}`);
     return internalError;
   }
 };

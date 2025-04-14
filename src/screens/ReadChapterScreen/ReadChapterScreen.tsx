@@ -8,8 +8,14 @@ import {GenericDropdownValues} from '@components';
 import {ColorScheme, PRETENDARD_JP, white} from '@constants';
 import {RootStackParamsList} from '@navigation';
 import {StackScreenProps} from '@react-navigation/stack';
-import {RootState, setError} from '@store';
-import {ChapterDetails} from '@types';
+import {
+  cacheChapter,
+  RootState,
+  setError,
+  useAppDispatch,
+  useAppSelector,
+} from '@store';
+import {DownloadedChapterDetails} from '@types';
 import {textColor} from '@utils';
 import React, {Fragment, useEffect, useRef, useState} from 'react';
 import {
@@ -42,7 +48,6 @@ import Animated, {
   withSequence,
   withTiming,
 } from 'react-native-reanimated';
-import {useDispatch, useSelector} from 'react-redux';
 import {RCSBottomSheet} from './RCSBottomSheet';
 import {RCSChapterImages} from './RCSChapterImages';
 import {
@@ -67,13 +72,13 @@ const readingModes: GenericDropdownValues = [
 const {width, height} = Dimensions.get('screen');
 
 export function ReadChapterScreen({route, navigation}: Props) {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const {mangaId, chapters, originalLanguage, initialChapterIndex} =
     route.params;
-  const {colorScheme, preferDataSaver, readingMode} = useSelector(
+  const {colorScheme, preferDataSaver} = useAppSelector(
     (state: RootState) => state.userPreferences,
   );
-  const jobs = useSelector((state: RootState) => state.jobs);
+  const jobs = useAppSelector((state: RootState) => state.jobs);
   const styles = getStyles(colorScheme);
 
   const [locReadingMode, setLocReadingMode] = useState<ReadingMode>(
@@ -243,7 +248,8 @@ export function ReadChapterScreen({route, navigation}: Props) {
         const chapterDetails = await FS.readFile(
           `${downloadsDirectory}/chapter.json`,
         );
-        const parsedDetails: ChapterDetails = JSON.parse(chapterDetails);
+        const parsedDetails: DownloadedChapterDetails =
+          JSON.parse(chapterDetails);
 
         const finalPageObjects = parsedDetails.pageFileNames.map(item => {
           return {
@@ -259,7 +265,7 @@ export function ReadChapterScreen({route, navigation}: Props) {
       const isCached = await FS.exists(cacheDirectory);
       if (isCached) {
         console.log('chapter is cached');
-        const chapterDetails: ChapterDetails = JSON.parse(
+        const chapterDetails: DownloadedChapterDetails = JSON.parse(
           await FS.readFile(`${cacheDirectory}/chapter.json`),
         );
 
@@ -274,65 +280,23 @@ export function ReadChapterScreen({route, navigation}: Props) {
         return;
       }
 
-      const data = await mangadexAPI<res_at_home_$, {}>(
-        'get',
-        '/at-home/server/$',
-        {},
-        [chapters[currentChapter].id],
-      );
+      function cacheChapterCallback(
+        tempPages: {pagePromise?: Promise<FS.DownloadResult>; path: string}[],
+        tempChapters: res_at_home_$,
+      ) {
+        setPages(tempPages);
+        setChapterPages(tempChapters);
+        setLoading(false);
+      }
 
-      if (data.result === 'ok') {
-        await FS.mkdir(cacheDirectory);
-
-        const downloadedChapters = isDataSaver
-          ? data.chapter.dataSaver
-          : data.chapter.data;
-
-        const chapterDetails: ChapterDetails = {
+      dispatch(
+        cacheChapter({
           chapter: chapters[currentChapter],
-          pageFileNames: downloadedChapters,
+          mangaId,
           isDataSaver,
-        };
-
-        await FS.writeFile(
-          `${cacheDirectory}/chapter.json`,
-          JSON.stringify(chapterDetails),
-        );
-
-        const pagePromises = downloadedChapters.map(pageId => {
-          const pageUrl = `${data.baseUrl}/data-saver/${data.chapter.hash}/${pageId}`;
-          const localPath = `${cacheDirectory}/${pageId}`;
-
-          const pageDownloadPromise = FS.downloadFile({
-            fromUrl: pageUrl,
-            toFile: localPath,
-          }).promise;
-
-          return {
-            pagePromise: pageDownloadPromise,
-            path: `file://${localPath}`,
-          };
-        });
-
-        setPages(pagePromises);
-        setChapterPages(data);
-      }
-
-      if (data.result === 'aborted') {
-        // TODO: handle error
-      }
-
-      if (data.result === 'internal-error') {
-        // TODO: handle error
-      }
-
-      if (data.result === 'error') {
-        dispatch(setError(data));
-        console.error(`${data?.errors[0].status}: ${data?.errors[0].title}`);
-        console.error(`${data?.errors[0].detail}`);
-      }
-
-      setLoading(false);
+          callback: cacheChapterCallback,
+        }),
+      );
     })();
 
     chapterOverlayOpacity.value = withSequence(

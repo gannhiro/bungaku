@@ -3,8 +3,7 @@ import {BottomSheet, Button, Dropdown} from '@components';
 import React, {Dispatch, SetStateAction} from 'react';
 import {ScrollView, Text, View, Switch, StyleSheet} from 'react-native';
 import {useReadChapterScreenContext} from './useReadChapterScreenContext';
-import {RootState} from '@store';
-import {useSelector} from 'react-redux';
+import {RootState, useAppSelector} from '@store';
 import {ColorScheme, PRETENDARD_JP} from '@constants';
 import {textColor} from '@utils';
 import Animated, {LinearTransition} from 'react-native-reanimated';
@@ -15,7 +14,7 @@ type Props = {
 };
 
 export function RCSBottomSheet({showBottomSheet, setShowBottomSheet}: Props) {
-  const {colorScheme} = useSelector(
+  const {colorScheme} = useAppSelector(
     (state: RootState) => state.userPreferences,
   );
 

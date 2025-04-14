@@ -13,7 +13,13 @@ import {
 import {RootStackParamsList} from '@navigation';
 import {BlurView} from '@react-native-community/blur';
 import {StackScreenProps} from '@react-navigation/stack';
-import {RootState, addRemToLibraryJob, updateMangaSettingsJob} from '@store';
+import {
+  addOrRemoveFromLibrary,
+  RootState,
+  updateMangaSettings,
+  useAppDispatch,
+  useAppSelector,
+} from '@store';
 import {MangaDetails} from '@types';
 import {getDateMDEX, textColor} from '@utils';
 import React, {Fragment, useEffect, useState} from 'react';
@@ -26,6 +32,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import FS from 'react-native-fs';
 import Animated, {
   FadeIn,
   FadeInLeft,
@@ -35,8 +42,6 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
-import {useDispatch, useSelector} from 'react-redux';
-import FS from 'react-native-fs';
 
 const {width, height} = Dimensions.get('screen');
 const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
@@ -45,17 +50,18 @@ type Props = StackScreenProps<RootStackParamsList, 'AddToLibraryModal'>;
 
 export function AddToLibraryModal({route, navigation}: Props) {
   const {manga, statistics} = route.params;
-  const dispatch = useDispatch();
-  const {colorScheme} = useSelector(
+  const dispatch = useAppDispatch();
+  const {colorScheme} = useAppSelector(
     (state: RootState) => state.userPreferences,
   );
-  const {libraryList} = useSelector((state: RootState) => state.libraryList);
-  const jobs = useSelector((state: RootState) => state.jobs);
+  const {libraryList} = useAppSelector((state: RootState) => state.libraryList);
+  const jobs = useAppSelector((state: RootState) => state.jobs);
   const inLibrary = libraryList.includes(manga.id);
   const isJob = jobs.includes(manga.id);
   const styles = getStyles(colorScheme);
 
   const [dateError, setDateError] = useState(false);
+  const [isDataSaver, setIsDataSaver] = useState(false);
   const [stayUpdatedLoc, setStayUpdatedLoc] = useState(true);
   const [stayUpdatedYrLoc, setStayUpdatedYrLoc] = useState<string>(
     new Date().getUTCFullYear().toString(),
@@ -134,6 +140,10 @@ export function AddToLibraryModal({route, navigation}: Props) {
     setStayUpdatedLoc(value);
   }
 
+  async function onIsDataSaverSwitchChange(value: boolean) {
+    setIsDataSaver(value);
+  }
+
   async function onAddToLibPress() {
     Keyboard.dismiss();
     const mangaDetails: MangaDetails = {
@@ -151,9 +161,10 @@ export function AddToLibraryModal({route, navigation}: Props) {
           ? `0${parseInt(stayUpdatedMoLoc, 10)}`
           : stayUpdatedDyLoc
       }T09:00:00`,
+      isDataSaver,
     };
 
-    dispatch(addRemToLibraryJob(mangaDetails));
+    dispatch(addOrRemoveFromLibrary(mangaDetails));
   }
 
   function onUpdateSettingsPress() {
@@ -172,10 +183,10 @@ export function AddToLibraryModal({route, navigation}: Props) {
           ? `0${parseInt(stayUpdatedDyLoc, 10)}`
           : stayUpdatedDyLoc
       }T09:00:00`,
-      isDataSaver: false,
+      isDataSaver,
     };
 
-    dispatch(updateMangaSettingsJob(mangaDetails));
+    dispatch(updateMangaSettings(mangaDetails));
   }
 
   useEffect(() => {
@@ -194,11 +205,13 @@ export function AddToLibraryModal({route, navigation}: Props) {
         stayUpdated,
         stayUpdatedLanguages,
         stayUpdatedAfterDate,
+        isDataSaver: parsedIsDataSaver,
       }: MangaDetails = JSON.parse(extractedDetails);
 
       const date = new Date(stayUpdatedAfterDate);
 
       setStayUpdatedLoc(stayUpdated);
+      setIsDataSaver(parsedIsDataSaver);
       setStayUpdatedDyLoc(
         date.getUTCDate() < 10
           ? `0${date.getUTCDate()}`
@@ -279,6 +292,13 @@ export function AddToLibraryModal({route, navigation}: Props) {
           <Switch
             value={stayUpdatedLoc}
             onValueChange={onStayUpdatedSwitchChange}
+          />
+        </View>
+        <View style={styles.groupRow}>
+          <Text style={styles.groupRowLabel}>Download Data Saver Pages?</Text>
+          <Switch
+            value={isDataSaver}
+            onValueChange={onIsDataSaverSwitchChange}
           />
         </View>
         {stayUpdatedLoc && (

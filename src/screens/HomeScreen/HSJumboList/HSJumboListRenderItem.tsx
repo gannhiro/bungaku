@@ -1,30 +1,29 @@
 import {
-  res_get_manga,
-  res_get_statistics_manga,
-  mangadexAPI,
-  res_get_cover_$,
   API_COVER_URL,
   get_statistics_manga,
+  mangadexAPI,
+  res_get_cover_$,
+  res_get_manga,
+  res_get_statistics_manga,
 } from '@api';
 import {Chip} from '@components';
 import {ColorScheme, PRETENDARD_JP} from '@constants';
 import {RootStackParamsList} from '@navigation';
 import {useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
-import {RootState} from '@store';
+import {RootState, useAppSelector} from '@store';
 import {textColor} from '@utils';
 import React, {useEffect, useState} from 'react';
 import {
+  Dimensions,
   Image,
   StyleSheet,
-  Dimensions,
-  Vibration,
   Text,
+  Vibration,
   View,
 } from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import Animated, {FadeIn} from 'react-native-reanimated';
-import {useSelector} from 'react-redux';
 
 interface Props {
   manga: res_get_manga['data'][0];
@@ -41,7 +40,7 @@ export function HSJumboListRenderItem({
   currentPage,
   setCurrCoverSrc,
 }: Props) {
-  const {colorScheme} = useSelector(
+  const {colorScheme} = useAppSelector(
     (state: RootState) => state.userPreferences,
   );
 
@@ -57,7 +56,7 @@ export function HSJumboListRenderItem({
   const [coverRetries, setCoverRetries] = useState(0);
   const [coverError, setCoverError] = useState(false);
 
-  const tapGesture = Gesture.Tap()
+  const onMangaCoverTap = Gesture.Tap()
     .runOnJS(true)
     .onEnd(() => {
       goToChapters();
@@ -127,7 +126,7 @@ export function HSJumboListRenderItem({
 
     getCover();
     getRatings();
-  }, [manga.id, manga.relationships]);
+  }, [manga]);
 
   useEffect(() => {
     if (index === currentPage) {
@@ -138,7 +137,7 @@ export function HSJumboListRenderItem({
   return (
     <View style={styles.container}>
       <Animated.View style={[styles.innerCont]} entering={FadeIn}>
-        <GestureDetector gesture={tapGesture}>
+        <GestureDetector gesture={onMangaCoverTap}>
           <Image
             source={{uri: mangaCoverSrc + '.256.jpg'}}
             style={styles.coverImage}
@@ -163,7 +162,7 @@ export function HSJumboListRenderItem({
           <View style={styles.tagsContainer}>
             {manga.attributes.tags.map((tag, i) => {
               if (i < 5) {
-                return <Chip label={tag.attributes.name.en} />;
+                return <Chip label={tag.attributes.name.en} key={tag.id} />;
               }
             })}
             {manga.attributes.tags.length > 5 && (

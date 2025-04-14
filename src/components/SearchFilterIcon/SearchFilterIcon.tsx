@@ -10,8 +10,7 @@ import Animated, {
 import {ColorScheme, systemOrangeLight} from '@constants';
 import React, {useEffect} from 'react';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
-import {useSelector} from 'react-redux';
-import {RootState} from '@store';
+import {RootState, useAppSelector} from '@store';
 import {textColor} from '@utils';
 
 type Props = {
@@ -20,7 +19,7 @@ type Props = {
 };
 
 export function SearchFilterIcon({showBadge, filterIconOnPress}: Props) {
-  const {colorScheme} = useSelector(
+  const {colorScheme} = useAppSelector(
     (state: RootState) => state.userPreferences,
   );
   const styles = getStyles(colorScheme);

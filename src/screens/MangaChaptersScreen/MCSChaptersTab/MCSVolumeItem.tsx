@@ -11,7 +11,6 @@ import Animated, {
   FadeInRight,
   FadeInDown,
 } from 'react-native-reanimated';
-import {useSelector} from 'react-redux';
 import {
   res_get_group,
   res_get_user_$,
@@ -19,7 +18,7 @@ import {
   gen_error,
 } from '@api';
 import {ColorScheme, PRETENDARD_JP} from '@constants';
-import {RootState} from '@store';
+import {RootState, useAppSelector} from '@store';
 import MCSVIChapterItem from './MCSVIChapterItem';
 import {textColor} from '@utils';
 
@@ -42,7 +41,7 @@ export function MCSVolumeItem({
   allChapters,
   mangaId,
 }: Props) {
-  const {colorScheme} = useSelector(
+  const {colorScheme} = useAppSelector(
     (state: RootState) => state.userPreferences,
   );
   const styles = getStyles(colorScheme);

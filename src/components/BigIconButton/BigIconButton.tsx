@@ -1,5 +1,5 @@
 import {ColorScheme, PRETENDARD_JP} from '@constants';
-import {RootState} from '@store';
+import {RootState, useAppSelector} from '@store';
 import {textColor} from '@utils';
 import React from 'react';
 import {
@@ -10,7 +10,6 @@ import {
   ViewStyle,
 } from 'react-native';
 import * as Progress from 'react-native-progress';
-import {useSelector} from 'react-redux';
 
 enum LABEL_DIRECTION {
   LEFT = 'left',
@@ -36,7 +35,7 @@ export function BigIconButton({
   style,
   onPressButton,
 }: Props) {
-  const {colorScheme} = useSelector(
+  const {colorScheme} = useAppSelector(
     (state: RootState) => state.userPreferences,
   );
   const styles = getStyles(colorScheme);

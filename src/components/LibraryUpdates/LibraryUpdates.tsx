@@ -1,8 +1,13 @@
 import {ColorScheme, PRETENDARD_JP} from '@constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useNavigation} from '@react-navigation/native';
-import {RootState, setLibraryUpdates} from '@store';
-import {UpdatedMangaData} from '@types';
+import {
+  RootState,
+  setLibraryUpdatesOnLaunch,
+  useAppDispatch,
+  useAppSelector,
+} from '@store';
+import {UpdatedMangaNotifications} from '@types';
 import {textColor} from '@utils';
 import React, {useEffect} from 'react';
 import {
@@ -13,32 +18,34 @@ import {
   Text,
   View,
 } from 'react-native';
-import {useDispatch, useSelector} from 'react-redux';
 import {LibraryListRenderItem} from '../LibraryList/LibraryListRenderItem';
 
 const {width} = Dimensions.get('window');
 
 export function LibraryUpdates() {
   const navigation = useNavigation();
-  const dispatch = useDispatch();
-  const {updatedMangaList} = useSelector(
+  const dispatch = useAppDispatch();
+  const {updatedMangaList} = useAppSelector(
     (state: RootState) => state.libraryUpdates,
   );
-  const {colorScheme} = useSelector(
+  const {colorScheme} = useAppSelector(
     (state: RootState) => state.userPreferences,
   );
   const styles = getStyles(colorScheme);
 
-  function renderItem({item, index}: ListRenderItemInfo<UpdatedMangaData>) {
+  function renderItem({
+    item,
+    index,
+  }: ListRenderItemInfo<UpdatedMangaNotifications>) {
     return <LibraryListRenderItem mangaId={item.mangaId} index={index} />;
   }
 
   useEffect(() => {
     navigation.addListener('focus', async () => {
-      const tempLibraryUpdates: UpdatedMangaData[] = JSON.parse(
+      const tempLibraryUpdates: UpdatedMangaNotifications[] = JSON.parse(
         (await AsyncStorage.getItem('library-updates')) ?? '[]',
       );
-      dispatch(setLibraryUpdates(tempLibraryUpdates));
+      dispatch(setLibraryUpdatesOnLaunch(tempLibraryUpdates));
     });
   }, [dispatch, navigation]);
 

@@ -1,10 +1,9 @@
 import React from 'react';
-import {useSelector} from 'react-redux';
 import {StyleSheet, Vibration, View} from 'react-native';
 import {MaterialTopTabBarProps} from '@react-navigation/material-top-tabs';
 import Animated, {useAnimatedStyle} from 'react-native-reanimated';
 import {ColorScheme, PRETENDARD_JP} from '@constants';
-import {RootState} from '@store';
+import {RootState, useAppSelector} from '@store';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import {textColor} from '@utils';
 
@@ -22,7 +21,7 @@ export function TabBar({
   navigation,
   descriptors,
 }: MaterialTopTabBarProps) {
-  const {colorScheme} = useSelector(
+  const {colorScheme} = useAppSelector(
     (rState: RootState) => rState.userPreferences,
   );
   const styles = getStyles(colorScheme);
@@ -77,7 +76,7 @@ type TabBarIconProps = {
 };
 
 function TabBarIcon({tabTitle}: TabBarIconProps) {
-  const {colorScheme} = useSelector(
+  const {colorScheme} = useAppSelector(
     (rState: RootState) => rState.userPreferences,
   );
   const styles = getStyles(colorScheme);

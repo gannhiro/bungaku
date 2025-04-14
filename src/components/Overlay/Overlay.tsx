@@ -14,8 +14,7 @@ import Animated, {
   SlideOutUp,
 } from 'react-native-reanimated';
 import {ColorScheme, PRETENDARD_JP, systemRed, white} from '@constants';
-import {useDispatch, useSelector} from 'react-redux';
-import {RootState, setError} from '@store';
+import {RootState, setError, useAppDispatch, useAppSelector} from '@store';
 import {useInternetConn} from '@utils';
 
 type Props = {
@@ -25,11 +24,11 @@ type Props = {
 const {height} = Dimensions.get('window');
 
 export function Overlay({children}: Props) {
-  const {colorScheme} = useSelector(
+  const {colorScheme} = useAppSelector(
     (state: RootState) => state.userPreferences,
   );
-  const {error} = useSelector((state: RootState) => state.error);
-  const dispatch = useDispatch();
+  const {error} = useAppSelector((state: RootState) => state.error);
+  const dispatch = useAppDispatch();
   const styles = getStyles(colorScheme);
   const intError = useInternetConn();
 

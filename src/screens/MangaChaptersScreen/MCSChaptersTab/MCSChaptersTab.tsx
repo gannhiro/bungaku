@@ -16,7 +16,7 @@ import {
 import Clipboard from '@react-native-clipboard/clipboard';
 import {MaterialTopTabScreenProps} from '@react-navigation/material-top-tabs';
 import {FlashList, ListRenderItemInfo} from '@shopify/flash-list';
-import {RootState} from '@store';
+import {RootState, useAppSelector} from '@store';
 import {textColor} from '@utils';
 import React, {useRef, useState} from 'react';
 import {
@@ -39,7 +39,6 @@ import Animated, {
   LinearTransition,
   withTiming,
 } from 'react-native-reanimated';
-import {useSelector} from 'react-redux';
 import {MCSBottomTabsParamsList} from '../MangaChaptersScreen';
 import {useMangaChaptersScreenContext} from '../useMangaChaptersScreenContext';
 import MCSVIChapterItem from './MCSVIChapterItem';
@@ -52,11 +51,11 @@ type Props = MaterialTopTabScreenProps<
 const {height, width} = Dimensions.get('screen');
 
 export function MCSChaptersTab({}: Props) {
-  const jobs = useSelector((state: RootState) => state.jobs);
-  const {colorScheme} = useSelector(
+  const jobs = useAppSelector((state: RootState) => state.jobs);
+  const {colorScheme} = useAppSelector(
     (state: RootState) => state.userPreferences,
   );
-  const {libraryList} = useSelector((state: RootState) => state.libraryList);
+  const {libraryList} = useAppSelector((state: RootState) => state.libraryList);
   const styles = getStyles(colorScheme);
   const {
     manga,

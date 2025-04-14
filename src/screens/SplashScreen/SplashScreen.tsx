@@ -8,10 +8,12 @@ import {
   setConfig,
   setError,
   setLibraryList,
-  setLibraryUpdates,
+  setLibraryUpdatesOnLaunch,
   setMangaTags,
+  useAppDispatch,
+  useAppSelector,
 } from '@store';
-import {UpdatedMangaData} from '@types';
+import {UpdatedMangaNotifications} from '@types';
 import {textColor} from '@utils';
 import {Config} from 'config';
 import React, {useEffect, useState} from 'react';
@@ -19,15 +21,16 @@ import {PermissionsAndroid, StyleSheet, View} from 'react-native';
 import FS from 'react-native-fs';
 import * as Progress from 'react-native-progress';
 import Animated, {FadeIn} from 'react-native-reanimated';
-import {useDispatch, useSelector} from 'react-redux';
 
 type Props = StackScreenProps<RootStackParamsList, 'SplashScreen'>;
 
-export function SplashScreen({navigation, route}: Props) {
-  const preferences = useSelector((state: RootState) => state.userPreferences);
-  const {tags} = useSelector((state: RootState) => state.mangaTags);
+export function SplashScreen({navigation}: Props) {
+  const preferences = useAppSelector(
+    (state: RootState) => state.userPreferences,
+  );
+  const {tags} = useAppSelector((state: RootState) => state.mangaTags);
   const styles = getStyles(preferences.colorScheme);
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
   const [loadingText, setLoadingText] = useState('loading');
   const [numDots, setNumDots] = useState(0);

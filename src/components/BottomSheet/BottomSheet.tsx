@@ -1,7 +1,7 @@
 import {ColorScheme} from '@constants';
 import {BlurView} from '@react-native-community/blur';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
-import {RootState} from '@store';
+import {RootState, useAppSelector} from '@store';
 import React, {
   Dispatch,
   Fragment,
@@ -31,7 +31,6 @@ import Animated, {
   useSharedValue,
   withSpring,
 } from 'react-native-reanimated';
-import {useSelector} from 'react-redux';
 
 const {height: screenHeight, width} = Dimensions.get('screen');
 
@@ -54,7 +53,7 @@ export function BottomSheet({
   style,
 }: Props) {
   const navigation = useNavigation();
-  const {colorScheme} = useSelector(
+  const {colorScheme} = useAppSelector(
     (state: RootState) => state.userPreferences,
   );
   const styles = getStyles(colorScheme);

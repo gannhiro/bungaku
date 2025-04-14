@@ -1,5 +1,4 @@
-import {useSelector} from 'react-redux';
-import {RootState} from '@store';
+import {RootState, useAppSelector} from '@store';
 import {ColorScheme, PRETENDARD_JP} from '@constants';
 import {
   Dimensions,
@@ -57,7 +56,7 @@ export function Button({
   shouldTintImage,
   fontSize,
 }: Props) {
-  const {colorScheme} = useSelector(
+  const {colorScheme} = useAppSelector(
     (state: RootState) => state.userPreferences,
   );
   const styles = getStyles(colorScheme);

@@ -4,7 +4,7 @@ import {
   TOP_OVERLAY_HEIGHT,
   mangaDexOrange,
 } from '@constants';
-import {RootState} from '@store';
+import {RootState, useAppSelector} from '@store';
 import {textColor} from '@utils';
 import React from 'react';
 import {
@@ -18,12 +18,11 @@ import {
   View,
 } from 'react-native';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
-import {useSelector} from 'react-redux';
 
 const {width} = Dimensions.get('screen');
 
 export function CreditsScreen() {
-  const {colorScheme} = useSelector(
+  const {colorScheme} = useAppSelector(
     (state: RootState) => state.userPreferences,
   );
   const styles = getStyles(colorScheme);

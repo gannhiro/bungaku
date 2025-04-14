@@ -20,8 +20,7 @@ import {
   systemPurple,
   systemYellow,
 } from '@constants';
-import {useSelector} from 'react-redux';
-import {RootState} from '@store';
+import {RootState, useAppSelector} from '@store';
 import {numberShorten, textColor} from '@utils';
 import {FlagIcon} from '@components';
 import {useMangaChaptersScreenContext} from '../useMangaChaptersScreenContext';
@@ -34,7 +33,7 @@ type Props = MaterialTopTabScreenProps<
 const {width} = Dimensions.get('screen');
 
 export function MCSDetailsTab({}: Props) {
-  const {colorScheme} = useSelector(
+  const {colorScheme} = useAppSelector(
     (state: RootState) => state.userPreferences,
   );
   const styles = getStyles(colorScheme);

@@ -10,8 +10,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import {GenericDropdownValues} from './Dropdown';
 import React, {Dispatch, SetStateAction, useEffect, useState} from 'react';
-import {RootState} from '@store';
-import {useSelector} from 'react-redux';
+import {RootState, useAppSelector} from '@store';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import {textColor} from '@utils';
 
@@ -34,7 +33,7 @@ export function DropdownRenderItem({
   onSelectionPress,
   atLeastOne,
 }: Props) {
-  const {colorScheme} = useSelector(
+  const {colorScheme} = useAppSelector(
     (state: RootState) => state.userPreferences,
   );
   const styles = getStyles(colorScheme);

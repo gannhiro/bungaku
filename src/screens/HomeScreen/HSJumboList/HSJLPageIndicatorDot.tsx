@@ -1,7 +1,6 @@
 import React, {StyleSheet} from 'react-native';
 import {ColorScheme} from '@constants';
-import {RootState} from '@store';
-import {useSelector} from 'react-redux';
+import {RootState, useAppSelector} from '@store';
 import Animated, {
   useAnimatedStyle,
   withSpring,
@@ -14,7 +13,7 @@ type Props = {
 };
 
 export function HSJLPageIndicatorDot({currentPage, index}: Props) {
-  const {colorScheme} = useSelector(
+  const {colorScheme} = useAppSelector(
     (state: RootState) => state.userPreferences,
   );
   const styles = getStyles(colorScheme);

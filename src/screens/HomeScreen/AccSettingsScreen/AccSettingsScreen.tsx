@@ -14,7 +14,13 @@ import {RootStackParamsList} from '@navigation';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
-import {RootState, setDataSaver, setPornographyVis} from '@store';
+import {
+  RootState,
+  setDataSaver,
+  setPornographyVis,
+  useAppDispatch,
+  useAppSelector,
+} from '@store';
 import {textColor} from '@utils';
 import React, {Fragment} from 'react';
 import {
@@ -24,18 +30,18 @@ import {
   SectionList,
   SectionListData,
   SectionListRenderItemInfo,
-  StatusBar,
   StyleSheet,
   Switch,
   Text,
+  ToastAndroid,
   TouchableOpacity,
   View,
 } from 'react-native';
+import FS from 'react-native-fs';
 import {
   InAppBrowser,
   InAppBrowserAndroidOptions,
 } from 'react-native-inappbrowser-reborn';
-import {useDispatch, useSelector} from 'react-redux';
 
 export type Settings = {
   title: string;
@@ -57,9 +63,11 @@ export function AccSettingsScreen() {
     useNavigation<
       StackNavigationProp<RootStackParamsList, 'HomeScreen', undefined>
     >();
-  const dispatch = useDispatch();
-  const preferences = useSelector((state: RootState) => state.userPreferences);
-  const {colorScheme, preferDataSaver, allowPornography} = useSelector(
+  const dispatch = useAppDispatch();
+  const preferences = useAppSelector(
+    (state: RootState) => state.userPreferences,
+  );
+  const {colorScheme, preferDataSaver, allowPornography} = useAppSelector(
     (state: RootState) => state.userPreferences,
   );
   const labels = useLabels();
@@ -209,6 +217,19 @@ export function AccSettingsScreen() {
         />
       ),
       subtitle: labels.homeScreen.accountTab.otherSection.allowPornSubLabel,
+    },
+    {
+      label: 'Delete Cache',
+      subtitle: 'delete cache',
+      onPress: async () => {
+        const directories = await FS.readdir(`${FS.CachesDirectoryPath}`);
+        const promises = directories.map(directory => {
+          return FS.unlink(directory);
+        });
+
+        await Promise.allSettled(promises);
+        ToastAndroid.show('Deleted cache.', 1000);
+      },
     },
     {
       label: labels.homeScreen.accountTab.otherSection.creditsLabel,

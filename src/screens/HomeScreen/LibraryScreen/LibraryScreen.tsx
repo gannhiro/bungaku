@@ -2,11 +2,10 @@ import {ColorScheme, PRETENDARD_JP, TOP_OVERLAY_HEIGHT} from '@constants';
 import {RootStackParamsList} from '@navigation';
 import {useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
-import {RootState} from '@store';
+import {RootState, useAppSelector} from '@store';
 import {textColor} from '@utils';
 import React from 'react';
 import {StyleSheet, Text, View} from 'react-native';
-import {useSelector} from 'react-redux';
 import {LibraryList} from '@components';
 
 export function LibraryScreen() {
@@ -14,7 +13,7 @@ export function LibraryScreen() {
     useNavigation<
       StackNavigationProp<RootStackParamsList, 'HomeScreen', undefined>
     >();
-  const {colorScheme} = useSelector(
+  const {colorScheme} = useAppSelector(
     (state: RootState) => state.userPreferences,
   );
   const styles = getStyles(colorScheme);

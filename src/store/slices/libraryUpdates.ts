@@ -1,43 +1,53 @@
-import {createAsyncThunk, createSlice} from '@reduxjs/toolkit';
-import {PayloadAction} from '@reduxjs/toolkit';
-import type {RootState} from '../store';
-import {UpdatedMangaData} from '@types';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import notifee from '@notifee/react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {createAsyncThunk, createSlice, PayloadAction} from '@reduxjs/toolkit';
+import {UpdatedMangaNotifications} from '@types';
+import type {RootState} from '../store';
 
-const initialState: {updatedMangaList: UpdatedMangaData[]} = {
+const initialState: {updatedMangaList: UpdatedMangaNotifications[]} = {
   updatedMangaList: [],
 };
 
-type RmLibraryUpdateAsyncProps = {
+type RemoveLibraryUpdateProps = {
   mangaId: string;
 };
 
-export const rmLibraryUpdateAsync = createAsyncThunk<
+export const removeLibraryUpdateNotifs = createAsyncThunk<
   void,
-  RmLibraryUpdateAsyncProps,
+  RemoveLibraryUpdateProps,
   {state: RootState}
->('libraryUpdates/rmLibraryUpdate', async ({mangaId}, {getState, dispatch}) => {
-  const finalList = getState().libraryUpdates.updatedMangaList.filter(
-    update => update.mangaId !== mangaId,
-  );
-  await AsyncStorage.setItem('library-updates', JSON.stringify(finalList));
-  dispatch(setLibraryUpdates(finalList));
-});
+>(
+  'libraryUpdates/removeLibraryUpdateNotifs',
+  async ({mangaId}, {getState, dispatch}) => {
+    const updatedMangaList = getState().libraryUpdates.updatedMangaList;
+    const finalList = updatedMangaList.filter(update => {
+      const shouldRemoveId = update.mangaId !== mangaId;
+
+      if (shouldRemoveId) {
+        notifee.cancelNotification(update.notificationId);
+      }
+
+      return shouldRemoveId;
+    });
+
+    await AsyncStorage.setItem('library-updates', JSON.stringify(finalList));
+    dispatch(setLibraryUpdatesOnLaunch(finalList));
+  },
+);
 
 export const libraryUpdatesSlice = createSlice({
   name: 'libraryUpdates',
   initialState: initialState,
   reducers: {
-    setLibraryUpdates: (state, action: PayloadAction<UpdatedMangaData[]>) => {
+    setLibraryUpdatesOnLaunch: (
+      state,
+      action: PayloadAction<UpdatedMangaNotifications[]>,
+    ) => {
       state.updatedMangaList = action.payload;
     },
   },
-  extraReducers: builder => {
-    builder.addCase(rmLibraryUpdateAsync.fulfilled, (state, action) => {});
-  },
 });
 
-export const {setLibraryUpdates} = libraryUpdatesSlice.actions;
+export const {setLibraryUpdatesOnLaunch} = libraryUpdatesSlice.actions;
 export const libraryUpdates = (state: RootState) => state.libraryList;
 export default libraryUpdatesSlice.reducer;

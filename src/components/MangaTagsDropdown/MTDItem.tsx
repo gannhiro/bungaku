@@ -1,6 +1,5 @@
 import React, {memo} from 'react';
-import {useSelector} from 'react-redux';
-import {RootState} from '@store';
+import {RootState, useAppSelector} from '@store';
 import {Pressable, StyleSheet, View, ViewStyle} from 'react-native';
 import {
   ColorScheme,
@@ -23,7 +22,7 @@ type Props = {
 export const MTDItem = memo(
   ({tag, tags, includedTags, index, onSelectionPress}: Props) => {
     console.log('rerendered');
-    const {colorScheme} = useSelector(
+    const {colorScheme} = useAppSelector(
       (state: RootState) => state.userPreferences,
     );
     const styles = getStyles(colorScheme);

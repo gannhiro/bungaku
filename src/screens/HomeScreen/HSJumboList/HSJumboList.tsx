@@ -1,11 +1,12 @@
-import {res_get_manga, mangadexAPI, get_manga} from '@api';
+import {get_manga, mangadexAPI, res_get_manga} from '@api';
 import {
   APP_NAME,
   ColorScheme,
   PRETENDARD_JP,
   TOP_OVERLAY_HEIGHT,
 } from '@constants';
-import {RootState} from '@store';
+import {RootState, useAppSelector} from '@store';
+import {textColor, useInternetConn} from '@utils';
 import React, {Fragment, useEffect, useRef, useState} from 'react';
 import {
   Dimensions,
@@ -18,15 +19,13 @@ import {
   View,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
+import * as Progress from 'react-native-progress';
 import Animated, {
-  useSharedValue,
   useAnimatedStyle,
+  useSharedValue,
 } from 'react-native-reanimated';
-import {useSelector} from 'react-redux';
 import {HSJumboListPageIndicator} from './HSJumboListPageIndicator';
 import {HSJumboListRenderItem} from './HSJumboListRenderItem';
-import * as Progress from 'react-native-progress';
-import {textColor, useInternetConn} from '@utils';
 
 const {width} = Dimensions.get('window');
 export type CoverSources = {
@@ -35,7 +34,7 @@ export type CoverSources = {
 
 export function HSJumboList() {
   const intError = useInternetConn();
-  const {colorScheme} = useSelector(
+  const {colorScheme} = useAppSelector(
     (state: RootState) => state.userPreferences,
   );
   const styles = getStyles(colorScheme);
@@ -139,6 +138,7 @@ export function HSJumboList() {
             windowSize={11}
             removeClippedSubviews={false}
             getItemLayout={getItemLayout}
+            keyExtractor={(item, index) => `${item.id}-${index}`}
           />
           <Animated.View style={[styles.bgCont, bgContStyle]}>
             <Animated.Image

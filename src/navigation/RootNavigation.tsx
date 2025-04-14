@@ -1,5 +1,6 @@
 import {Overlay} from '@components';
 import {AVAILABLE_COLOR_SCHEMES, dark, light} from '@constants';
+import {AddToLibraryModal, LanguageModal, ThemeModal} from '@modals';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {NavigationContainer, Theme} from '@react-navigation/native';
 import {
@@ -15,24 +16,30 @@ import {
   SplashScreen,
   TestScreen,
 } from '@screens';
-import {RootState, setColorScheme, setLibraryUpdates} from '@store';
+import {
+  RootState,
+  setColorScheme,
+  setLibraryUpdatesOnLaunch,
+  useAppDispatch,
+  useAppSelector,
+} from '@store';
+import {UpdatedMangaNotifications} from '@types';
 import {themeConverter} from '@utils';
 import React, {useEffect, useState} from 'react';
 import {StatusBar, useColorScheme} from 'react-native';
 import changeNavigationBarColor from 'react-native-navigation-bar-color';
-import {useDispatch, useSelector} from 'react-redux';
-import {ThemeModal, AddToLibraryModal, LanguageModal} from '@modals';
 import {RootStackParamsList} from './types';
-import {UpdatedMangaData} from '@types';
 
 export const Stack = createStackNavigator<RootStackParamsList>();
 
 export default function RootNavigation() {
-  const dispatch = useDispatch();
-  const {preferSystemColor, colorScheme} = useSelector(
+  const dispatch = useAppDispatch();
+  const {preferSystemColor, colorScheme} = useAppSelector(
     (state: RootState) => state.userPreferences,
   );
-  const preferences = useSelector((state: RootState) => state.userPreferences);
+  const preferences = useAppSelector(
+    (state: RootState) => state.userPreferences,
+  );
   const systemColorScheme = useColorScheme();
 
   const [theme, setTheme] = useState<Theme>(themeConverter(dark));
@@ -47,10 +54,10 @@ export default function RootNavigation() {
   }
 
   async function onNavStateChange() {
-    const updatesList: UpdatedMangaData[] = JSON.parse(
+    const updatesList: UpdatedMangaNotifications[] = JSON.parse(
       (await AsyncStorage.getItem('library-updates')) ?? '[]',
     );
-    dispatch(setLibraryUpdates(updatesList));
+    dispatch(setLibraryUpdatesOnLaunch(updatesList));
   }
 
   useEffect(() => {

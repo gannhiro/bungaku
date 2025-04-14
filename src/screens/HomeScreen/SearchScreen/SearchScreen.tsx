@@ -24,7 +24,7 @@ import {
   systemTeal,
 } from '@constants';
 import {MaterialTopTabScreenProps} from '@react-navigation/material-top-tabs';
-import {RootState} from '@store';
+import {RootState, useAppSelector} from '@store';
 import {textColor} from '@utils';
 import React, {useEffect, useState} from 'react';
 import {
@@ -44,7 +44,6 @@ import Animated, {
   SlideInDown,
   SlideOutDown,
 } from 'react-native-reanimated';
-import {useSelector} from 'react-redux';
 import {HomeBottomTabsParamsList} from '../HomeScreen';
 const {height, width} = Dimensions.get('window');
 
@@ -55,10 +54,10 @@ type Props = MaterialTopTabScreenProps<
 >;
 
 export function SearchScreen({}: Props) {
-  const {colorScheme, allowPornography} = useSelector(
+  const {colorScheme, allowPornography} = useAppSelector(
     (state: RootState) => state.userPreferences,
   );
-  const {tags} = useSelector((state: RootState) => state.mangaTags);
+  const {tags} = useAppSelector((state: RootState) => state.mangaTags);
   const styles = getStyles(colorScheme);
 
   const [params, setParams] = useState<get_manga>({

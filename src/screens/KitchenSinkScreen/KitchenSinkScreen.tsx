@@ -4,15 +4,20 @@ import {
   ColorScheme,
   TOP_OVERLAY_HEIGHT,
 } from '@constants';
-import {RootState, setColorScheme, setPreferSystemColor} from '@store';
+import {
+  RootState,
+  setColorScheme,
+  setPreferSystemColor,
+  useAppDispatch,
+  useAppSelector,
+} from '@store';
 import React, {useEffect, useState} from 'react';
 import {ScrollView, StyleSheet, View} from 'react-native';
 import Animated, {LinearTransition} from 'react-native-reanimated';
-import {useDispatch, useSelector} from 'react-redux';
 
 export function KitchenSinkScreen() {
-  const dispatch = useDispatch();
-  const {colorScheme, preferSystemColor} = useSelector(
+  const dispatch = useAppDispatch();
+  const {colorScheme, preferSystemColor} = useAppSelector(
     (state: RootState) => state.userPreferences,
   );
 

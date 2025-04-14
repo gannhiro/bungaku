@@ -2,10 +2,10 @@ import React from 'react';
 import {Pressable, Text, StyleSheet} from 'react-native';
 import {StackScreenProps} from '@react-navigation/stack';
 import Animated, {useAnimatedStyle, withTiming} from 'react-native-reanimated';
-import {useSelector} from 'react-redux';
 import {black} from '@constants';
 import {RootStackParamsList} from '@navigation';
 import {RootState} from '@store';
+import {useSelector} from 'react-redux';
 
 type Props = StackScreenProps<RootStackParamsList, 'TestScreen'>;
 
