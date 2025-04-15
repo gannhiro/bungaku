@@ -23,13 +23,28 @@ import type {RootState} from '../store';
 import {setError} from './errorSlice';
 import {addRemToLibraryList} from './libraryListSlice';
 
-const initialState: string[] = [];
+const initialState: Record<string, JobStatus> = {};
+
+type JobStatus = {
+  status: 'pending' | 'succeeded' | 'failed';
+  jobType: 'updateManga' | 'downloadChapter' | 'cacheChapter' | 'addOrRemoveFromLibrary';
+  progress?: number;
+  error?: string;
+}
 
 type DownloadChapterProps = {
   chapter: res_get_manga_$_feed['data'][0];
   mangaId: string;
+  isDataSaver: boolean;
   isAnUpdate?: boolean;
 };
+
+type BulkDownloadChapters = {
+  chapters: Array<res_get_manga_$_feed['data'][0]>;
+  mangaId: string;
+  isDataSaver: boolean;
+  isAnUpdate?: boolean;
+}
 
 type CacheChapterProps = {
   chapter: res_get_manga_$_feed['data'][0];
@@ -41,14 +56,20 @@ type CacheChapterProps = {
   ) => void;
 };
 
-export const updateMangaSettings = createAsyncThunk(
-  'jobs/updateMangaSettings',
-  async (mangaDetails: MangaDetails) => {
-    await FS.writeFile(
-      `${FS.DocumentDirectoryPath}/manga/${mangaDetails.manga.id}/manga-details.json`,
-      JSON.stringify(mangaDetails),
-    );
-    ToastAndroid.show('Updated Settings', 500);
+export const updateDownloadedMangaSettings = createAsyncThunk(
+  'jobs/updateDownloadedMangaSettings',
+  async (mangaDetails: MangaDetails, {fulfillWithValue, rejectWithValue}) => {
+    try {
+      await FS.writeFile(
+        `${FS.DocumentDirectoryPath}/manga/${mangaDetails.manga.id}/manga-details.json`,
+        JSON.stringify(mangaDetails),
+      );
+
+      ToastAndroid.show('Updated Settings', 500);
+      return fulfillWithValue('success');
+    } catch (error) {
+      return rejectWithValue(error);
+    } 
   },
 );
 
@@ -56,7 +77,7 @@ export const updateManga = createAsyncThunk(
   'jobs/updateManga',
   async (
     mangaId: string,
-    {rejectWithValue, fulfillWithValue, dispatch, getState},
+    {rejectWithValue, fulfillWithValue, dispatch},
   ) => {
     const {
       manga,
@@ -135,7 +156,7 @@ export const updateManga = createAsyncThunk(
       }
 
       const promise = await dispatch(
-        downloadChapter({chapter, mangaId, isAnUpdate: true}),
+        downloadChapter({chapter, mangaId, isDataSaver, isAnUpdate: true}),
       );
 
       if (promise.meta.requestStatus === 'fulfilled') {
@@ -201,18 +222,30 @@ export const downloadChapter = createAsyncThunk(
     {chapter, mangaId, isAnUpdate = false}: DownloadChapterProps,
     {fulfillWithValue, rejectWithValue, signal},
   ) => {
-    const chapterExists = await FS.exists(
+    const chapterIsCached = await FS.exists(
+      `${FS.CachesDirectoryPath}/${mangaId}/${chapter.id}`,
+    );
+
+    if (chapterIsCached) {
+      await FS.moveFile(
+        `${FS.CachesDirectoryPath}/${mangaId}/${chapter.id}`,
+        `${FS.DocumentDirectoryPath}/manga/${mangaId}/${chapter.attributes.translatedLanguage}/${chapter.id}`,
+      );
+      return fulfillWithValue('success');
+    }
+
+    const chapterIsDownloaded = await FS.exists(
       `${FS.DocumentDirectoryPath}/manga/${mangaId}/${chapter.attributes.translatedLanguage}/${chapter.id}`,
     );
 
-    if (chapterExists && !isAnUpdate) {
+    if (chapterIsDownloaded && !isAnUpdate) {
       await FS.unlink(
         `${FS.DocumentDirectoryPath}/manga/${mangaId}/${chapter.attributes.translatedLanguage}/${chapter.id}`,
       );
       return rejectWithValue(`CHAPTER: ${chapter.id} - ALREADY EXISTS`);
     }
 
-    if (chapterExists && isAnUpdate) {
+    if (chapterIsDownloaded && isAnUpdate) {
       return rejectWithValue(`CHAPTER: ${chapter.id} - ALREADY EXISTS`);
     }
 
@@ -313,6 +346,7 @@ export const cacheChapter = createAsyncThunk(
       });
 
       callback(pagePromises, data);
+      return fulfillWithValue('success');
     }
 
     if (data.result === 'aborted') {
@@ -412,74 +446,102 @@ export const jobsSlice = createSlice({
   name: 'jobs',
   initialState: initialState,
   reducers: {
-    addOrRemoveJobId: (state, action: PayloadAction<string>) => {
-      if (state.indexOf(action.payload) > -1) {
-        state.splice(state.indexOf(action.payload), 1);
-        return;
+    updateJobProgress: (state, action: PayloadAction<{ jobId: string; progress: number }>) => {
+      const { jobId, progress } = action.payload;
+      const job = state[jobId];
+      if (job && job.status === 'pending') { // Only update progress if pending
+        job.progress = Math.max(0, Math.min(100, progress));
       }
-
-      state.push(action.payload);
     },
+    clearJob: (state, action: PayloadAction<{ jobId: string }>) => {
+      const { jobId } = action.payload;
+      delete state[jobId];
+    },
+    clearFinishedJobs: (state) => {
+      Object.keys(state).forEach(jobId => {
+        if (state[jobId]?.status === 'succeeded' || state[jobId]?.status === 'failed') {
+          delete state[jobId];
+        }
+      });
+    }
   },
   extraReducers(builder) {
     builder
       .addCase(updateManga.pending, (state, action) => {
-        console.log('updateManga.pending: ' + action.meta.arg);
-        state.push(action.meta.arg);
+        const id = action.meta.arg
+        console.log(`updateManga.pending: ${id}`);
+        state[id] = { status: 'pending', jobType: 'updateManga', progress: 0 };
       })
       .addCase(updateManga.fulfilled, (state, action) => {
-        console.log('updateManga.fulfilled: ' + action.meta.arg);
-        state.splice(state.indexOf(action.meta.arg), 1);
+        const id = action.meta.arg
+        console.log(`updateManga.fulfilled: ${id}`);
+        state[id].status = 'succeeded';
+        state[id].progress = 100;
       })
       .addCase(updateManga.rejected, (state, action) => {
-        console.log('updateManga.rejected: ' + action.meta.arg);
-        state.splice(state.indexOf(action.meta.arg), 1);
+        const id = action.meta.arg
+        console.log(`updateManga.rejected: ${id}`);
+        console.log(`reason: ${action.payload}`);
+        state[id].status = 'failed';
+        state[id].progress = undefined;
       })
       .addCase(downloadChapter.pending, (state, action) => {
-        console.log('downloadChapter.pending: ' + action.meta.arg.chapter.id);
-        state.push(action.meta.arg.chapter.id);
-      })
-      .addCase(downloadChapter.rejected, (state, action) => {
-        console.log('downloadChapter.rejected:' + action.meta.arg.chapter.id);
-        state.splice(state.indexOf(action.meta.arg.chapter.id), 1);
+        const id = action.meta.arg.chapter.id
+        console.log(`downloadChapter.pending: ${id}`);
+        state[id] = { status: 'pending', jobType: 'downloadChapter', progress: 0 };
       })
       .addCase(downloadChapter.fulfilled, (state, action) => {
-        console.log('downloadChapter.fulfilled:' + action.meta.arg.chapter.id);
-        state.splice(state.indexOf(action.meta.arg.chapter.id), 1);
+        const id = action.meta.arg.chapter.id
+        console.log(`downloadChapter.fulfilled: ${id}`);
+        state[id].status = 'succeeded';
+        state[id].progress = 100;
       })
-      .addCase(cacheChapter.fulfilled, (state, action) => {
-        console.log('cacheChapter.fulfilled:' + action.meta.arg.chapter.id);
-        state.splice(state.indexOf(action.meta.arg.chapter.id), 1);
-      })
-      .addCase(cacheChapter.rejected, (state, action) => {
-        console.log('cacheChapter.rejected:' + action.meta.arg.chapter.id);
-        state.splice(state.indexOf(action.meta.arg.chapter.id), 1);
+      .addCase(downloadChapter.rejected, (state, action) => {
+        const id = action.meta.arg.chapter.id
+        console.log(`downloadChapter.rejected: ${id}`);
+        console.log(`reason: ${action.payload}`);
+        state[id].status = 'failed';
+        state[id].progress = undefined;
       })
       .addCase(cacheChapter.pending, (state, action) => {
-        console.log('cacheChapter.pending:' + action.meta.arg.chapter.id);
-        state.push(action.meta.arg.chapter.id);
+        const id = action.meta.arg.chapter.id
+        console.log(`cacheChapter.pending: ${id}`);
+        state[id] = { status: 'pending', jobType: 'cacheChapter', progress: 0 };
+      })
+      .addCase(cacheChapter.fulfilled, (state, action) => {
+        const id = action.meta.arg.chapter.id
+        console.log(`cacheChapter.fulfilled: ${id}`);
+        state[id].status = 'succeeded';
+        state[id].progress = 100;
+      })
+      .addCase(cacheChapter.rejected, (state, action) => {
+        const id = action.meta.arg.chapter.id
+        console.log(`cacheChapter.rejected: ${id}`);
+        console.log(`reason: ${action.payload}`);
+        state[id].status = 'failed';
+        state[id].progress = undefined;
       })
       .addCase(addOrRemoveFromLibrary.pending, (state, action) => {
-        console.log(
-          'addOrRemoveFromLibrary.pending:' + action.meta.arg.manga.id,
-        );
-        state.push(action.meta.arg.manga.id);
-      })
-      .addCase(addOrRemoveFromLibrary.rejected, (state, action) => {
-        console.log(
-          'addOrRemoveFromLibrary.rejected:' + action.meta.arg.manga.id,
-        );
-        state.push(action.meta.arg.manga.id);
+        const id = action.meta.arg.manga.id
+        console.log(`addOrRemoveFromLibrary.pending: ${id}`);
+        state[id] = { status: 'pending', jobType: 'addOrRemoveFromLibrary', progress: 0 };
       })
       .addCase(addOrRemoveFromLibrary.fulfilled, (state, action) => {
-        console.log(
-          'addOrRemoveFromLibrary.fulfilled:' + action.meta.arg.manga.id,
-        );
-        state.splice(state.indexOf(action.meta.arg.manga.id), 1);
-      });
+        const id = action.meta.arg.manga.id
+        console.log(`addOrRemoveFromLibrary.fulfilled: ${id}`);
+        state[id].status = 'succeeded';
+        state[id].progress = 100;
+      })
+      .addCase(addOrRemoveFromLibrary.rejected, (state, action) => {
+        const id = action.meta.arg.manga.id
+        console.log(`addOrRemoveFromLibrary.rejected: ${id}`);
+        console.log(`reason: ${action.payload}`);
+        state[id].status = 'failed';
+        state[id].progress = undefined;
+      })
   },
 });
 
-export const {addOrRemoveJobId} = jobsSlice.actions;
+export const {} = jobsSlice.actions;
 export const jobs = (state: RootState) => state.jobs;
 export default jobsSlice.reducer;

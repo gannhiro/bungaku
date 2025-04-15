@@ -16,7 +16,7 @@ import {StackScreenProps} from '@react-navigation/stack';
 import {
   addOrRemoveFromLibrary,
   RootState,
-  updateMangaSettings,
+  updateDownloadedMangaSettings,
   useAppDispatch,
   useAppSelector,
 } from '@store';
@@ -55,9 +55,9 @@ export function AddToLibraryModal({route, navigation}: Props) {
     (state: RootState) => state.userPreferences,
   );
   const {libraryList} = useAppSelector((state: RootState) => state.libraryList);
-  const jobs = useAppSelector((state: RootState) => state.jobs);
+  const jobStatus = useAppSelector((state: RootState) => state.jobs[manga.id]);
+  const isJobPending = jobStatus?.status === 'pending';
   const inLibrary = libraryList.includes(manga.id);
-  const isJob = jobs.includes(manga.id);
   const styles = getStyles(colorScheme);
 
   const [dateError, setDateError] = useState(false);
@@ -186,7 +186,7 @@ export function AddToLibraryModal({route, navigation}: Props) {
       isDataSaver,
     };
 
-    dispatch(updateMangaSettings(mangaDetails));
+    dispatch(updateDownloadedMangaSettings(mangaDetails));
   }
 
   useEffect(() => {
@@ -389,16 +389,16 @@ export function AddToLibraryModal({route, navigation}: Props) {
               btnColor={systemPurple}
               imageReq={require('@assets/icons/book-remove.png')}
               onButtonPress={onAddToLibPress}
-              loading={isJob}
-              disabled={isJob}
+              loading={isJobPending}
+              disabled={isJobPending}
             />
           ) : (
             <Button
               title="Add"
               containerStyle={styles.navButtonAdd}
               btnColor={systemGreen}
-              loading={isJob}
-              disabled={dateError || isJob}
+              loading={isJobPending}
+              disabled={dateError || isJobPending}
               imageReq={require('@assets/icons/book.png')}
               onButtonPress={onAddToLibPress}
             />
@@ -413,8 +413,8 @@ export function AddToLibraryModal({route, navigation}: Props) {
             <Button
               title="Update Settings"
               btnColor={systemIndigo}
-              loading={isJob}
-              disabled={dateError || isJob}
+              loading={isJobPending}
+              disabled={dateError || isJobPending}
               imageReq={require('@assets/icons/book.png')}
               onButtonPress={onUpdateSettingsPress}
             />

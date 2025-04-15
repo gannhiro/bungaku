@@ -224,7 +224,7 @@ export function AccSettingsScreen() {
       onPress: async () => {
         const directories = await FS.readdir(`${FS.CachesDirectoryPath}`);
         const promises = directories.map(directory => {
-          return FS.unlink(directory);
+          return FS.unlink(`${FS.CachesDirectoryPath}/${directory}`);
         });
 
         await Promise.allSettled(promises);

@@ -1,20 +1,9 @@
-import {
-  mangadexAPI,
-  res_at_home_$,
-  res_get_group_$,
-  res_get_user_$,
-} from '@api';
+import {res_at_home_$, res_get_group_$, res_get_user_$} from '@api';
 import {GenericDropdownValues} from '@components';
 import {ColorScheme, PRETENDARD_JP, white} from '@constants';
 import {RootStackParamsList} from '@navigation';
 import {StackScreenProps} from '@react-navigation/stack';
-import {
-  cacheChapter,
-  RootState,
-  setError,
-  useAppDispatch,
-  useAppSelector,
-} from '@store';
+import {cacheChapter, RootState, useAppDispatch, useAppSelector} from '@store';
 import {DownloadedChapterDetails} from '@types';
 import {textColor} from '@utils';
 import React, {Fragment, useEffect, useRef, useState} from 'react';
@@ -78,7 +67,8 @@ export function ReadChapterScreen({route, navigation}: Props) {
   const {colorScheme, preferDataSaver} = useAppSelector(
     (state: RootState) => state.userPreferences,
   );
-  const jobs = useAppSelector((state: RootState) => state.jobs);
+  const jobStatus = useAppSelector((state: RootState) => state.jobs[mangaId]);
+  const isJobPending = jobStatus?.status === 'pending';
   const styles = getStyles(colorScheme);
 
   const [locReadingMode, setLocReadingMode] = useState<ReadingMode>(
@@ -238,12 +228,11 @@ export function ReadChapterScreen({route, navigation}: Props) {
       await FastImage.clearMemoryCache();
       await FastImage.clearDiskCache();
 
-      const isCurrentJob = jobs.includes(chapters[currentChapter].id);
       const isDownloaded = await FS.exists(
         `${FS.DocumentDirectoryPath}/manga/${mangaId}/${chapters[currentChapter].attributes.translatedLanguage}/${chapters[currentChapter].id}/chapter.json`,
       );
 
-      if (!isCurrentJob && isDownloaded) {
+      if (!isJobPending && isDownloaded) {
         console.log('chapter is downloaded');
         const chapterDetails = await FS.readFile(
           `${downloadsDirectory}/chapter.json`,
@@ -310,7 +299,6 @@ export function ReadChapterScreen({route, navigation}: Props) {
     currentChapter,
     dispatch,
     isDataSaver,
-    jobs,
     mangaId,
     locReadingMode,
     cacheDirectory,

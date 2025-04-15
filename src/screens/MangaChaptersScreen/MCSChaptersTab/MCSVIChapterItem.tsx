@@ -43,13 +43,17 @@ type Props = {
 };
 
 export const MCSVIChapterItem = memo(({chapter}: Props) => {
-  const dispatch = useAppDispatch();
   const navigation = useNavigation<NavigationProp<RootStackParamsList>>();
+  const dispatch = useAppDispatch();
+  const jobStatus = useAppSelector(
+    (state: RootState) => state.jobs[chapter.id],
+  );
   const {colorScheme} = useAppSelector(
     (state: RootState) => state.userPreferences,
   );
-  const jobs = useAppSelector((state: RootState) => state.jobs);
   const {libraryList} = useAppSelector((state: RootState) => state.libraryList);
+
+  const isJobPending = jobStatus?.status === 'pending';
   const styles = getStyles(colorScheme);
   const {
     manga,
@@ -61,8 +65,10 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
     selectedChapters,
     setSelectedChapters,
   } = useMangaChaptersScreenContext();
+
+  const [downloadable, setDownloadable] = useState(false);
   const [isDownloaded, setIsDownloaded] = useState(false);
-  const isDownloading = jobs.includes(chapter.id);
+
   const inLibrary = libraryList.includes(manga.id);
   const isSelected = selectedChapters.includes(chapter.id);
   const scanlator = chapter?.relationships.find(
@@ -104,7 +110,7 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
     });
   const longPressGest = Gesture.LongPress()
     .onStart(() => {
-      if (isDownloading) {
+      if (isJobPending) {
         return;
       }
       chapterPressableBG.value = withSequence(
@@ -130,7 +136,7 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
       // runOnJS(onChapterLongPress)();
     });
   const panLeftGest = Gesture.Pan()
-    .enabled(!isDownloading && !selectMode)
+    .enabled(!isJobPending && !selectMode)
     .minVelocityX(-200)
     .onStart(() => {
       console.log('panned left');
@@ -147,7 +153,8 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
         runOnJS(shouldDownloadChapter)();
       }
       rightGroupWidth.value = withTiming(0);
-    });
+    })
+    .enabled(downloadable);
   const gestures = Gesture.Race(tapGesture, longPressGest, panLeftGest);
 
   async function shouldDownloadChapter() {
@@ -262,14 +269,17 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
         : isCD
         ? systemOrange
         : colorScheme.colors.primary;
+
+      const isChapterDownloadable = !chapter.attributes.externalUrl;
+      setDownloadable(isChapterDownloadable);
     })();
   }, [
     chapter,
     manga,
     libraryList,
-    jobs,
     chapterPressableBorderColor,
     colorScheme,
+    jobStatus,
   ]);
 
   return (
@@ -353,7 +363,7 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
             />
           )}
         </Animated.View>
-        {isDownloading && (
+        {isJobPending && (
           <Progress.Bar
             style={styles.progBar}
             indeterminate

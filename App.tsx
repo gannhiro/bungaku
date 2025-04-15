@@ -72,10 +72,7 @@ export async function backgroundWork() {
     return;
   }
 
-  const currentJobs = store.getState().jobs;
-  const newMangaList = [...new Set([...currentJobs, ...mangaList])];
-
-  const promises = newMangaList.map(mangaId => {
+  const promises = mangaList.map(mangaId => {
     return store.dispatch(updateManga(mangaId));
   });
 

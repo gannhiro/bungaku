@@ -1,13 +1,12 @@
 import {
-  ORDER,
-  Ordering,
   get_manga_$_feed,
   get_statistics_manga,
   mangadexAPI,
+  ORDER,
+  Ordering,
   res_get_cover_$,
   res_get_manga_$_feed,
   res_get_statistics_manga,
-  res_get_manga,
 } from '@api';
 import {GenericDropdownValues, TabBar} from '@components';
 import {ColorScheme, Language} from '@constants';
@@ -24,8 +23,8 @@ import Animated, {FadeIn} from 'react-native-reanimated';
 import {MCSChaptersTab} from './MCSChaptersTab/MCSChaptersTab';
 import {MCSDetailsTab} from './MCSDetailsTab/MCSDetailsTab';
 import {
-  MangaChaptersScreenContext,
   iMangaChaptersScreenContext,
+  MangaChaptersScreenContext,
 } from './useMangaChaptersScreenContext';
 
 const {width, height} = Dimensions.get('screen');
@@ -174,15 +173,7 @@ export function MangaChaptersScreen({route, navigation}: Props) {
         return bChapNumber - aChapNumber;
       });
 
-      const combinedTempChapters = tempCachedChapters.map(cachedChapter => {
-        const downloadedChapter = chapters.find(chapter => {
-          chapter.id === cachedChapter.id;
-        });
-
-        return downloadedChapter ?? cachedChapter;
-      });
-
-      setChapters(combinedTempChapters);
+      setChapters(tempCachedChapters);
     }
 
     async function fetchChapters() {
@@ -193,8 +184,6 @@ export function MangaChaptersScreen({route, navigation}: Props) {
       let newAbortController = new AbortController();
       abortController.current = newAbortController;
 
-      // getting chapters
-      console.log('Getting chapters...');
       const limit = 500;
       let total: null | number = null;
       let offset = 0;

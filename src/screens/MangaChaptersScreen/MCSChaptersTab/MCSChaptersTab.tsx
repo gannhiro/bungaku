@@ -51,7 +51,6 @@ type Props = MaterialTopTabScreenProps<
 const {height, width} = Dimensions.get('screen');
 
 export function MCSChaptersTab({}: Props) {
-  const jobs = useAppSelector((state: RootState) => state.jobs);
   const {colorScheme} = useAppSelector(
     (state: RootState) => state.userPreferences,
   );
@@ -84,7 +83,6 @@ export function MCSChaptersTab({}: Props) {
       };
     });
 
-  const addingLibLoad = jobs.includes(manga.id);
   const inLibrary = libraryList.includes(manga.id);
   const author = manga.relationships.find(
     rs => rs.type === 'author',
@@ -187,7 +185,7 @@ export function MCSChaptersTab({}: Props) {
                 ? require('@assets/icons/book.png')
                 : require('@assets/icons/book-outline.png')
             }
-            loading={addingLibLoad}
+            // loading={addingLibLoad}
             onPressButton={onAddToLibPress}
           />
           <BigIconButton
