@@ -12,7 +12,7 @@ import {
 import {RootStackParamsList} from '@navigation';
 import {NavigationProp, useNavigation} from '@react-navigation/native';
 import {
-  downloadChapter,
+  queueDownloadChapter,
   RootState,
   useAppDispatch,
   useAppSelector,
@@ -43,18 +43,6 @@ type Props = {
 };
 
 export const MCSVIChapterItem = memo(({chapter}: Props) => {
-  const navigation = useNavigation<NavigationProp<RootStackParamsList>>();
-  const dispatch = useAppDispatch();
-  const jobStatus = useAppSelector(
-    (state: RootState) => state.jobs[chapter.id],
-  );
-  const {colorScheme} = useAppSelector(
-    (state: RootState) => state.userPreferences,
-  );
-  const {libraryList} = useAppSelector((state: RootState) => state.libraryList);
-
-  const isJobPending = jobStatus?.status === 'pending';
-  const styles = getStyles(colorScheme);
   const {
     manga,
     order,
@@ -65,6 +53,23 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
     selectedChapters,
     setSelectedChapters,
   } = useMangaChaptersScreenContext();
+  const navigation = useNavigation<NavigationProp<RootStackParamsList>>();
+  const dispatch = useAppDispatch();
+
+  const potentialJobId = `${manga.id}-${chapter.id}`;
+  const jobStatus = useAppSelector(
+    (state: RootState) => state.jobs.jobs[potentialJobId]?.status,
+  );
+  const jobProgress = useAppSelector(
+    (state: RootState) => state.jobs.jobs[potentialJobId]?.progress,
+  );
+  const {colorScheme} = useAppSelector(
+    (state: RootState) => state.userPreferences,
+  );
+  const {libraryList} = useAppSelector((state: RootState) => state.libraryList);
+
+  const isJobPending = jobStatus === 'pending' || jobStatus === 'queued';
+  const styles = getStyles(colorScheme);
 
   const [downloadable, setDownloadable] = useState(false);
   const [isDownloaded, setIsDownloaded] = useState(false);
@@ -77,6 +82,8 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
   const user = chapter?.relationships.find(rs => rs.type === 'user') as
     | res_get_user_$['data']
     | undefined;
+
+  // MARK: Animations and Gestures
 
   const chapterTranslationX = useSharedValue(0);
   const chapterPressableBG = useSharedValue('#0000');
@@ -159,7 +166,13 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
 
   async function shouldDownloadChapter() {
     if (inLibrary) {
-      dispatch(downloadChapter({chapter, mangaId: manga.id}));
+      dispatch(
+        queueDownloadChapter({
+          chapter,
+          mangaId: manga.id,
+          isDataSaver: false,
+        }),
+      );
     } else {
       navigation.navigate('AddToLibraryModal', {
         manga,
@@ -255,6 +268,7 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
 
   useEffect(() => {
     (async () => {
+      console.log(jobStatus);
       const isDL = await FS.exists(
         `${FS.DocumentDirectoryPath}/manga/${manga.id}/${chapter.attributes.translatedLanguage}/${chapter.id}`,
       );
@@ -366,7 +380,8 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
         {isJobPending && (
           <Progress.Bar
             style={styles.progBar}
-            indeterminate
+            indeterminate={!jobProgress}
+            progress={jobProgress}
             borderWidth={0}
             height={3}
             width={width - 40}
