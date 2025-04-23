@@ -1,29 +1,20 @@
-import {API_URL, aborted_request, endpoints, gen_error} from './types';
+import {
+  aborted_request,
+  API_URL,
+  endpoints,
+  gen_error,
+  internal_gen_error,
+} from './types';
 
-/**
- *
- * @param method 'get' | 'post'
- * @param endpoint endpoints
- * @param parameters P
- * @param additionalParams string[]
- * @param token string?
- * @param signal AbortSignal?
- * @returns R | gen_error | aborted_request | null
- */
-
-export async function mangadexAPI<R, P extends Object>(
+export const mangadexAPI = async <R, P extends Object>(
   method: 'get' | 'post',
   endpoint: endpoints,
   parameters: P,
   additionalParams: string[],
   token?: string,
   signal?: AbortSignal,
-): Promise<R | gen_error | aborted_request | null> {
-  let request = API_URL + endpoint;
-
-  if (Object.keys(parameters).length > 0) {
-    request += '?';
-  }
+): Promise<R | gen_error | aborted_request | internal_gen_error> => {
+  let request = API_URL + endpoint + '?';
 
   if (additionalParams.length > 0) {
     additionalParams.forEach(param => {
@@ -39,14 +30,23 @@ export async function mangadexAPI<R, P extends Object>(
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(parameters),
+        signal,
       });
 
-      const data = await res.json();
+      const data: R | gen_error = await res.json();
 
       return data;
     } catch (e) {
-      console.log(e);
-      return null;
+      if (signal?.aborted) {
+        console.log('Request Aborted: ' + request);
+        return {result: 'aborted'};
+      }
+      const internalError: internal_gen_error = {
+        result: 'internal-error',
+        title: JSON.stringify(e),
+      };
+
+      return internalError;
     }
   }
 
@@ -113,14 +113,22 @@ export async function mangadexAPI<R, P extends Object>(
       signal,
     });
 
-    const data: R = await res.json();
+    const data: R | gen_error = await res.json();
 
     return data;
   } catch (e) {
     if (signal?.aborted) {
-      console.log('Request Aborted: ' + request);
+      console.log(`ABORTED REQUEST: ${request}`);
       return {result: 'aborted'};
     }
-    return null;
+    const internalError: internal_gen_error = {
+      result: 'internal-error',
+      title: JSON.stringify(e),
+    };
+
+    console.error(`ERROR OCCURED WITH REQUEST: ${request}
+      \n${internalError.title}
+      \n- ${internalError.desc}`);
+    return internalError;
   }
-}
+};

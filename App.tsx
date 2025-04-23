@@ -1,19 +1,19 @@
+import {updateManga} from '@store';
 import React, {useEffect} from 'react';
 import {LogBox} from 'react-native';
+import BackgroundFetch from 'react-native-background-fetch';
+import FS from 'react-native-fs';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {Provider} from 'react-redux';
-import {store} from './src/store/store';
 import RootNavigation from './src/navigation/RootNavigation';
-import BackgroundFetch from 'react-native-background-fetch';
-import {backgroundLibraryUpdate} from './index';
+import {store} from './src/store/store';
 
 export default function App() {
   LogBox.ignoreAllLogs();
 
   async function initBackgroundFetch() {
     async function onEvent(taskId: string) {
-      console.log('[BackgroundFetch] task: ', taskId);
-      await backgroundLibraryUpdate({taskId, timeout: false});
+      await backgroundWork();
       BackgroundFetch.finish(taskId);
     }
 
@@ -41,7 +41,6 @@ export default function App() {
   useEffect(() => {
     (async () => {
       await initBackgroundFetch();
-      console.log('start background fetch');
     })();
   }, []);
 
@@ -51,5 +50,41 @@ export default function App() {
         <RootNavigation />
       </Provider>
     </GestureHandlerRootView>
+  );
+}
+
+export async function backgroundWork() {
+  let date = new Date();
+  console.log(
+    `BGFETCH: MANGA UPDATES START - ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`,
+  );
+
+  const mangaList: string[] = await FS.readdir(
+    `${FS.DocumentDirectoryPath}/manga/`,
+  );
+
+  if (mangaList.length === 0) {
+    date = new Date();
+    console.log(
+      `BGFETCH: NO MANGAS TO UPDATE - ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`,
+    );
+
+    return;
+  }
+
+  const promises = mangaList.map(mangaId => {
+    return store.dispatch(updateManga(mangaId));
+  });
+
+  const settledMangaUpdates = await Promise.allSettled(promises);
+  date = new Date();
+  console.log(
+    `BGFETCH END: ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`,
+  );
+
+  settledMangaUpdates.forEach(mangaUpdate =>
+    mangaUpdate.status === 'fulfilled'
+      ? console.log(`MANGA ${mangaUpdate.value.meta.arg}: SUCCESS`)
+      : console.log('FAILED'),
   );
 }

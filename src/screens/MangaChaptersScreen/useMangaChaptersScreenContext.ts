@@ -9,18 +9,28 @@ import {Dispatch, SetStateAction, createContext, useContext} from 'react';
 
 export interface iMangaChaptersScreenContext {
   manga: res_get_manga['data'][0];
-  statistics: res_get_statistics_manga | null;
+  statistics?: res_get_statistics_manga | null;
   chapters: res_get_manga_$_feed['data'];
   onAddToLibPress: () => Promise<void>;
   languages: Array<Language>;
   setLanguages: Dispatch<SetStateAction<Array<Language>>>;
   languageList: GenericDropdownValues;
   loading: boolean;
+  loadingProgress: number;
+  loadingText: string;
+  setLoadingProgress: Dispatch<SetStateAction<number>>;
+  setChapters: Dispatch<SetStateAction<res_get_manga_$_feed['data']>>;
+  setLoadingText: Dispatch<SetStateAction<string>>;
   setLoading: Dispatch<SetStateAction<boolean>>;
   setSelectMode: Dispatch<SetStateAction<boolean>>;
   selectMode: boolean;
   setSelectedChapters: Dispatch<SetStateAction<string[]>>;
   selectedChapters: string[];
+  showDownloadedChapters: boolean;
+  setShowDownloadedChapters: Dispatch<SetStateAction<boolean>>;
+  order: 'asc' | 'desc';
+  setOrder: Dispatch<SetStateAction<'asc' | 'desc'>>;
+  orderItems: GenericDropdownValues;
 }
 
 export const MangaChaptersScreenContext = createContext<

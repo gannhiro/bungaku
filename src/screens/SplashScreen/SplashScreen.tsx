@@ -8,8 +8,12 @@ import {
   setConfig,
   setError,
   setLibraryList,
+  setLibraryUpdatesOnLaunch,
   setMangaTags,
+  useAppDispatch,
+  useAppSelector,
 } from '@store';
+import {UpdatedMangaNotifications} from '@types';
 import {textColor} from '@utils';
 import {Config} from 'config';
 import React, {useEffect, useState} from 'react';
@@ -17,15 +21,16 @@ import {PermissionsAndroid, StyleSheet, View} from 'react-native';
 import FS from 'react-native-fs';
 import * as Progress from 'react-native-progress';
 import Animated, {FadeIn} from 'react-native-reanimated';
-import {useDispatch, useSelector} from 'react-redux';
 
 type Props = StackScreenProps<RootStackParamsList, 'SplashScreen'>;
 
 export function SplashScreen({navigation}: Props) {
-  const preferences = useSelector((state: RootState) => state.userPreferences);
-  const {tags} = useSelector((state: RootState) => state.mangaTags);
+  const preferences = useAppSelector(
+    (state: RootState) => state.userPreferences,
+  );
+  const {tags} = useAppSelector((state: RootState) => state.mangaTags);
   const styles = getStyles(preferences.colorScheme);
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
   const [loadingText, setLoadingText] = useState('loading');
   const [numDots, setNumDots] = useState(0);
@@ -90,10 +95,11 @@ export function SplashScreen({navigation}: Props) {
           {},
           [],
         );
-        if (data && data.result === 'ok') {
+        if (data.result === 'ok') {
           dispatch(setMangaTags(data));
           await AsyncStorage.setItem('tags', JSON.stringify(data));
-        } else if (data && data.result === 'error') {
+        }
+        if (data.result === 'error') {
           dispatch(setError(data));
         }
       } else {
@@ -120,9 +126,10 @@ export function SplashScreen({navigation}: Props) {
       );
       const libraryList = libraryDirList.map(dir => dir.name);
       dispatch(setLibraryList(libraryList));
+
+      setLoadingText('welcome');
+      setLoading(false);
     })();
-    setLoadingText('welcome');
-    setLoading(false);
   }, [preferences, dispatch, initialLoad, loading, navigation, tags]);
 
   useEffect(() => {
@@ -139,13 +146,13 @@ export function SplashScreen({navigation}: Props) {
         <Animated.Text entering={FadeIn.delay(500)} style={styles.appName}>
           {APP_NAME}
         </Animated.Text>
-        <View style={{flexDirection: 'row'}}>
+        <View style={styles.progressBarContainer}>
           <Progress.Bar
             indeterminate
             height={1}
             borderWidth={0}
             borderColor={'#0000'}
-            style={{flex: 1}}
+            style={styles.progressBar}
             color={preferences.colorScheme.colors.secondary}
           />
         </View>
@@ -180,6 +187,12 @@ function getStyles(colorScheme: ColorScheme) {
       fontFamily: PRETENDARD_JP.LIGHT,
       color: textColor(colorScheme.colors.main),
       textAlign: 'left',
+    },
+    progressBarContainer: {
+      flexDirection: 'row',
+    },
+    progressBar: {
+      flex: 1,
     },
   });
 }

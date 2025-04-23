@@ -1,14 +1,13 @@
 import {ColorScheme} from '@constants';
-import {RootState} from '@store';
+import {RootState, useAppSelector} from '@store';
 import React from 'react';
 import {ListRenderItemInfo, StyleSheet, Text, View} from 'react-native';
 import Animated from 'react-native-reanimated';
-import {useSelector} from 'react-redux';
 import {LibraryListRenderItem} from './LibraryListRenderItem';
 
 export function LibraryList() {
-  const {libraryList} = useSelector((state: RootState) => state.libraryList);
-  const {colorScheme} = useSelector(
+  const {libraryList} = useAppSelector((state: RootState) => state.libraryList);
+  const {colorScheme} = useAppSelector(
     (state: RootState) => state.userPreferences,
   );
   const styles = getStyles(colorScheme);

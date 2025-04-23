@@ -1,3 +1,7 @@
+/**
+ * from https://pastebin.com/raw/ppdMS687
+ */
+
 export const ISO_LANGS = {
   ab: {
     name: 'Abkhaz',
@@ -727,6 +731,8 @@ export const ISO_LANGS = {
     name: 'Zhuang, Chuang',
     nativeName: 'Saɯ cueŋƅ, Saw cuengh',
   },
+
+  // from MangaDex
   'zh-hk': {
     name: 'Traditional Chinese',
     nativeName: 'none',

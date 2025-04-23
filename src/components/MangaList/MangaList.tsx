@@ -16,8 +16,7 @@ import {MangaListRenderItem} from './MangaListRenderItem';
 import {mangadexAPI, get_manga, res_get_manga} from '@api';
 import {MangaListFooter} from './MangaListFooter';
 import {ColorScheme, PRETENDARD_JP} from '@constants';
-import {useDispatch, useSelector} from 'react-redux';
-import {RootState, setError} from '@store';
+import {RootState, setError, useAppDispatch, useAppSelector} from '@store';
 import {textColor, useInternetConn} from '@utils';
 import * as Progress from 'react-native-progress';
 
@@ -41,8 +40,8 @@ export function MangaList({
   onScroll,
 }: Props) {
   const intError = useInternetConn();
-  const dispatch = useDispatch();
-  const {colorScheme} = useSelector(
+  const dispatch = useAppDispatch();
+  const {colorScheme} = useAppSelector(
     (state: RootState) => state.userPreferences,
   );
 
@@ -122,15 +121,18 @@ export function MangaList({
       newAbortController.signal,
     );
 
-    if (data && data.result === 'ok') {
+    if (data.result === 'ok') {
       setMangas(data?.data);
       setTotal(data.total);
       flatlistRef.current?.scrollToOffset({animated: true, offset: 0});
       setLoading(false);
-    } else if (data && data.result === 'error') {
+    }
+
+    if (data.result === 'error') {
       setLoadError(true);
       dispatch(setError(data));
     }
+
     setRefreshing(false);
   }
 
@@ -159,14 +161,24 @@ export function MangaList({
         newAbortController.signal,
       );
 
-      if (data && data.result === 'ok') {
-        setMangas(data?.data);
+      if (data?.result === 'internal-error') {
+      }
+
+      if (data?.result === 'aborted') {
+        return;
+      }
+
+      if (data.result === 'ok') {
+        setMangas(data.data);
         setTotal(data.total);
         flatlistRef.current?.scrollToOffset({animated: true, offset: 0});
-      } else if (data && data.result === 'error') {
+      }
+
+      if (data.result === 'error') {
         setLoadError(true);
         dispatch(setError(data));
       }
+
       setLoading(false);
     })();
   }, [dispatch, params, intError]);

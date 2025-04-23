@@ -1,4 +1,4 @@
-import {Button, GenericDropdown, GenericDropdownValues} from '@components';
+import {Button, Dropdown, GenericDropdownValues} from '@components';
 import {
   ColorScheme,
   ISO_LANGS,
@@ -13,7 +13,13 @@ import {
 import {RootStackParamsList} from '@navigation';
 import {BlurView} from '@react-native-community/blur';
 import {StackScreenProps} from '@react-navigation/stack';
-import {RootState, addRemToLibraryJob, updateMangaSettingsJob} from '@store';
+import {
+  addOrRemoveFromLibrary,
+  RootState,
+  updateDownloadedMangaSettings,
+  useAppDispatch,
+  useAppSelector,
+} from '@store';
 import {MangaDetails} from '@types';
 import {getDateMDEX, textColor} from '@utils';
 import React, {Fragment, useEffect, useState} from 'react';
@@ -26,17 +32,16 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import FS from 'react-native-fs';
 import Animated, {
   FadeIn,
   FadeInLeft,
   FadeOut,
-  Layout,
+  LinearTransition,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
-import {useDispatch, useSelector} from 'react-redux';
-import FS from 'react-native-fs';
 
 const {width, height} = Dimensions.get('screen');
 const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
@@ -45,17 +50,18 @@ type Props = StackScreenProps<RootStackParamsList, 'AddToLibraryModal'>;
 
 export function AddToLibraryModal({route, navigation}: Props) {
   const {manga, statistics} = route.params;
-  const dispatch = useDispatch();
-  const {colorScheme} = useSelector(
+  const dispatch = useAppDispatch();
+  const {colorScheme} = useAppSelector(
     (state: RootState) => state.userPreferences,
   );
-  const {libraryList} = useSelector((state: RootState) => state.libraryList);
-  const jobs = useSelector((state: RootState) => state.jobs);
-  const inLibrary = libraryList.some(id => manga.id === id);
-  const isJob = jobs.some(id => id === manga.id);
+  const {libraryList} = useAppSelector((state: RootState) => state.libraryList);
+  const jobStatus = useAppSelector((state: RootState) => state.jobs[manga.id]);
+  const isJobPending = jobStatus?.status === 'pending';
+  const inLibrary = libraryList.includes(manga.id);
   const styles = getStyles(colorScheme);
 
   const [dateError, setDateError] = useState(false);
+  const [isDataSaver, setIsDataSaver] = useState(false);
   const [stayUpdatedLoc, setStayUpdatedLoc] = useState(true);
   const [stayUpdatedYrLoc, setStayUpdatedYrLoc] = useState<string>(
     new Date().getUTCFullYear().toString(),
@@ -134,6 +140,10 @@ export function AddToLibraryModal({route, navigation}: Props) {
     setStayUpdatedLoc(value);
   }
 
+  async function onIsDataSaverSwitchChange(value: boolean) {
+    setIsDataSaver(value);
+  }
+
   async function onAddToLibPress() {
     Keyboard.dismiss();
     const mangaDetails: MangaDetails = {
@@ -151,9 +161,10 @@ export function AddToLibraryModal({route, navigation}: Props) {
           ? `0${parseInt(stayUpdatedMoLoc, 10)}`
           : stayUpdatedDyLoc
       }T09:00:00`,
+      isDataSaver,
     };
 
-    dispatch(addRemToLibraryJob(mangaDetails));
+    dispatch(addOrRemoveFromLibrary(mangaDetails));
   }
 
   function onUpdateSettingsPress() {
@@ -172,9 +183,10 @@ export function AddToLibraryModal({route, navigation}: Props) {
           ? `0${parseInt(stayUpdatedDyLoc, 10)}`
           : stayUpdatedDyLoc
       }T09:00:00`,
+      isDataSaver,
     };
 
-    dispatch(updateMangaSettingsJob(mangaDetails));
+    dispatch(updateDownloadedMangaSettings(mangaDetails));
   }
 
   useEffect(() => {
@@ -193,11 +205,13 @@ export function AddToLibraryModal({route, navigation}: Props) {
         stayUpdated,
         stayUpdatedLanguages,
         stayUpdatedAfterDate,
+        isDataSaver: parsedIsDataSaver,
       }: MangaDetails = JSON.parse(extractedDetails);
 
       const date = new Date(stayUpdatedAfterDate);
 
       setStayUpdatedLoc(stayUpdated);
+      setIsDataSaver(parsedIsDataSaver);
       setStayUpdatedDyLoc(
         date.getUTCDate() < 10
           ? `0${date.getUTCDate()}`
@@ -267,7 +281,10 @@ export function AddToLibraryModal({route, navigation}: Props) {
         blurType={colorScheme.type}
         blurRadius={3}
       />
-      <Animated.View entering={FadeIn} layout={Layout} style={styles.innerCont}>
+      <Animated.View
+        entering={FadeIn}
+        layout={LinearTransition}
+        style={styles.innerCont}>
         <Text style={styles.addToLibLabel}>Adding To Library</Text>
         <Text style={styles.mangaTitleLabel}>{manga.attributes.title.en}</Text>
         <View style={styles.groupRow}>
@@ -275,6 +292,13 @@ export function AddToLibraryModal({route, navigation}: Props) {
           <Switch
             value={stayUpdatedLoc}
             onValueChange={onStayUpdatedSwitchChange}
+          />
+        </View>
+        <View style={styles.groupRow}>
+          <Text style={styles.groupRowLabel}>Download Data Saver Pages?</Text>
+          <Switch
+            value={isDataSaver}
+            onValueChange={onIsDataSaverSwitchChange}
           />
         </View>
         {stayUpdatedLoc && (
@@ -338,7 +362,7 @@ export function AddToLibraryModal({route, navigation}: Props) {
                 *only chapters with this language will be downloaded.
               </Text>
               <View style={styles.group}>
-                <GenericDropdown
+                <Dropdown
                   items={availableLangs}
                   selection={targetLanguages}
                   setSelection={setTargetLanguages}
@@ -349,7 +373,7 @@ export function AddToLibraryModal({route, navigation}: Props) {
           </Fragment>
         )}
 
-        <Animated.View layout={Layout} style={styles.groupRow}>
+        <Animated.View layout={LinearTransition} style={styles.groupRow}>
           <Button
             title="Back"
             containerStyle={styles.navButtonCancel}
@@ -365,16 +389,16 @@ export function AddToLibraryModal({route, navigation}: Props) {
               btnColor={systemPurple}
               imageReq={require('@assets/icons/book-remove.png')}
               onButtonPress={onAddToLibPress}
-              loading={isJob}
-              disabled={isJob}
+              loading={isJobPending}
+              disabled={isJobPending}
             />
           ) : (
             <Button
               title="Add"
               containerStyle={styles.navButtonAdd}
               btnColor={systemGreen}
-              loading={isJob}
-              disabled={dateError || isJob}
+              loading={isJobPending}
+              disabled={dateError || isJobPending}
               imageReq={require('@assets/icons/book.png')}
               onButtonPress={onAddToLibPress}
             />
@@ -385,12 +409,12 @@ export function AddToLibraryModal({route, navigation}: Props) {
             style={styles.group}
             entering={FadeInLeft.delay(200)}
             exiting={FadeOut}
-            layout={Layout.delay(100)}>
+            layout={LinearTransition}>
             <Button
               title="Update Settings"
               btnColor={systemIndigo}
-              loading={isJob}
-              disabled={dateError || isJob}
+              loading={isJobPending}
+              disabled={dateError || isJobPending}
               imageReq={require('@assets/icons/book.png')}
               onButtonPress={onUpdateSettingsPress}
             />

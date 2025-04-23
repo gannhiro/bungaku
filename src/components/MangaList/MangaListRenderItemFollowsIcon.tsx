@@ -17,8 +17,7 @@ export function MangaListRenderItemFollowsIcon({statistics, mangaId}: Props) {
         style={[styles.icon]}
       />
       <Text style={styles.numbers}>
-        {typeof statistics?.[mangaId] !== 'undefined' &&
-          numberShorten(statistics[mangaId].follows)}
+        {numberShorten(statistics?.[mangaId].follows ?? 0)}
       </Text>
     </View>
   );

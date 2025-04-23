@@ -19,7 +19,6 @@ import Animated, {
   withSpring,
   withTiming,
 } from 'react-native-reanimated';
-import {useDispatch, useSelector} from 'react-redux';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import {res_get_manga_tag} from '@api';
 import {
@@ -30,7 +29,13 @@ import {
   systemYellow,
 } from '@constants';
 import {mangadexAPI} from '@api';
-import {setMangaTags, RootState, setError} from '@store';
+import {
+  setMangaTags,
+  RootState,
+  setError,
+  useAppDispatch,
+  useAppSelector,
+} from '@store';
 import {textColor} from '@utils';
 
 type Props = {
@@ -44,11 +49,11 @@ export function MangaTagsDropdown({
   setIncludedTags,
   style,
 }: Props) {
-  const {colorScheme} = useSelector(
+  const {colorScheme} = useAppSelector(
     (state: RootState) => state.userPreferences,
   );
-  const {tags} = useSelector((state: RootState) => state.mangaTags);
-  const dispatch = useDispatch();
+  const {tags} = useAppSelector((state: RootState) => state.mangaTags);
+  const dispatch = useAppDispatch();
 
   const styles = getStyles(colorScheme);
 

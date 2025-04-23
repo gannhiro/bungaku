@@ -1,101 +1,140 @@
-import React, {memo, useEffect, useState} from 'react';
-import {Dimensions, Image, StyleSheet} from 'react-native';
-import {useSharedValue, withTiming} from 'react-native-reanimated';
-import {useSelector} from 'react-redux';
-import {RootState} from '../../store/store';
-import {Gesture} from 'react-native-gesture-handler';
-import {READING_MODES, ReadingMode} from './ReadChapterScreen';
 import {ColorScheme} from '@constants';
-import FastImage from 'react-native-fast-image';
+import {textColor} from '@utils';
+import React, {memo, useEffect, useState} from 'react';
+import {Dimensions, Image, StyleSheet, Text, View} from 'react-native';
+import FastImage, {FastImageProps} from 'react-native-fast-image';
+import {Gesture} from 'react-native-gesture-handler';
+import {useSharedValue, withTiming} from 'react-native-reanimated';
+import {RootState} from '../../store/store';
+import {ReadingMode} from './ReadChapterScreen';
+import {useReadChapterScreenContext} from './useReadChapterScreenContext';
+import FS from 'react-native-fs';
+import {Button} from '@components';
+import {useAppSelector} from '@store';
 
 type Props = {
-  url: string;
+  path: string;
   readingMode: ReadingMode;
+  pagePromise?: Promise<FS.DownloadResult>;
 };
 
 const {width, height} = Dimensions.get('screen');
 
-export const RCSChapterImages = memo(
-  ({url, readingMode}: Props) => {
-    const colorScheme = useSelector(
-      (state: RootState) => state.userPreferences.colorScheme,
-    );
-    const styles = getStyles(colorScheme);
+export const RCSChapterImages = memo(({pagePromise, path}: Props) => {
+  const colorScheme = useAppSelector(
+    (state: RootState) => state.userPreferences.colorScheme,
+  );
+  const styles = getStyles(colorScheme);
 
-    const [loading, setLoading] = useState(true);
-    const [imHeight, setImHeight] = useState(height);
+  const [imHeight, setImHeight] = useState<number | null>(null);
+  const [isError, setIsError] = useState(false);
 
-    const imageScale = useSharedValue(1);
-    const imageX = useSharedValue(0);
-    const imageY = useSharedValue(0);
+  const imageScale = useSharedValue(1);
+  const imageX = useSharedValue(0);
+  const imageY = useSharedValue(0);
 
-    const gestures = Gesture.Race(
-      Gesture.Tap()
-        .numberOfTaps(2)
-        .onEnd(() => {
-          console.log('double tap!');
-          if (imageScale.value !== 1) {
-            imageScale.value = withTiming(1);
-            imageX.value = withTiming(0);
-            imageY.value = withTiming(0);
+  const {locReadingMode} = useReadChapterScreenContext();
+
+  const gestures = Gesture.Race(
+    Gesture.Tap()
+      .numberOfTaps(2)
+      .onEnd(() => {
+        console.log('double tap!');
+        if (imageScale.value !== 1) {
+          imageScale.value = withTiming(1);
+          imageX.value = withTiming(0);
+          imageY.value = withTiming(0);
+        }
+      }),
+  );
+
+  const onPageError: FastImageProps['onError'] = () => {
+    console.log('error loading page');
+    setIsError(true);
+  };
+
+  useEffect(() => {
+    (async () => {
+      if (pagePromise) {
+        try {
+          const {statusCode} = await pagePromise;
+
+          if (statusCode === 200) {
+            Image.getSize(path, (iWidth, iHeight) => {
+              const ratio = iWidth / iHeight;
+              const finalHeight = Math.round(width / ratio);
+              setImHeight(finalHeight);
+            });
+          } else {
+            throw `An error has occured: ${statusCode}`;
           }
-        }),
-    );
+        } catch (e) {
+          console.log('FAILED!: ' + e);
+          setIsError(true);
+        }
 
-    function onLoadStart() {}
-
-    function onLoadEnd() {
-      console.log('load end');
-      if (loading) {
-        setLoading(false);
+        return;
       }
-    }
 
-    useEffect(() => {
-      if (readingMode === 'webtoon') {
-        Image.getSize(
-          url,
-          (iWidth, iHeight) => {
-            const ratio = iWidth / iHeight;
-            setImHeight(Math.round(width / ratio));
-          },
-          e => {
-            console.log(e);
-          },
-        );
-      } else {
-        setImHeight(height);
-      }
-    }, [readingMode, url]);
+      Image.getSize(path, (iWidth, iHeight) => {
+        const ratio = iWidth / iHeight;
+        const finalHeight = Math.round(width / ratio);
+        setImHeight(finalHeight);
+      });
+    })();
+  }, [pagePromise, path]);
 
+  if (isError) {
     return (
-      <FastImage
-        source={{uri: url}}
-        resizeMode="contain"
-        style={{height: imHeight, width: width, overflow: 'hidden'}}
-        key={Date.now()}
-        onLoadEnd={onLoadEnd}
-        onLoadStart={onLoadStart}
-      />
+      <View style={styles.errorContainer}>
+        <Text>an error has occured!</Text>
+        <Button title="Retry" />
+      </View>
     );
-  },
-  (prev, next) => prev.readingMode === next.readingMode,
-);
+  }
+
+  return (
+    <View
+      style={[
+        styles.container,
+        {height: locReadingMode === 'webtoon' ? imHeight ?? undefined : height},
+      ]}>
+      {imHeight ? (
+        <FastImage
+          source={{uri: path, priority: 'high'}}
+          resizeMode="contain"
+          style={{flex: 1, width: width}}
+          onError={onPageError}
+        />
+      ) : (
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingLabel}>loading page...</Text>
+        </View>
+      )}
+    </View>
+  );
+});
 
 function getStyles(colorScheme: ColorScheme) {
   return StyleSheet.create({
-    imageOverlay: {
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      position: 'absolute',
+    container: {
+      height: height * 0.3,
+      width: width,
       alignItems: 'center',
       justifyContent: 'center',
     },
-    normalPage: {
+    loadingContainer: {
       height: height,
-      width: width,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    loadingLabel: {
+      color: textColor(colorScheme.colors.main),
+    },
+    errorContainer: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
   });
 }

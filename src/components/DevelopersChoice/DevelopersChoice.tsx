@@ -1,6 +1,6 @@
 import {get_manga, mangadexAPI, res_get_manga} from '@api';
 import {ColorScheme, DEVS_CHOICE, PRETENDARD_JP} from '@constants';
-import {RootState} from '@store';
+import {RootState, useAppDispatch, useAppSelector} from '@store';
 import {textColor} from '@utils';
 import {useEffect, useState} from 'react';
 import React, {
@@ -11,7 +11,6 @@ import React, {
   Text,
   View,
 } from 'react-native';
-import {useDispatch, useSelector} from 'react-redux';
 import {DCRenderItem} from './DCRenderItem';
 
 const {width, height} = Dimensions.get('screen');
@@ -19,8 +18,8 @@ const {width, height} = Dimensions.get('screen');
 type Props = {};
 
 export function DevelopersChoice({}: Props) {
-  const dispatch = useDispatch();
-  const {colorScheme} = useSelector(
+  const dispatch = useAppDispatch();
+  const {colorScheme} = useAppSelector(
     (state: RootState) => state.userPreferences,
   );
   const styles = getStyles(colorScheme);
@@ -32,7 +31,7 @@ export function DevelopersChoice({}: Props) {
     item,
     index,
   }: ListRenderItemInfo<res_get_manga['data'][0]>) {
-    return <DCRenderItem manga={item} />;
+    return <DCRenderItem manga={item} index={index} />;
   }
 
   useEffect(() => {
@@ -41,21 +40,21 @@ export function DevelopersChoice({}: Props) {
         'get',
         '/manga',
         {
-          limit: 5,
+          limit: Object.keys(DEVS_CHOICE).length,
           offset: 0,
           ids: Object.keys(DEVS_CHOICE),
           includes: ['artist', 'author', 'cover_art'],
         },
         [],
       );
-
-      if (data?.result === 'error' || !data) {
+      if (data?.result === 'ok') {
+        setMangas(data.data);
+      }
+      if (data?.result === 'error') {
         setError(true);
-        setLoading(false);
         return;
       }
 
-      setMangas(data.data);
       setLoading(false);
     })();
   }, []);
@@ -68,8 +67,6 @@ export function DevelopersChoice({}: Props) {
         renderItem={renderItem}
         contentContainerStyle={styles.listCont}
         showsHorizontalScrollIndicator={false}
-        snapToInterval={width}
-        snapToAlignment="start"
         initialNumToRender={Object.keys(DEVS_CHOICE).length}
         horizontal
       />
@@ -81,7 +78,6 @@ function getStyles(colorScheme: ColorScheme) {
   return StyleSheet.create({
     container: {
       marginBottom: 50,
-      height: height * 0.3 + 22,
     },
     header: {
       color: textColor(colorScheme.colors.main),

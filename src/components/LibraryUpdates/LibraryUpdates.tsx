@@ -1,8 +1,15 @@
 import {ColorScheme, PRETENDARD_JP} from '@constants';
-import {RootState} from '@store';
-import {UpdatedMangaData} from '@types';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {useNavigation} from '@react-navigation/native';
+import {
+  RootState,
+  setLibraryUpdatesOnLaunch,
+  useAppDispatch,
+  useAppSelector,
+} from '@store';
+import {UpdatedMangaNotifications} from '@types';
 import {textColor} from '@utils';
-import React from 'react';
+import React, {useEffect} from 'react';
 import {
   Dimensions,
   FlatList,
@@ -11,33 +18,46 @@ import {
   Text,
   View,
 } from 'react-native';
-import {useSelector} from 'react-redux';
 import {LibraryListRenderItem} from '../LibraryList/LibraryListRenderItem';
 
 const {width} = Dimensions.get('window');
 
 export function LibraryUpdates() {
-  const libraryUpdates = useSelector(
+  const navigation = useNavigation();
+  const dispatch = useAppDispatch();
+  const {updatedMangaList} = useAppSelector(
     (state: RootState) => state.libraryUpdates,
   );
-  const {colorScheme} = useSelector(
+  const {colorScheme} = useAppSelector(
     (state: RootState) => state.userPreferences,
   );
   const styles = getStyles(colorScheme);
 
-  function renderItem({item, index}: ListRenderItemInfo<UpdatedMangaData>) {
+  function renderItem({
+    item,
+    index,
+  }: ListRenderItemInfo<UpdatedMangaNotifications>) {
     return <LibraryListRenderItem mangaId={item.mangaId} index={index} />;
   }
 
-  if (libraryUpdates.length === 0) {
-    return null;
+  useEffect(() => {
+    navigation.addListener('focus', async () => {
+      const tempLibraryUpdates: UpdatedMangaNotifications[] = JSON.parse(
+        (await AsyncStorage.getItem('library-updates')) ?? '[]',
+      );
+      dispatch(setLibraryUpdatesOnLaunch(tempLibraryUpdates));
+    });
+  }, [dispatch, navigation]);
+
+  if (updatedMangaList.length === 0) {
+    return;
   }
 
   return (
     <View style={styles.container}>
       <Text style={styles.header}>Library Updates</Text>
       <FlatList
-        data={libraryUpdates}
+        data={updatedMangaList}
         renderItem={renderItem}
         contentContainerStyle={styles.listCont}
         horizontal

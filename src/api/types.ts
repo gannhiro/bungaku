@@ -7,12 +7,8 @@ export interface Props<P> {
   additionalParams: string[];
 }
 
-export const API_URL = __DEV__
-  ? 'https://api.mangadex.dev'
-  : 'https://api.mangadex.org';
-export const API_COVER_URL = __DEV__
-  ? 'https://uploads.mangadex.dev/covers'
-  : 'https://uploads.mangadex.org/covers';
+export const API_URL = 'https://api.mangadex.org';
+export const API_COVER_URL = 'https://uploads.mangadex.org/covers';
 
 export type endpoints =
   | '/manga'
@@ -77,6 +73,13 @@ export enum RELATIONSHIP_TYPES {
   USER = 'user',
   CUSTOM_LIST = 'custom_list',
 }
+
+export enum ORDER {
+  ASCENDING = 'asc',
+  DESCENDING = 'desc',
+}
+
+export type Ordering = `${ORDER}`;
 
 export type get_manga = {
   limit: number;
@@ -149,7 +152,7 @@ export type res_get_manga = {
       createdAt: string;
       updatedAt: string;
       version: number;
-      availableTranslatedLanguages: string[];
+      availableTranslatedLanguages: Array<string | null>;
       latestUploadedChapter: string;
     };
     relationships: Array<
@@ -264,7 +267,7 @@ export type get_manga_$_feed = {
   translatedLanguage?: string[];
   originalLanguage?: string[];
   excludedOriginalLanguage?: string[];
-  contentRating?: Array<CONTENT_RATING>;
+  contentRating?: Array<ContentRating>;
   excludedGroups?: string[];
   includeFutureUpdates?: string[];
   createdAtSince?: string;
@@ -604,4 +607,10 @@ export type gen_error = {
       context: string;
     },
   ];
+};
+
+export type internal_gen_error = {
+  result: 'internal-error';
+  title: string;
+  desc?: string;
 };

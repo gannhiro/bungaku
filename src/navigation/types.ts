@@ -6,20 +6,23 @@ import {
   res_get_statistics_manga,
   res_get_user_$,
 } from '@api';
+import {Language} from '@constants';
 import {ReadingMode} from '@screens';
 
 export type RootStackParamsList = {
+  KitchenSinkScreen: undefined;
   SplashScreen: undefined;
   HomeScreen: undefined;
   TestScreen: undefined;
   LoginScreen: undefined;
   MangaChaptersScreen: {
-    manga: res_get_manga['data'][0];
+    manga?: res_get_manga['data'][0];
   };
   ReadChapterScreen: {
     mangaId: string;
     chapters: res_get_manga_$_feed['data'];
     initialChapterIndex: number;
+    originalLanguage: Language;
     scanlator?: res_get_group['data'][0];
     user?: res_get_user_$ | gen_error | undefined | null;
     oReadingMode?: ReadingMode;
@@ -30,4 +33,5 @@ export type RootStackParamsList = {
     manga: res_get_manga['data'][0];
     statistics?: res_get_statistics_manga;
   };
+  LanguageModal: undefined;
 };

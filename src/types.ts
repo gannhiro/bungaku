@@ -7,6 +7,7 @@ import {Language} from './constants/languages';
 
 export type MangaDetails = {
   dateAdded: string;
+  isDataSaver: boolean;
   stayUpdated: boolean;
   stayUpdatedAfterDate: string;
   stayUpdatedLanguages: Language[];
@@ -14,12 +15,14 @@ export type MangaDetails = {
   statistics: res_get_statistics_manga | undefined | null;
 };
 
-export type ChapterDetails = {
+export type DownloadedChapterDetails = {
   chapter: res_get_manga_$_feed['data'][0];
   pageFileNames: string[];
+  isDataSaver: boolean;
 };
 
-export type UpdatedMangaData = {
+export type UpdatedMangaNotifications = {
   mangaId: string;
   newChapterCount: number;
+  notificationId: string;
 };

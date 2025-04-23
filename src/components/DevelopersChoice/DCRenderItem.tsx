@@ -1,24 +1,36 @@
 import {res_get_cover_$, res_get_manga} from '@api';
 import {ColorScheme, DEVS_CHOICE, OTOMANOPEE, PRETENDARD_JP} from '@constants';
-import {RootState} from '@store';
+import {useNavigation} from '@react-navigation/native';
+import {RootState, useAppDispatch, useAppSelector} from '@store';
 import {textColor} from '@utils';
 import React from 'react';
-import {Dimensions, StyleSheet, Text, View} from 'react-native';
-import FastImage from 'react-native-fast-image';
-import {useDispatch, useSelector} from 'react-redux';
+import {
+  Dimensions,
+  Image,
+  StyleSheet,
+  Text,
+  View,
+  ViewStyle,
+} from 'react-native';
+import Animated from 'react-native-reanimated';
 
 const {height, width} = Dimensions.get('window');
 
 type Props = {
   manga: res_get_manga['data'][0];
+  index: number;
 };
 
-export function DCRenderItem({manga}: Props) {
-  const dispatch = useDispatch();
-  const {colorScheme} = useSelector(
+export function DCRenderItem({manga, index}: Props) {
+  const navigation = useNavigation();
+  const dispatch = useAppDispatch();
+  const {colorScheme} = useAppSelector(
     (state: RootState) => state.userPreferences,
   );
   const styles = getStyles(colorScheme);
+  const marginStyles: ViewStyle = {
+    marginLeft: index === 0 ? 15 : 0,
+  };
 
   const coverItem = manga.relationships.find(rs => rs.type === 'cover_art') as
     | res_get_cover_$['data']
@@ -26,50 +38,52 @@ export function DCRenderItem({manga}: Props) {
   const coverSrc = `https://uploads.mangadex.org/covers/${manga.id}/${coverItem?.attributes.fileName}`;
 
   return (
-    <View style={styles.container}>
-      <FastImage source={{uri: coverSrc}} style={styles.cover} />
-      <Text style={styles.titleLabel}>
-        {manga?.attributes.title.en ?? 'no title'}
-      </Text>
-      <Text style={styles.description}>
-        {DEVS_CHOICE[manga.id as keyof typeof DEVS_CHOICE]}
-      </Text>
-    </View>
+    <Animated.View style={[styles.container, marginStyles]}>
+      <Animated.ScrollView
+        showsVerticalScrollIndicator={false}
+        nestedScrollEnabled
+        style={{
+          flex: 1,
+          width: '100%',
+        }}>
+        <Image source={{uri: coverSrc}} style={styles.cover} />
+        <View style={{marginHorizontal: 5, marginVertical: 10}}>
+          <Text style={styles.titleLabel}>{manga.attributes.title.en}</Text>
+          <Text style={styles.desc}>
+            {DEVS_CHOICE[manga.id as keyof typeof DEVS_CHOICE]}
+          </Text>
+        </View>
+      </Animated.ScrollView>
+    </Animated.View>
   );
 }
 
 function getStyles(colorScheme: ColorScheme) {
   return StyleSheet.create({
     container: {
+      width: (width - 15) / 2 - 15,
       height: height * 0.3,
-      width: width,
-      paddingHorizontal: 15,
+      marginRight: 15,
+      flexDirection: 'row',
+      borderRadius: 10,
+      overflow: 'hidden',
+
+      borderColor: colorScheme.colors.primary,
+      borderWidth: 2,
     },
     cover: {
+      width: (width - 15) / 2 - 15,
       height: height * 0.3,
-      width: width - 30,
-      position: 'absolute',
-      top: 0,
-      left: 15,
-      borderRadius: 20,
-      opacity: 0.2,
-    },
-    rightGroup: {
-      flex: 1,
-      paddingLeft: 10,
     },
     titleLabel: {
       fontFamily: OTOMANOPEE,
       color: textColor(colorScheme.colors.main),
       fontSize: 18,
-      marginHorizontal: 15,
-      marginTop: 15,
     },
-    description: {
-      fontFamily: PRETENDARD_JP.LIGHT,
+    desc: {
+      fontFamily: PRETENDARD_JP.REGULAR,
       color: textColor(colorScheme.colors.main),
-      textAlign: 'justify',
-      marginHorizontal: 15,
+      fontSize: 14,
     },
   });
 }

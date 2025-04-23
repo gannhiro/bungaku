@@ -1,14 +1,13 @@
 import {ColorScheme, PRETENDARD_JP} from '@constants';
-import {RootState} from '@store';
+import {RootState, useAppSelector} from '@store';
 import React, {Fragment} from 'react';
 import {StyleSheet, View, Text} from 'react-native';
-import {useSelector} from 'react-redux';
 import * as Progress from 'react-native-progress';
 import {textColor, useInternetConn} from '@utils';
 
 export function MangaListFooter() {
   const intError = useInternetConn();
-  const {colorScheme} = useSelector(
+  const {colorScheme} = useAppSelector(
     (state: RootState) => state.userPreferences,
   );
   const styles = getStyles(colorScheme);

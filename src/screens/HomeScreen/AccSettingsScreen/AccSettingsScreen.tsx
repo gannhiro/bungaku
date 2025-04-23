@@ -1,21 +1,3 @@
-import React, {Fragment} from 'react';
-import {
-  Alert,
-  Image,
-  Linking,
-  ScrollView,
-  SectionList,
-  SectionListData,
-  SectionListRenderItemInfo,
-  StatusBar,
-  StyleSheet,
-  Switch,
-  Text,
-  ToastAndroid,
-  TouchableOpacity,
-  View,
-} from 'react-native';
-import {useDispatch, useSelector} from 'react-redux';
 import {
   APP_BUILD,
   APP_NAME,
@@ -25,19 +7,37 @@ import {
   systemGray1,
   systemGray2,
   systemTeal,
+  TOP_OVERLAY_HEIGHT,
+  useLabels,
 } from '@constants';
+import {RootStackParamsList} from '@navigation';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {useNavigation} from '@react-navigation/native';
+import {StackNavigationProp} from '@react-navigation/stack';
 import {
   RootState,
   setDataSaver,
   setPornographyVis,
-  setReadingMode,
+  useAppDispatch,
+  useAppSelector,
 } from '@store';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import {useNavigation} from '@react-navigation/native';
-import {RootStackParamsList} from '@navigation';
-import {StackNavigationProp} from '@react-navigation/stack';
 import {textColor} from '@utils';
-import {READING_MODES} from '@screens';
+import React, {Fragment} from 'react';
+import {
+  Alert,
+  Image,
+  ScrollView,
+  SectionList,
+  SectionListData,
+  SectionListRenderItemInfo,
+  StyleSheet,
+  Switch,
+  Text,
+  ToastAndroid,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import FS from 'react-native-fs';
 import {
   InAppBrowser,
   InAppBrowserAndroidOptions,
@@ -63,10 +63,14 @@ export function AccSettingsScreen() {
     useNavigation<
       StackNavigationProp<RootStackParamsList, 'HomeScreen', undefined>
     >();
-  const dispatch = useDispatch();
-  const preferences = useSelector((state: RootState) => state.userPreferences);
-  const {colorScheme, preferDataSaver, pornographyOK, readingMode} =
-    useSelector((state: RootState) => state.userPreferences);
+  const dispatch = useAppDispatch();
+  const preferences = useAppSelector(
+    (state: RootState) => state.userPreferences,
+  );
+  const {colorScheme, preferDataSaver, allowPornography} = useAppSelector(
+    (state: RootState) => state.userPreferences,
+  );
+  const labels = useLabels();
   const styles = getStyles(colorScheme);
   const browserSettings: InAppBrowserAndroidOptions = {
     enableUrlBarHiding: false,
@@ -76,8 +80,8 @@ export function AccSettingsScreen() {
 
   const accountSettings: Settings['data'] = [
     {
-      label: 'Login',
-      subtitle: 'Login to your account. NOT AVAILABLE',
+      label: labels.homeScreen.accountTab.accountSection.loginLabel,
+      subtitle: labels.homeScreen.accountTab.accountSection.loginSubLabel,
       onPress: () => {
         navigation.navigate('LoginScreen');
       },
@@ -86,7 +90,7 @@ export function AccSettingsScreen() {
 
   const privacySettings: Settings['data'] = [
     {
-      label: 'bungaku Privacy Policy',
+      label: labels.homeScreen.accountTab.privacySection.bungakuPrivPolicyLabel,
       onPress: async () => {
         await InAppBrowser.open(
           'https://sites.google.com/view/bungaku-privacy-policy/home',
@@ -95,7 +99,7 @@ export function AccSettingsScreen() {
       },
     },
     {
-      label: 'MangaDex Privacy Policy',
+      label: labels.homeScreen.accountTab.privacySection.mDexPrivPolicyLabel,
       onPress: async () => {
         await InAppBrowser.open(
           'https://forums.mangadex.org/help/privacy-policy/',
@@ -104,7 +108,7 @@ export function AccSettingsScreen() {
       },
     },
     {
-      label: 'MangaDex Terms and Rules',
+      label: labels.homeScreen.accountTab.privacySection.mDexTermsLabel,
       onPress: async () => {
         await InAppBrowser.open(
           'https://forums.mangadex.org/help/terms/',
@@ -113,7 +117,7 @@ export function AccSettingsScreen() {
       },
     },
     {
-      label: 'MangaDex Cookie Usage',
+      label: labels.homeScreen.accountTab.privacySection.mDexCookieLabel,
       onPress: async () => {
         InAppBrowser.open(
           'https://forums.mangadex.org/help/cookies/',
@@ -125,8 +129,9 @@ export function AccSettingsScreen() {
 
   const appearanceSettings: Settings['data'] = [
     {
-      label: 'Data Saver',
-      subtitle: 'Turning off Data Saver fetches higher quality images.',
+      label: labels.homeScreen.accountTab.appearanceSection.dataSaverLabel,
+      subtitle:
+        labels.homeScreen.accountTab.appearanceSection.dataSaverSubLabel,
       rightComponent: (
         <Switch
           trackColor={{
@@ -146,8 +151,8 @@ export function AccSettingsScreen() {
       ),
     },
     {
-      label: 'Theme',
-      subtitle: 'Change how bungaku looks!',
+      label: labels.homeScreen.accountTab.appearanceSection.themeLabel,
+      subtitle: labels.homeScreen.accountTab.appearanceSection.themeSubLabel,
       onPress: () => {
         navigation.navigate('ThemeModal');
       },
@@ -156,16 +161,17 @@ export function AccSettingsScreen() {
 
   const languageSettings: Settings['data'] = [
     {
-      label: 'Interface Language',
-      subtitle:
-        'Change the language of the app. (not available yet, default is EN)',
-      onPress: () => {},
+      label: labels.homeScreen.accountTab.languageSection.interfaceLabel,
+      subtitle: labels.homeScreen.accountTab.languageSection.interfaceSubLabel,
+      onPress: () => {
+        navigation.navigate('LanguageModal');
+      },
     },
   ];
 
   const otherSettings: Settings['data'] = [
     {
-      label: 'Allow Pornography',
+      label: labels.homeScreen.accountTab.otherSection.allowPornLabel,
       rightComponent: (
         <Switch
           trackColor={{
@@ -174,7 +180,7 @@ export function AccSettingsScreen() {
           }}
           thumbColor={colorScheme.colors.secondary}
           onTouchStart={() => {
-            if (!pornographyOK) {
+            if (!allowPornography) {
               Alert.alert(
                 'Are you 18+?',
                 'bungaku will be fetching pornographic material that are not suitable for ages below 18',
@@ -188,7 +194,7 @@ export function AccSettingsScreen() {
                         'settings',
                         JSON.stringify({
                           ...preferences,
-                          pornographyOK: false,
+                          allowPornography: false,
                         }),
                       );
                     },
@@ -200,30 +206,43 @@ export function AccSettingsScreen() {
               );
             }
           }}
-          value={pornographyOK}
+          value={allowPornography}
           onValueChange={async value => {
             dispatch(setPornographyVis(value));
             await AsyncStorage.setItem(
               'settings',
-              JSON.stringify({...preferences, pornographyOK: value}),
+              JSON.stringify({...preferences, allowPornography: value}),
             );
           }}
         />
       ),
-      subtitle: 'Pornographic manga will not appear in Search Tab if disabled.',
+      subtitle: labels.homeScreen.accountTab.otherSection.allowPornSubLabel,
     },
     {
-      label: 'Credits',
-      subtitle: 'List of people that contributed to making this app!',
+      label: 'Delete Cache',
+      subtitle: 'delete cache',
+      onPress: async () => {
+        const directories = await FS.readdir(`${FS.CachesDirectoryPath}`);
+        const promises = directories.map(directory => {
+          return FS.unlink(`${FS.CachesDirectoryPath}/${directory}`);
+        });
+
+        await Promise.allSettled(promises);
+        ToastAndroid.show('Deleted cache.', 1000);
+      },
+    },
+    {
+      label: labels.homeScreen.accountTab.otherSection.creditsLabel,
+      subtitle: labels.homeScreen.accountTab.otherSection.creditsSubLabel,
       onPress: () => {
         navigation.navigate('CreditsScreen');
       },
     },
     {
-      label: 'Give Us Feedback!',
-      subtitle: 'Tell us what you think!',
+      label: labels.homeScreen.accountTab.otherSection.feedbackLabel,
+      subtitle: labels.homeScreen.accountTab.otherSection.feedbackSubLabel,
       onPress: () => {
-        Linking.openURL('https://forms.gle/GK6c1xm3QcLaFxMZ9');
+        InAppBrowser.open('https://forms.gle/GK6c1xm3QcLaFxMZ9');
       },
     },
   ];
@@ -235,11 +254,17 @@ export function AccSettingsScreen() {
         await AsyncStorage.clear();
       },
     },
+    {
+      label: 'Go to kitchen sink',
+      onPress: async () => {
+        navigation.navigate('KitchenSinkScreen');
+      },
+    },
   ];
 
   const settingsSectionList: Settings[] = [
     {
-      title: 'Account',
+      title: labels.homeScreen.accountTab.accountSection.headingLabel,
       data: accountSettings,
       icon: (
         <Image
@@ -249,7 +274,7 @@ export function AccSettingsScreen() {
       ),
     },
     {
-      title: 'Privacy',
+      title: labels.homeScreen.accountTab.privacySection.headingLabel,
       data: privacySettings,
       icon: (
         <Image
@@ -259,7 +284,7 @@ export function AccSettingsScreen() {
       ),
     },
     {
-      title: 'Appearance',
+      title: labels.homeScreen.accountTab.appearanceSection.headingLabel,
       data: appearanceSettings,
       icon: (
         <Image
@@ -269,7 +294,7 @@ export function AccSettingsScreen() {
       ),
     },
     {
-      title: 'Language',
+      title: labels.homeScreen.accountTab.languageSection.headingLabel,
       data: languageSettings,
       icon: (
         <Image
@@ -279,7 +304,7 @@ export function AccSettingsScreen() {
       ),
     },
     {
-      title: 'Other',
+      title: labels.homeScreen.accountTab.otherSection.headingLabel,
       data: otherSettings,
       icon: (
         <Image source={require('@assets/icons/cog.png')} style={styles.icon} />
@@ -388,7 +413,7 @@ function getStyles(colorScheme: ColorScheme) {
     },
     scrollviewCont: {
       padding: 15,
-      paddingTop: StatusBar.currentHeight && StatusBar.currentHeight + 30,
+      paddingTop: TOP_OVERLAY_HEIGHT,
     },
     username: {
       fontSize: 20,
