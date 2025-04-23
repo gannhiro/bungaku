@@ -12,7 +12,7 @@ import {ReadingMode} from '@screens';
 export type RootStackParamsList = {
   KitchenSinkScreen: undefined;
   SplashScreen: undefined;
-  HomeScreen: undefined;
+  HomeNavigator: undefined;
   TestScreen: undefined;
   LoginScreen: undefined;
   MangaChaptersScreen: {

@@ -46,7 +46,7 @@ export function LibraryListRenderItem({mangaId}: Props) {
   const dispatch = useAppDispatch();
   const navigation =
     useNavigation<
-      StackNavigationProp<RootStackParamsList, 'HomeScreen', undefined>
+      StackNavigationProp<RootStackParamsList, 'HomeNavigator', undefined>
     >();
   const {colorScheme, language} = useAppSelector(
     (state: RootState) => state.userPreferences,

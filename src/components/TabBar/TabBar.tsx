@@ -8,7 +8,7 @@ import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import {textColor} from '@utils';
 
 enum Tabs {
-  HOME = 'AHomeScreen',
+  HOME = 'HomeScreen',
   SEARCH = 'SearchScreen',
   LIBRARY = 'LibraryScreen',
   ACCSETTINGSSCREEN = 'AccSettingsScreen',

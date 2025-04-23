@@ -9,7 +9,7 @@ import {
 } from '@react-navigation/stack';
 import {
   CreditsScreen,
-  HomeScreen,
+  HomeNavigator,
   KitchenSinkScreen,
   MangaChaptersScreen,
   ReadChapterScreen,
@@ -117,7 +117,7 @@ export default function RootNavigation() {
           />
           <Stack.Screen name="SplashScreen" component={SplashScreen} />
           <Stack.Screen name="TestScreen" component={TestScreen} />
-          <Stack.Screen name="HomeScreen" component={HomeScreen} />
+          <Stack.Screen name="HomeNavigator" component={HomeNavigator} />
           <Stack.Screen
             name="MangaChaptersScreen"
             component={MangaChaptersScreen}

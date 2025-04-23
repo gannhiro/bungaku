@@ -11,7 +11,7 @@ import {LibraryList} from '@components';
 export function LibraryScreen() {
   const navigation =
     useNavigation<
-      StackNavigationProp<RootStackParamsList, 'HomeScreen', undefined>
+      StackNavigationProp<RootStackParamsList, 'HomeNavigator', undefined>
     >();
   const {colorScheme} = useAppSelector(
     (state: RootState) => state.userPreferences,

@@ -44,7 +44,7 @@ import Animated, {
   SlideInDown,
   SlideOutDown,
 } from 'react-native-reanimated';
-import {HomeBottomTabsParamsList} from '../HomeScreen';
+import {HomeBottomTabsParamsList} from '../HomeNavigator';
 const {height, width} = Dimensions.get('window');
 
 type Props = MaterialTopTabScreenProps<

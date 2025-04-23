@@ -268,7 +268,6 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
 
   useEffect(() => {
     (async () => {
-      console.log(jobStatus);
       const isDL = await FS.exists(
         `${FS.DocumentDirectoryPath}/manga/${manga.id}/${chapter.attributes.translatedLanguage}/${chapter.id}`,
       );

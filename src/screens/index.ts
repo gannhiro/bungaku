@@ -1,4 +1,4 @@
-export * from './HomeScreen/HomeScreen';
+export * from './HomeScreen/HomeNavigator';
 export * from './LoginScreen/LoginScreen';
 export * from './MangaChaptersScreen/MangaChaptersScreen';
 export * from './ReadChapterScreen/ReadChapterScreen';

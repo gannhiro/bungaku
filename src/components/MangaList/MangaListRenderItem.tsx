@@ -41,7 +41,7 @@ export const MangaListRenderItem = memo(({manga}: Props) => {
   const intError = useInternetConn();
   const navigation =
     useNavigation<
-      StackNavigationProp<RootStackParamsList, 'HomeScreen', undefined>
+      StackNavigationProp<RootStackParamsList, 'HomeNavigator', undefined>
     >();
   const {colorScheme} = useAppSelector(
     (state: RootState) => state.userPreferences,

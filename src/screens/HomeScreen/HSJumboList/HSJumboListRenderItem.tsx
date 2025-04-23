@@ -46,7 +46,7 @@ export function HSJumboListRenderItem({
 
   const navigation =
     useNavigation<
-      StackNavigationProp<RootStackParamsList, 'HomeScreen', undefined>
+      StackNavigationProp<RootStackParamsList, 'HomeNavigator', undefined>
     >();
 
   const styles = getStyles(colorScheme);

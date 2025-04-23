@@ -61,7 +61,7 @@ type SettingsType = 'page' | 'switch';
 export function AccSettingsScreen() {
   const navigation =
     useNavigation<
-      StackNavigationProp<RootStackParamsList, 'HomeScreen', undefined>
+      StackNavigationProp<RootStackParamsList, 'HomeNavigator', undefined>
     >();
   const dispatch = useAppDispatch();
   const preferences = useAppSelector(

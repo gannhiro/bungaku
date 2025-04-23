@@ -135,7 +135,7 @@ export function SplashScreen({navigation}: Props) {
   useEffect(() => {
     if (!loading) {
       setTimeout(() => {
-        navigation.replace('HomeScreen');
+        navigation.replace('HomeNavigator');
       }, 2500);
     }
   }, [loading, navigation]);
