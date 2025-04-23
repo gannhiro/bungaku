@@ -202,7 +202,7 @@ export function MCSChaptersTab({}: Props) {
           />
         </ScrollView>
       </Animated.View>
-      {!loading ? (
+      {chapters.length ? (
         <Animated.View style={styles.flashListContainer}>
           <FlashList
             ref={listRef}

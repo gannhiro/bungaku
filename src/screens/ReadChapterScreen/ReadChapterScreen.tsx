@@ -67,8 +67,6 @@ export function ReadChapterScreen({route, navigation}: Props) {
   const {colorScheme, preferDataSaver} = useAppSelector(
     (state: RootState) => state.userPreferences,
   );
-  const jobStatus = useAppSelector((state: RootState) => state.jobs[mangaId]);
-  const isJobPending = jobStatus?.status === 'pending';
   const styles = getStyles(colorScheme);
 
   const [locReadingMode, setLocReadingMode] = useState<ReadingMode>(
@@ -87,6 +85,11 @@ export function ReadChapterScreen({route, navigation}: Props) {
     {pagePromise?: Promise<FS.DownloadResult>; path: string}[]
   >([]);
 
+  const potentialJobId = `${mangaId}-${chapters[currentChapter].id}`;
+  const jobStatus = useAppSelector(
+    (state: RootState) => state.jobs.jobs[potentialJobId],
+  );
+  const isJobPending = jobStatus?.status === 'pending';
   const cacheDirectory = `${FS.CachesDirectoryPath}/${mangaId}/${chapters[currentChapter].id}`;
   const downloadsDirectory = `${FS.DocumentDirectoryPath}/manga/${mangaId}/${chapters[currentChapter].attributes.translatedLanguage}/${chapters[currentChapter].id}`;
 

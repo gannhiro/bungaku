@@ -117,8 +117,9 @@ export function MangaChaptersScreen({route, navigation}: Props) {
   };
 
   useEffect(() => {
+    const tempDownloadedChapters: res_get_manga_$_feed['data'] = [];
+
     async function fetchDownloadedChapters() {
-      const tempDownloadedChapters: res_get_manga_$_feed['data'] = [];
       const directories = await FS.readDir(
         `${FS.DocumentDirectoryPath}/manga/${manga.id}`,
       );
@@ -145,11 +146,10 @@ export function MangaChaptersScreen({route, navigation}: Props) {
         }
       }
 
-      setChapters(tempDownloadedChapters.reverse());
+      setChapters(tempDownloadedChapters);
     }
 
     async function fetchCachedChapters() {
-      const tempCachedChapters: res_get_manga_$_feed['data'] = [];
       const chapterDirectories = await FS.readDir(
         `${FS.CachesDirectoryPath}/${manga.id}`,
       );
@@ -164,16 +164,16 @@ export function MangaChaptersScreen({route, navigation}: Props) {
             `${FS.CachesDirectoryPath}/${manga.id}/${chapterDirectories[i].name}/chapter.json`,
           ),
         );
-        tempCachedChapters.push(chapDetails.chapter);
+        tempDownloadedChapters.push(chapDetails.chapter);
       }
 
-      tempCachedChapters.sort((aChap, bChap) => {
-        const aChapNumber = parseInt(aChap.attributes.chapter, 10) ?? 0;
-        const bChapNumber = parseInt(bChap.attributes.chapter, 10) ?? 0;
+      tempDownloadedChapters.sort((aChap, bChap) => {
+        const aChapNumber = parseFloat(aChap.attributes.chapter) ?? 0;
+        const bChapNumber = parseFloat(bChap.attributes.chapter) ?? 0;
         return bChapNumber - aChapNumber;
       });
 
-      setChapters(tempCachedChapters);
+      setChapters(tempDownloadedChapters);
     }
 
     async function fetchChapters() {
@@ -316,7 +316,7 @@ export function MangaChaptersScreen({route, navigation}: Props) {
       setLoadingProgress(1);
       setLoading(false);
     })();
-  }, [dispatch, intError, languages, manga, showDownloadedChapters]);
+  }, []);
 
   useEffect(() => {
     const navSubscription = navigation.addListener('blur', () => {
@@ -326,7 +326,7 @@ export function MangaChaptersScreen({route, navigation}: Props) {
     });
 
     return () => navSubscription();
-  }, [navigation]);
+  }, []);
 
   return (
     <MangaChaptersScreenContext.Provider value={context}>
