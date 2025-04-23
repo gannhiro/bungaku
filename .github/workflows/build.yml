@@ -13,8 +13,11 @@ jobs:
           ref: master
       - name: Decrypt release.keystore secret
         run: |
-          echo "${{secrets.BUNGAKU_KEYSTORE}}" > release.keystore.asc
-          gpg -d --passphrase "${{secrets.BUNGAKU_KEYSTORE_PASSWORD}}" --batch release.keystore.asc > android/app/release.keystore
+          echo "${{secrets.BUNGAKU_KEYSTORE}}" > release.jks.gpg
+          gpg --quiet --batch --pinentry-mode loopback \
+              --passphrase "${{secrets.BUNGAKU_KEYSTORE_PASSWORD}}" \
+              --output android/app/release.jks \
+              --decrypt release.jks.gpg
       - name: Appending keystore settings to gradle.properties
         uses: DamianReeves/write-file-action@master
         with:
