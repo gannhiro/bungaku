@@ -81,7 +81,7 @@ export function SearchScreen({}: Props) {
   const [resetting, setResetting] = useState(false);
 
   function retrieveContentRatingDropdownItems(): GenericDropdownValues {
-    return Object.values(CONTENT_RATING)
+    const dropdownValues = Object.values(CONTENT_RATING)
       .map(rating => {
         return {
           label: rating,
@@ -89,8 +89,17 @@ export function SearchScreen({}: Props) {
         };
       })
       .filter(value => {
-        return !allowPornography && value.value === CONTENT_RATING.PORNOGRAPHIC;
+        return value.value !== CONTENT_RATING.PORNOGRAPHIC;
       });
+
+    if (allowPornography) {
+      dropdownValues.push({
+        label: CONTENT_RATING.PORNOGRAPHIC,
+        value: CONTENT_RATING.PORNOGRAPHIC,
+      });
+    }
+
+    return dropdownValues;
   }
 
   function searchIconOnPress() {

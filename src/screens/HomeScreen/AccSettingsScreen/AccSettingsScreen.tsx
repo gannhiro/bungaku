@@ -188,9 +188,9 @@ export function AccSettingsScreen() {
                   {
                     isPreferred: true,
                     text: 'Cancel',
-                    onPress: async () => {
+                    onPress: () => {
                       dispatch(setPornographyVis(false));
-                      await AsyncStorage.setItem(
+                      AsyncStorage.setItem(
                         'settings',
                         JSON.stringify({
                           ...preferences,
@@ -201,6 +201,16 @@ export function AccSettingsScreen() {
                   },
                   {
                     text: 'OK',
+                    onPress: () => {
+                      dispatch(setPornographyVis(true));
+                      AsyncStorage.setItem(
+                        'settings',
+                        JSON.stringify({
+                          ...preferences,
+                          allowPornography: true,
+                        }),
+                      );
+                    },
                   },
                 ],
               );
