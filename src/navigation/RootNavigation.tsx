@@ -2,7 +2,12 @@ import {Overlay} from '@components';
 import {AVAILABLE_COLOR_SCHEMES, dark, light} from '@constants';
 import {AddToLibraryModal, LanguageModal, ThemeModal} from '@modals';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {NavigationContainer, Theme} from '@react-navigation/native';
+import {
+  LinkingOptions,
+  NavigationContainer,
+  Theme,
+  getStateFromPath as defaultGetStateFromPath,
+} from '@react-navigation/native';
 import {
   createStackNavigator,
   StackNavigationOptions,
@@ -31,6 +36,39 @@ import changeNavigationBarColor from 'react-native-navigation-bar-color';
 import {RootStackParamsList} from './types';
 
 export const Stack = createStackNavigator<RootStackParamsList>();
+
+const linking: LinkingOptions<RootStackParamsList> = {
+  prefixes: ['bungaku://'],
+  config: {
+    screens: {
+      HomeNavigator: 'home',
+      MangaChaptersScreen: {
+        path: 'manga/:mangaId',
+        parse: {
+          mangaId: mangaId => mangaId,
+        },
+      },
+    },
+  },
+  getStateFromPath(
+    path: string,
+    options: Parameters<typeof defaultGetStateFromPath>[1],
+  ) {
+    const state = defaultGetStateFromPath(path, options);
+
+    if (state?.routes) {
+      const firstRouteName = state.routes[0]?.name;
+      if (firstRouteName && firstRouteName !== 'HomeNavigator') {
+        return {
+          ...state,
+          routes: [{name: 'HomeNavigator'}, ...state.routes],
+        };
+      }
+    }
+
+    return state;
+  },
+};
 
 export default function RootNavigation() {
   const dispatch = useAppDispatch();
@@ -107,7 +145,8 @@ export default function RootNavigation() {
       <NavigationContainer
         theme={theme}
         onReady={navOnReady}
-        onStateChange={onNavStateChange}>
+        onStateChange={onNavStateChange}
+        linking={linking}>
         <Stack.Navigator
           screenOptions={stackNavOption}
           initialRouteName="SplashScreen">

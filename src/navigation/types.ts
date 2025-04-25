@@ -16,7 +16,11 @@ export type RootStackParamsList = {
   TestScreen: undefined;
   LoginScreen: undefined;
   MangaChaptersScreen: {
-    manga?: res_get_manga['data'][0];
+    manga: res_get_manga['data'][0];
+    mangaId?: never
+  } | {
+    manga?: never;
+    mangaId: string
   };
   ReadChapterScreen: {
     mangaId: string;

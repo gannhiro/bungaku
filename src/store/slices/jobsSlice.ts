@@ -95,7 +95,7 @@ export const updateManga = createAsyncThunk(
   'jobs/updateManga',
   async (
     mangaId: string,
-    {rejectWithValue, fulfillWithValue, dispatch},
+    {rejectWithValue, fulfillWithValue},
   ) => {
     let mangaDetails: MangaDetails | null = null;
     try {
@@ -182,30 +182,11 @@ export const updateManga = createAsyncThunk(
          console.error(`Error reading existing chapter directories for ${mangaId}:`, e);
      }
 
-    let chapterCount = 0;
-    const MAX_CHAPTERS_PER_UPDATE = 5;
-    for (const chapter of chapters) {
-      if (
-        allChapterIds.includes(chapter.id) ||
-        chapter.attributes.pages === 0 ||
-        chapter.attributes.externalUrl
-      ) {
-        continue;
-      }
-
-      dispatch(queueDownloadChapter({
-         chapter,
-         mangaId,
-         isDataSaver: isDataSaver ?? false,
-         isAnUpdate: true
-      }));
-
-      chapterCount++;
-
-      if (chapterCount >= MAX_CHAPTERS_PER_UPDATE) {
-        break;
-      }
-    }
+    let chapterCount = chapters.filter((chapter) => !(
+      allChapterIds.includes(chapter.id) || 
+      chapter.attributes.pages === 0 ||
+      chapter.attributes.externalUrl
+    )).length
 
     if (chapterCount === 0) {
       return rejectWithValue(`MANGA: ${mangaId} - All new chapters already downloaded or invalid.`);

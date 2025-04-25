@@ -1,10 +1,12 @@
 import {
+  get_manga_$,
   get_manga_$_feed,
   get_statistics_manga,
   mangadexAPI,
   ORDER,
   Ordering,
   res_get_cover_$,
+  res_get_manga_$,
   res_get_manga_$_feed,
   res_get_statistics_manga,
 } from '@api';
@@ -38,7 +40,6 @@ export type MCSBottomTabsParamsList = {
 const BottomTabs = createMaterialTopTabNavigator<MCSBottomTabsParamsList>();
 
 export function MangaChaptersScreen({route, navigation}: Props) {
-  const {manga} = route.params;
   const intError = useInternetConn();
   const dispatch = useAppDispatch();
 
@@ -47,30 +48,10 @@ export function MangaChaptersScreen({route, navigation}: Props) {
   );
   const styles = getStyles(colorScheme);
 
-  const languageList: GenericDropdownValues =
-    manga.attributes.availableTranslatedLanguages.map(lang => {
-      if (lang) {
-        return {
-          value: lang,
-          label: lang.toUpperCase(),
-        };
-      } else {
-        return {
-          value: null,
-          label: '?',
-        };
-      }
-    });
-
   const orderItems: GenericDropdownValues = [
     {label: 'Ascending', value: 'asc'},
     {label: 'Descending', value: 'desc'},
   ];
-
-  const coverItem = manga?.relationships.find(rs => rs.type === 'cover_art') as
-    | res_get_cover_$['data']
-    | undefined;
-  const coverSrc = `https://uploads.mangadex.org/covers/${manga?.id}/${coverItem?.attributes.fileName}`;
 
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [loadingText, setLoadingText] = useState('loading');
@@ -83,15 +64,39 @@ export function MangaChaptersScreen({route, navigation}: Props) {
   const [selectedChapters, setSelectedChapters] = useState<string[]>([]);
   const [order, setOrder] = useState<Ordering>('desc');
   const [showDownloadedChapters, setShowDownloadedChapters] = useState(false);
+  const [localManga, setLocalManga] = useState(route.params.manga);
 
   const abortController = useRef<AbortController | null>(null);
 
+  const coverItem = localManga?.relationships.find(
+    rs => rs.type === 'cover_art',
+  ) as res_get_cover_$['data'] | undefined;
+  const coverSrc = `https://uploads.mangadex.org/covers/${localManga?.id}/${
+    coverItem?.attributes?.fileName ?? ''
+  }`;
+  const languageList: GenericDropdownValues =
+    localManga?.attributes.availableTranslatedLanguages.map(lang => {
+      if (lang) {
+        return {
+          value: lang,
+          label: lang.toUpperCase(),
+        };
+      } else {
+        return {
+          value: null,
+          label: '?',
+        };
+      }
+    }) ?? [];
+
   async function onAddToLibPress() {
-    navigation.navigate('AddToLibraryModal', {manga});
+    if (localManga) {
+      navigation.navigate('AddToLibraryModal', {manga: localManga});
+    }
   }
 
   const context: iMangaChaptersScreenContext = {
-    manga,
+    manga: localManga,
     statistics,
     chapters,
     onAddToLibPress,
@@ -117,11 +122,44 @@ export function MangaChaptersScreen({route, navigation}: Props) {
   };
 
   useEffect(() => {
+    async function fetchManga() {
+      if (route.params.manga) {
+        return;
+      }
+
+      const {mangaId} = route.params;
+      const data = await mangadexAPI<res_get_manga_$, get_manga_$>(
+        'get',
+        '/manga/$',
+        {includes: []},
+        [mangaId],
+        undefined,
+        undefined,
+      );
+
+      if (data.result === 'ok') {
+        setLocalManga(data.data);
+      }
+    }
+
+    (async () => {
+      try {
+        await fetchManga();
+      } catch (e) {
+        console.error(`error loading manga chapters:\n${e}`);
+      }
+    })();
+  }, []);
+
+  useEffect(() => {
+    if (!localManga) {
+      return;
+    }
     const tempDownloadedChapters: res_get_manga_$_feed['data'] = [];
 
     async function fetchDownloadedChapters() {
       const directories = await FS.readDir(
-        `${FS.DocumentDirectoryPath}/manga/${manga.id}`,
+        `${FS.DocumentDirectoryPath}/manga/${localManga?.id}`,
       );
 
       for (let i = 0; i < directories.length; i++) {
@@ -129,7 +167,7 @@ export function MangaChaptersScreen({route, navigation}: Props) {
           continue;
         }
         const langDirectories = await FS.readDir(
-          `${FS.DocumentDirectoryPath}/manga/${manga.id}/${directories[i].name}`,
+          `${FS.DocumentDirectoryPath}/manga/${localManga?.id}/${directories[i].name}`,
         );
 
         if (langDirectories.length === 0) {
@@ -139,7 +177,7 @@ export function MangaChaptersScreen({route, navigation}: Props) {
         for (let j = 0; j < langDirectories.length; j++) {
           const chapDetails = JSON.parse(
             await FS.readFile(
-              `${FS.DocumentDirectoryPath}/manga/${manga.id}/${directories[i].name}/${langDirectories[j].name}/chapter.json`,
+              `${FS.DocumentDirectoryPath}/manga/${localManga?.id}/${directories[i].name}/${langDirectories[j].name}/chapter.json`,
             ),
           );
           tempDownloadedChapters.push(chapDetails.chapter);
@@ -151,7 +189,7 @@ export function MangaChaptersScreen({route, navigation}: Props) {
 
     async function fetchCachedChapters() {
       const chapterDirectories = await FS.readDir(
-        `${FS.CachesDirectoryPath}/${manga.id}`,
+        `${FS.CachesDirectoryPath}/${localManga?.id}`,
       );
 
       for (let i = 0; i < chapterDirectories.length; i++) {
@@ -161,7 +199,7 @@ export function MangaChaptersScreen({route, navigation}: Props) {
 
         const chapDetails = JSON.parse(
           await FS.readFile(
-            `${FS.CachesDirectoryPath}/${manga.id}/${chapterDirectories[i].name}/chapter.json`,
+            `${FS.CachesDirectoryPath}/${localManga?.id}/${chapterDirectories[i].name}/chapter.json`,
           ),
         );
         tempDownloadedChapters.push(chapDetails.chapter);
@@ -211,7 +249,7 @@ export function MangaChaptersScreen({route, navigation}: Props) {
             includes: ['scanlation_group', 'user'],
             contentRating: ['safe', 'suggestive', 'erotica', 'pornographic'],
           },
-          [manga.id],
+          [localManga?.id ?? ''],
           undefined,
           newAbortController.signal,
         );
@@ -274,7 +312,7 @@ export function MangaChaptersScreen({route, navigation}: Props) {
       >(
         'get',
         '/statistics/manga',
-        {manga: [manga.id]},
+        {manga: [localManga?.id ?? '']},
         [],
         undefined,
         newAbortController.signal,
@@ -316,7 +354,7 @@ export function MangaChaptersScreen({route, navigation}: Props) {
       setLoadingProgress(1);
       setLoading(false);
     })();
-  }, []);
+  }, [localManga]);
 
   useEffect(() => {
     const navSubscription = navigation.addListener('blur', () => {

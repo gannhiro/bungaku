@@ -73,7 +73,7 @@ export function MCSChaptersTab({}: Props) {
   const listRef = useRef<FlashList<res_get_manga_$_feed['data'][0]>>(null);
 
   const availableLanguages: GenericDropdownValues =
-    manga.attributes.availableTranslatedLanguages.map(lang => {
+    manga?.attributes.availableTranslatedLanguages.map(lang => {
       return {
         value: lang,
         label: lang ? ISO_LANGS[lang as keyof typeof ISO_LANGS].name : 'NULL',
@@ -81,10 +81,10 @@ export function MCSChaptersTab({}: Props) {
           lang ? ISO_LANGS[lang as keyof typeof ISO_LANGS].nativeName : 'NULL'
         } | ${lang ?? 'NULL'}`,
       };
-    });
+    }) ?? [];
 
-  const inLibrary = libraryList.includes(manga.id);
-  const author = manga.relationships.find(
+  const inLibrary = libraryList.includes(manga?.id ?? '');
+  const author = manga?.relationships.find(
     rs => rs.type === 'author',
   ) as res_get_author_$['data'];
 
@@ -134,7 +134,7 @@ export function MCSChaptersTab({}: Props) {
   }
 
   async function onPressShare() {
-    const url = `https://www.mangadex.org/title/${manga.id}`;
+    const url = `https://www.mangadex.org/title/${manga?.id}`;
     Clipboard.setString(url);
   }
 
@@ -166,13 +166,13 @@ export function MCSChaptersTab({}: Props) {
           style={[styles.mangaTitle]}
           entering={FadeIn}
           numberOfLines={5}>
-          {manga.attributes.title.en
+          {manga?.attributes.title.en
             ? manga.attributes.title.en
-            : Object.values(manga.attributes.title)[0] ?? 'No Title'}
+            : Object.values(manga?.attributes.title ?? {})[0] ?? 'No Title'}
         </Animated.Text>
         <Text style={[styles.mangaAuthor]} numberOfLines={2}>
-          {author.attributes.name
-            ? 'by ' + author.attributes.name
+          {author?.attributes?.name
+            ? `by ${author.attributes.name ?? ''}`
             : 'No Author'}
         </Text>
         <ScrollView
@@ -193,11 +193,11 @@ export function MCSChaptersTab({}: Props) {
             onPressButton={onPressShare}
           />
           <MangaListRenderItemContRatIcon
-            contentRating={manga.attributes.contentRating}
+            contentRating={manga?.attributes.contentRating ?? 'safe'}
             style={styles.pressableIcons}
           />
           <MangaListRenderItemStatIcon
-            status={manga.attributes.status}
+            status={manga?.attributes.status ?? 'ongoing'}
             style={styles.pressableIcons}
           />
         </ScrollView>

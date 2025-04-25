@@ -8,7 +8,7 @@ import {Language} from '@constants';
 import {Dispatch, SetStateAction, createContext, useContext} from 'react';
 
 export interface iMangaChaptersScreenContext {
-  manga: res_get_manga['data'][0];
+  manga?: res_get_manga['data'][0];
   statistics?: res_get_statistics_manga | null;
   chapters: res_get_manga_$_feed['data'];
   onAddToLibPress: () => Promise<void>;

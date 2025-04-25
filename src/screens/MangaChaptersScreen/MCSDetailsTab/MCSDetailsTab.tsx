@@ -46,7 +46,9 @@ export function MCSDetailsTab({}: Props) {
           <Text style={styles.label}>Statistics</Text>
           <View style={styles.groupRow}>
             <Text style={styles.statLabel}>
-              {numberShorten(statistics?.statistics[manga.id].follows ?? 0)}{' '}
+              {numberShorten(
+                statistics?.statistics[manga?.id ?? ''].follows ?? 0,
+              )}{' '}
               Follows
             </Text>
             <Image
@@ -54,7 +56,9 @@ export function MCSDetailsTab({}: Props) {
               style={styles.bookIcon}
             />
             <Text style={styles.statLabel}>
-              {statistics?.statistics[manga.id].rating.bayesian.toFixed(2)}{' '}
+              {statistics?.statistics[manga?.id ?? ''].rating.bayesian.toFixed(
+                2,
+              )}{' '}
             </Text>
             <Image
               source={require('@assets/icons/star.png')}
@@ -63,7 +67,7 @@ export function MCSDetailsTab({}: Props) {
           </View>
           <Text style={styles.label}>Descriptions</Text>
           <View style={styles.titlesGroup}>
-            {Object.keys(manga.attributes.description).map(lang => {
+            {Object.keys(manga?.attributes.description ?? {}).map(lang => {
               return (
                 <TouchableOpacity style={styles.titleChip} key={lang}>
                   <FlagIcon language={lang as Language} style={styles.flag} />

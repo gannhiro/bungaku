@@ -12,6 +12,7 @@ export const API_COVER_URL = 'https://uploads.mangadex.org/covers';
 
 export type endpoints =
   | '/manga'
+  | '/manga/$'
   | '/manga/status'
   | '/manga/tag'
   | '/manga/$/aggregate'
@@ -165,6 +166,64 @@ export type res_get_manga = {
   offset: number;
   total: number;
 };
+
+export type get_manga_$ = {
+  includes: Array<'manga' | 'cover_art' | 'author' | 'artist' | 'tag'>
+}
+
+export type res_get_manga_$ = {
+  result: 'ok';
+  response: 'collection';
+  data: {
+    id: string;
+    type: string;
+    attributes: {
+      title: {
+        [key: string]: string;
+      };
+      altTitles: {[key: string]: string}[];
+      description: {
+        [key in string]: string;
+      };
+      isLocked: boolean;
+      links: {
+        [key: string]: string;
+      };
+      originalLanguage: Language;
+      lastVolume: string;
+      lastChapter: string;
+      publicationDemographic: PublicationDemographic;
+      status: MangaStatus;
+      year: number;
+      contentRating: ContentRating;
+      tags: {
+        id: string;
+        type: string;
+        attributes: {
+          name: {
+            [key: string]: string;
+          };
+          description: {};
+          group: string;
+          version: number;
+        };
+        relationships: [];
+      }[];
+      state: string;
+      chapterNumbersResetOnNewVolume: boolean;
+      createdAt: string;
+      updatedAt: string;
+      version: number;
+      availableTranslatedLanguages: Array<string | null>;
+      latestUploadedChapter: string;
+    };
+    relationships: Array<
+      | res_get_cover_$['data']
+      | res_get_author_$['data']
+      | res_get_group_$['data']
+    >;
+  }
+}
 
 export type get_cover = {
   limit: number;
