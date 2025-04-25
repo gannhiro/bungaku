@@ -71,9 +71,11 @@ export function MangaChaptersScreen({route, navigation}: Props) {
   const coverItem = localManga?.relationships.find(
     rs => rs.type === 'cover_art',
   ) as res_get_cover_$['data'] | undefined;
-  const coverSrc = `https://uploads.mangadex.org/covers/${localManga?.id}/${
-    coverItem?.attributes?.fileName ?? ''
-  }`;
+  const coverSrc = coverItem?.attributes?.fileName
+    ? `https://uploads.mangadex.org/covers/${localManga?.id}/${
+        coverItem?.attributes?.fileName ?? ''
+      }`
+    : null;
   const languageList: GenericDropdownValues =
     localManga?.attributes.availableTranslatedLanguages.map(lang => {
       if (lang) {
@@ -131,7 +133,7 @@ export function MangaChaptersScreen({route, navigation}: Props) {
       const data = await mangadexAPI<res_get_manga_$, get_manga_$>(
         'get',
         '/manga/$',
-        {includes: []},
+        {includes: ['artist', 'author', 'cover_art', 'tag']},
         [mangaId],
         undefined,
         undefined,
@@ -370,7 +372,11 @@ export function MangaChaptersScreen({route, navigation}: Props) {
     <MangaChaptersScreenContext.Provider value={context}>
       <View style={styles.container}>
         <Animated.View style={styles.mangaCoverHeader} entering={FadeIn}>
-          <Image source={{uri: coverSrc}} style={styles.cover} />
+          <Image
+            source={{uri: coverSrc ?? ''}}
+            style={styles.cover}
+            key={coverSrc}
+          />
           <LinearGradient
             style={styles.mangaCoverGradient}
             colors={[`${colorScheme.colors.main}99`, colorScheme.colors.main]}

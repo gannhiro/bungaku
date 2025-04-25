@@ -56,7 +56,7 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
   const navigation = useNavigation<NavigationProp<RootStackParamsList>>();
   const dispatch = useAppDispatch();
 
-  const potentialJobId = `${manga.id}-${chapter.id}`;
+  const potentialJobId = `${manga?.id}-${chapter.id}`;
   const jobStatus = useAppSelector(
     (state: RootState) => state.jobs.jobs[potentialJobId]?.status,
   );
@@ -74,7 +74,7 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
   const [downloadable, setDownloadable] = useState(false);
   const [isDownloaded, setIsDownloaded] = useState(false);
 
-  const inLibrary = libraryList.includes(manga.id);
+  const inLibrary = libraryList.includes(manga?.id ?? '');
   const isSelected = selectedChapters.includes(chapter.id);
   const scanlator = chapter?.relationships.find(
     rs => rs.type === 'scanlation_group',
@@ -165,6 +165,10 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
   const gestures = Gesture.Race(tapGesture, longPressGest, panLeftGest);
 
   async function shouldDownloadChapter() {
+    if (!manga) {
+      return;
+    }
+
     if (inLibrary) {
       dispatch(
         queueDownloadChapter({
@@ -206,6 +210,10 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
       } else {
         setSelectedChapters([...selectedChapters, chapter.id]);
       }
+      return;
+    }
+
+    if (!manga) {
       return;
     }
 
@@ -269,10 +277,10 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
   useEffect(() => {
     (async () => {
       const isDL = await FS.exists(
-        `${FS.DocumentDirectoryPath}/manga/${manga.id}/${chapter.attributes.translatedLanguage}/${chapter.id}`,
+        `${FS.DocumentDirectoryPath}/manga/${manga?.id}/${chapter.attributes.translatedLanguage}/${chapter.id}`,
       );
       const isCD = await FS.exists(
-        `${FS.CachesDirectoryPath}/${manga.id}/${chapter.id}`,
+        `${FS.CachesDirectoryPath}/${manga?.id}/${chapter.id}`,
       );
 
       setIsDownloaded(isDL);
