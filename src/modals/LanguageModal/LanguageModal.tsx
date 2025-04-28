@@ -10,7 +10,12 @@ import {
 import {RootStackParamsList} from '@navigation';
 import {BlurView} from '@react-native-community/blur';
 import {StackScreenProps} from '@react-navigation/stack';
-import {RootState, setInterfaceLanguage, useAppSelector} from '@store';
+import {
+  RootState,
+  setInterfaceLanguage,
+  useAppDispatch,
+  useAppSelector,
+} from '@store';
 import {textColor} from '@utils';
 import React, {useEffect, useState} from 'react';
 import {Dimensions, StyleSheet, Text} from 'react-native';
@@ -27,7 +32,7 @@ const languageItems: GenericDropdownValues = Object.keys(LABELS).map(label => {
 });
 
 export function LanguageModal({navigation}: Props) {
-  const dispatch = useState();
+  const dispatch = useAppDispatch();
   const {colorScheme, language} = useAppSelector(
     (state: RootState) => state.userPreferences,
   );

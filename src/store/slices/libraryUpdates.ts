@@ -24,7 +24,7 @@ export const removeLibraryUpdateNotifs = createAsyncThunk<
       const shouldRemoveId = update.mangaId !== mangaId;
 
       if (shouldRemoveId) {
-        notifee.cancelNotification(update.notificationId);
+        notifee.cancelDisplayedNotification(update.notificationId);
       }
 
       return shouldRemoveId;
