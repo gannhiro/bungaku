@@ -1,8 +1,4 @@
-import {
-  res_get_manga,
-  res_get_manga_$_feed,
-  res_get_statistics_manga,
-} from '@api';
+import {res_get_manga, res_get_manga_$_feed, res_get_statistics_manga} from '@api';
 import {Language} from './constants/languages';
 
 export type MangaDetails = {

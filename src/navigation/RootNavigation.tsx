@@ -8,10 +8,7 @@ import {
   Theme,
   getStateFromPath as defaultGetStateFromPath,
 } from '@react-navigation/native';
-import {
-  createStackNavigator,
-  StackNavigationOptions,
-} from '@react-navigation/stack';
+import {createStackNavigator, StackNavigationOptions} from '@react-navigation/stack';
 import {
   CreditsScreen,
   HomeNavigator,
@@ -50,10 +47,7 @@ const linking: LinkingOptions<RootStackParamsList> = {
       },
     },
   },
-  getStateFromPath(
-    path: string,
-    options: Parameters<typeof defaultGetStateFromPath>[1],
-  ) {
+  getStateFromPath(path: string, options: Parameters<typeof defaultGetStateFromPath>[1]) {
     const state = defaultGetStateFromPath(path, options);
 
     if (state?.routes) {
@@ -75,9 +69,7 @@ export default function RootNavigation() {
   const {preferSystemColor, colorScheme} = useAppSelector(
     (state: RootState) => state.userPreferences,
   );
-  const preferences = useAppSelector(
-    (state: RootState) => state.userPreferences,
-  );
+  const preferences = useAppSelector((state: RootState) => state.userPreferences);
   const systemColorScheme = useColorScheme();
 
   const [theme, setTheme] = useState<Theme>(themeConverter(dark));
@@ -115,30 +107,18 @@ export default function RootNavigation() {
 
       AVAILABLE_COLOR_SCHEMES.forEach(scheme => {
         if (scheme.name === colorScheme.name) {
-          changeNavigationBarColor(
-            colorScheme.colors.main,
-            colorScheme.type === 'light',
-            true,
-          );
+          changeNavigationBarColor(colorScheme.colors.main, colorScheme.type === 'light', true);
           dispatch(setColorScheme(scheme));
           setTheme(themeConverter(scheme));
         }
       });
     })();
-  }, [
-    systemColorScheme,
-    preferSystemColor,
-    dispatch,
-    colorScheme,
-    preferences,
-  ]);
+  }, [systemColorScheme, preferSystemColor, dispatch, colorScheme, preferences]);
 
   return (
     <Overlay>
       <StatusBar
-        barStyle={
-          colorScheme.type === 'dark' ? 'light-content' : 'dark-content'
-        }
+        barStyle={colorScheme.type === 'dark' ? 'light-content' : 'dark-content'}
         translucent={true}
         backgroundColor={'#00000000'}
       />
@@ -147,24 +127,13 @@ export default function RootNavigation() {
         onReady={navOnReady}
         onStateChange={onNavStateChange}
         linking={linking}>
-        <Stack.Navigator
-          screenOptions={stackNavOption}
-          initialRouteName="SplashScreen">
-          <Stack.Screen
-            name="KitchenSinkScreen"
-            component={KitchenSinkScreen}
-          />
+        <Stack.Navigator screenOptions={stackNavOption} initialRouteName="SplashScreen">
+          <Stack.Screen name="KitchenSinkScreen" component={KitchenSinkScreen} />
           <Stack.Screen name="SplashScreen" component={SplashScreen} />
           <Stack.Screen name="TestScreen" component={TestScreen} />
           <Stack.Screen name="HomeNavigator" component={HomeNavigator} />
-          <Stack.Screen
-            name="MangaChaptersScreen"
-            component={MangaChaptersScreen}
-          />
-          <Stack.Screen
-            name="ReadChapterScreen"
-            component={ReadChapterScreen}
-          />
+          <Stack.Screen name="MangaChaptersScreen" component={MangaChaptersScreen} />
+          <Stack.Screen name="ReadChapterScreen" component={ReadChapterScreen} />
           <Stack.Screen
             name="ThemeModal"
             component={ThemeModal}

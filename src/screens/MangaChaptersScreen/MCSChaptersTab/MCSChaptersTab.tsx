@@ -7,12 +7,7 @@ import {
   MangaListRenderItemContRatIcon,
   MangaListRenderItemStatIcon,
 } from '@components';
-import {
-  ColorScheme,
-  ISO_LANGS,
-  PRETENDARD_JP,
-  TOP_OVERLAY_HEIGHT,
-} from '@constants';
+import {ColorScheme, ISO_LANGS, PRETENDARD_JP, TOP_OVERLAY_HEIGHT} from '@constants';
 import Clipboard from '@react-native-clipboard/clipboard';
 import {MaterialTopTabScreenProps} from '@react-navigation/material-top-tabs';
 import {FlashList, ListRenderItemInfo} from '@shopify/flash-list';
@@ -43,17 +38,12 @@ import {MCSBottomTabsParamsList} from '../MangaChaptersScreen';
 import {useMangaChaptersScreenContext} from '../useMangaChaptersScreenContext';
 import MCSVIChapterItem from './MCSVIChapterItem';
 
-type Props = MaterialTopTabScreenProps<
-  MCSBottomTabsParamsList,
-  'MCSChaptersTab'
->;
+type Props = MaterialTopTabScreenProps<MCSBottomTabsParamsList, 'MCSChaptersTab'>;
 
 const {height, width} = Dimensions.get('screen');
 
 export function MCSChaptersTab({}: Props) {
-  const {colorScheme} = useAppSelector(
-    (state: RootState) => state.userPreferences,
-  );
+  const {colorScheme} = useAppSelector((state: RootState) => state.userPreferences);
   const {libraryList} = useAppSelector((state: RootState) => state.libraryList);
   const styles = getStyles(colorScheme);
   const {
@@ -77,16 +67,14 @@ export function MCSChaptersTab({}: Props) {
       return {
         value: lang,
         label: lang ? ISO_LANGS[lang as keyof typeof ISO_LANGS].name : 'NULL',
-        subLabel: `${
-          lang ? ISO_LANGS[lang as keyof typeof ISO_LANGS].nativeName : 'NULL'
-        } | ${lang ?? 'NULL'}`,
+        subLabel: `${lang ? ISO_LANGS[lang as keyof typeof ISO_LANGS].nativeName : 'NULL'} | ${
+          lang ?? 'NULL'
+        }`,
       };
     }) ?? [];
 
   const inLibrary = libraryList.includes(manga?.id ?? '');
-  const author = manga?.relationships.find(
-    rs => rs.type === 'author',
-  ) as res_get_author_$['data'];
+  const author = manga?.relationships.find(rs => rs.type === 'author') as res_get_author_$['data'];
 
   const [languages, setLanguages] = useState<string[]>([]);
   const [showBottomSheet, setShowBottomSheet] = useState<boolean>(false);
@@ -127,9 +115,7 @@ export function MCSChaptersTab({}: Props) {
     };
   };
 
-  function renderItem({
-    item,
-  }: ListRenderItemInfo<res_get_manga_$_feed['data'][0]>) {
+  function renderItem({item}: ListRenderItemInfo<res_get_manga_$_feed['data'][0]>) {
     return <MCSVIChapterItem chapter={item} />;
   }
 
@@ -162,18 +148,13 @@ export function MCSChaptersTab({}: Props) {
         style={styles.detailsContainer}
         entering={topContEnterLayoutAnim}
         exiting={topContExitLayoutAnim}>
-        <Animated.Text
-          style={[styles.mangaTitle]}
-          entering={FadeIn}
-          numberOfLines={5}>
+        <Animated.Text style={[styles.mangaTitle]} entering={FadeIn} numberOfLines={5}>
           {manga?.attributes.title.en
             ? manga.attributes.title.en
             : Object.values(manga?.attributes.title ?? {})[0] ?? 'No Title'}
         </Animated.Text>
         <Text style={[styles.mangaAuthor]} numberOfLines={2}>
-          {author?.attributes?.name
-            ? `by ${author.attributes.name ?? ''}`
-            : 'No Author'}
+          {author?.attributes?.name ? `by ${author.attributes.name ?? ''}` : 'No Author'}
         </Text>
         <ScrollView
           horizontal
@@ -225,10 +206,7 @@ export function MCSChaptersTab({}: Props) {
           />
         </Animated.View>
       ) : (
-        <Animated.View
-          style={styles.loadingContainer}
-          entering={FadeIn}
-          exiting={FadeOut}>
+        <Animated.View style={styles.loadingContainer} entering={FadeIn} exiting={FadeOut}>
           <Progress.Circle
             indeterminate={loadingProgress === 0}
             progress={loadingProgress}
@@ -247,12 +225,8 @@ export function MCSChaptersTab({}: Props) {
         style={styles.bottomSheet}>
         <ScrollView contentContainerStyle={styles.bottomSheetScrollView}>
           {inLibrary && (
-            <Animated.View
-              style={styles.bottomSheetGroupRow}
-              layout={LinearTransition}>
-              <Text style={styles.bottomSheetLabel}>
-                Downloaded Chapters Only
-              </Text>
+            <Animated.View style={styles.bottomSheetGroupRow} layout={LinearTransition}>
+              <Text style={styles.bottomSheetLabel}>Downloaded Chapters Only</Text>
               <Switch
                 value={showDownloadedChapters}
                 onChange={onPressShowDownloadedChaptersSwitch}
@@ -260,9 +234,7 @@ export function MCSChaptersTab({}: Props) {
             </Animated.View>
           )}
           {availableLanguages.length > 1 && (
-            <Animated.View
-              style={styles.bottomSheetGroup}
-              layout={LinearTransition}>
+            <Animated.View style={styles.bottomSheetGroup} layout={LinearTransition}>
               <Text style={styles.bottomSheetLabel}>Languages</Text>
               <Dropdown
                 items={availableLanguages}
@@ -271,24 +243,16 @@ export function MCSChaptersTab({}: Props) {
               />
             </Animated.View>
           )}
-          <Animated.View
-            style={styles.bottomSheetGroupRow}
-            layout={LinearTransition}>
+          <Animated.View style={styles.bottomSheetGroupRow} layout={LinearTransition}>
             <Text style={styles.bottomSheetLabel}>
               {order === ORDER.ASCENDING ? 'Ascending' : 'Descending'}
             </Text>
-            <Switch
-              value={order === ORDER.DESCENDING}
-              onChange={onPressOrderSwitch}
-            />
+            <Switch value={order === ORDER.DESCENDING} onChange={onPressOrderSwitch} />
           </Animated.View>
         </ScrollView>
       </BottomSheet>
       {!loading && (
-        <Animated.View
-          style={[styles.filterContainer]}
-          entering={FadeIn}
-          exiting={FadeOut}>
+        <Animated.View style={[styles.filterContainer]} entering={FadeIn} exiting={FadeOut}>
           <TouchableOpacity onPress={onPressFilterIcon}>
             <Animated.Image
               source={require('@assets/icons/filter-multiple.png')}

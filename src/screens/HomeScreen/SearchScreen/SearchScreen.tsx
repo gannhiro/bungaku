@@ -39,19 +39,11 @@ import {
   Vibration,
   View,
 } from 'react-native';
-import Animated, {
-  LinearTransition,
-  SlideInDown,
-  SlideOutDown,
-} from 'react-native-reanimated';
+import Animated, {LinearTransition, SlideInDown, SlideOutDown} from 'react-native-reanimated';
 import {HomeBottomTabsParamsList} from '../HomeNavigator';
 const {height, width} = Dimensions.get('window');
 
-type Props = MaterialTopTabScreenProps<
-  HomeBottomTabsParamsList,
-  'SearchScreen',
-  undefined
->;
+type Props = MaterialTopTabScreenProps<HomeBottomTabsParamsList, 'SearchScreen', undefined>;
 
 export function SearchScreen({}: Props) {
   const {colorScheme, allowPornography} = useAppSelector(
@@ -70,9 +62,7 @@ export function SearchScreen({}: Props) {
   const [authors, setAuthors] = useState<string[]>([]);
   const [artists, setArtists] = useState<string[]>([]);
   const [includedTags, setIncludedTags] = useState<string[]>([]);
-  const [publicationDemographic, setPubDemographic] = useState<
-    PublicationDemographic[]
-  >([]);
+  const [publicationDemographic, setPubDemographic] = useState<PublicationDemographic[]>([]);
   const [contentRating, setContentRating] = useState<ContentRating[]>([]);
   const [showBottomSheet, setShowBottomSheet] = useState(false);
   const [mangaStatus, setMangaStatus] = useState<MangaStatus[]>([]);
@@ -204,9 +194,7 @@ export function SearchScreen({}: Props) {
             />
           </View>
           <View style={styles.filterGroup}>
-            <Text style={styles.filterValueLabel}>
-              Authors (UNDER CONSTRUCTION)
-            </Text>
+            <Text style={styles.filterValueLabel}>Authors (UNDER CONSTRUCTION)</Text>
             <View style={styles.filterInnerGroupRow}>
               <GTextInput
                 value={author}
@@ -225,9 +213,7 @@ export function SearchScreen({}: Props) {
             </View>
           </View>
           <View style={styles.filterGroup}>
-            <Text style={styles.filterValueLabel}>
-              Artists (UNDER CONSTRUCTION)
-            </Text>
+            <Text style={styles.filterValueLabel}>Artists (UNDER CONSTRUCTION)</Text>
             <View style={styles.filterInnerGroupRow}>
               <GTextInput
                 value={artist}
@@ -302,16 +288,12 @@ export function SearchScreen({}: Props) {
             />
           </Animated.View>
           <Animated.View style={styles.filterGroup} layout={LinearTransition}>
-            <Text style={styles.filterValueLabel}>
-              Available Translated Languages
-            </Text>
+            <Text style={styles.filterValueLabel}>Available Translated Languages</Text>
             <Dropdown
               items={Object.keys(ISO_LANGS).map(lang => {
                 return {
                   label: ISO_LANGS[lang as keyof typeof ISO_LANGS].name,
-                  subLabel: `${
-                    ISO_LANGS[lang as keyof typeof ISO_LANGS].nativeName
-                  } | ${lang}`,
+                  subLabel: `${ISO_LANGS[lang as keyof typeof ISO_LANGS].nativeName} | ${lang}`,
                   value: lang,
                 };
               })}
@@ -329,15 +311,9 @@ export function SearchScreen({}: Props) {
           </Animated.View>
         </ScrollView>
       </BottomSheet>
-      <Animated.View
-        entering={SlideInDown}
-        exiting={SlideOutDown}
-        style={[styles.searchContainer]}>
+      <Animated.View entering={SlideInDown} exiting={SlideOutDown} style={[styles.searchContainer]}>
         <TouchableOpacity onPress={searchIconOnPress}>
-          <Animated.Image
-            source={require('@assets/icons/magnify.png')}
-            style={styles.searchIcon}
-          />
+          <Animated.Image source={require('@assets/icons/magnify.png')} style={styles.searchIcon} />
         </TouchableOpacity>
       </Animated.View>
     </Animated.View>

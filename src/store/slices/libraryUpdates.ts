@@ -16,33 +16,28 @@ export const removeLibraryUpdateNotifs = createAsyncThunk<
   void,
   RemoveLibraryUpdateProps,
   {state: RootState}
->(
-  'libraryUpdates/removeLibraryUpdateNotifs',
-  async ({mangaId}, {getState, dispatch}) => {
-    const updatedMangaList = getState().libraryUpdates.updatedMangaList;
-    const finalList = updatedMangaList.filter(update => {
-      const shouldRemoveId = update.mangaId !== mangaId;
+>('libraryUpdates/removeLibraryUpdateNotifs', async ({mangaId}, {getState, dispatch}) => {
+  const updatedMangaList = getState().libraryUpdates.updatedMangaList;
+  const finalList = updatedMangaList.filter(update => {
+    const shouldRemoveId = update.mangaId === mangaId;
 
-      if (shouldRemoveId) {
-        notifee.cancelDisplayedNotification(update.notificationId);
-      }
+    if (shouldRemoveId) {
+      console.log(`removing ${update.mangaId} with notifId: ${update.notificationId}`);
+      notifee.cancelDisplayedNotification(update.notificationId);
+    }
 
-      return shouldRemoveId;
-    });
+    return !shouldRemoveId;
+  });
 
-    await AsyncStorage.setItem('library-updates', JSON.stringify(finalList));
-    dispatch(setLibraryUpdatesOnLaunch(finalList));
-  },
-);
+  await AsyncStorage.setItem('library-updates', JSON.stringify(finalList));
+  dispatch(setLibraryUpdatesOnLaunch(finalList));
+});
 
 export const libraryUpdatesSlice = createSlice({
   name: 'libraryUpdates',
   initialState: initialState,
   reducers: {
-    setLibraryUpdatesOnLaunch: (
-      state,
-      action: PayloadAction<UpdatedMangaNotifications[]>,
-    ) => {
+    setLibraryUpdatesOnLaunch: (state, action: PayloadAction<UpdatedMangaNotifications[]>) => {
       state.updatedMangaList = action.payload;
     },
   },

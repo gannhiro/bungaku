@@ -5,17 +5,10 @@ import {
   res_get_cover_$,
   res_get_manga_$_feed,
 } from '@api';
-import notifee, {
-  AndroidBadgeIconType,
-  AndroidImportance,
-} from '@notifee/react-native';
+import notifee, {AndroidBadgeIconType, AndroidImportance} from '@notifee/react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {createAsyncThunk, createSlice, PayloadAction} from '@reduxjs/toolkit';
-import {
-  DownloadedChapterDetails,
-  MangaDetails,
-  UpdatedMangaNotifications,
-} from '@types';
+import {DownloadedChapterDetails, MangaDetails, UpdatedMangaNotifications} from '@types';
 import {getDateMDEX} from '@utils';
 import {ToastAndroid} from 'react-native';
 import FS from 'react-native-fs';
@@ -23,7 +16,7 @@ import type {RootState} from '../store';
 import {setError} from './errorSlice';
 import {addRemToLibraryList} from './libraryListSlice';
 
-const MAX_CONCURRENT_DOWNLOADS = 3;
+const MAX_CONCURRENT_DOWNLOADS = 1;
 const initialState: {
   jobs: Record<string, JobStatus>;
   downloadQueue: DownloadQueueItem[];
@@ -97,18 +90,14 @@ export const updateManga = createAsyncThunk(
     let mangaDetails: MangaDetails | null = null;
     try {
       mangaDetails = JSON.parse(
-        await FS.readFile(
-          `${FS.DocumentDirectoryPath}/manga/${mangaId}/manga-details.json`,
-        ),
+        await FS.readFile(`${FS.DocumentDirectoryPath}/manga/${mangaId}/manga-details.json`),
       );
     } catch (e) {
       return rejectWithValue(`Failed to read manga details for ${mangaId}`);
     }
 
     if (!mangaDetails || !mangaDetails.stayUpdated) {
-      return rejectWithValue(
-        `${mangaId} details not found or should not stay updated.`,
-      );
+      return rejectWithValue(`${mangaId} details not found or should not stay updated.`);
     }
 
     const {manga, stayUpdatedAfterDate, stayUpdatedLanguages} = mangaDetails;
@@ -119,10 +108,7 @@ export const updateManga = createAsyncThunk(
     let totalChapters = 0;
     try {
       while (true) {
-        const chapterData = await mangadexAPI<
-          res_get_manga_$_feed,
-          get_manga_$_feed
-        >(
+        const chapterData = await mangadexAPI<res_get_manga_$_feed, get_manga_$_feed>(
           'get',
           '/manga/$/feed',
           {
@@ -147,24 +133,15 @@ export const updateManga = createAsyncThunk(
             break;
           }
         } else if (chapterData.result === 'error') {
-          console.error(
-            `API error fetching chapters for ${mangaId}:`,
-            chapterData.errors,
-          );
+          console.error(`API error fetching chapters for ${mangaId}:`, chapterData.errors);
           break;
         } else {
-          console.warn(
-            `Unexpected API result for ${mangaId}:`,
-            chapterData.result,
-          );
+          console.warn(`Unexpected API result for ${mangaId}:`, chapterData.result);
           break;
         }
       }
     } catch (e) {
-      console.error(
-        `Network or other error fetching chapters for ${mangaId}:`,
-        e,
-      );
+      console.error(`Network or other error fetching chapters for ${mangaId}:`, e);
       return rejectWithValue(`Error fetching chapters for ${mangaId}`);
     }
 
@@ -184,10 +161,7 @@ export const updateManga = createAsyncThunk(
         }
       }
     } catch (e) {
-      console.error(
-        `Error reading existing chapter directories for ${mangaId}:`,
-        e,
-      );
+      console.error(`Error reading existing chapter directories for ${mangaId}:`, e);
     }
 
     let chapterCount = chapters.filter(
@@ -200,79 +174,64 @@ export const updateManga = createAsyncThunk(
     ).length;
 
     if (chapterCount === 0) {
-      return rejectWithValue(
-        `MANGA: ${mangaId} - All new chapters already downloaded or invalid.`,
-      );
+      return rejectWithValue(`MANGA: ${mangaId} - All new chapters already downloaded or invalid.`);
     }
 
     try {
-      const mangaListNotifId = mangaId;
-      await notifee.createChannel({
-        id: `${mangaListNotifId}.updates-notif`,
+      const channelId = await notifee.createChannel({
+        id: `${mangaId}.updates-channel`,
         name: `${manga.attributes.title.en ?? mangaId}`,
         vibration: false,
         importance: AndroidImportance.DEFAULT,
       });
 
-      const previousChaptersTracker: UpdatedMangaNotifications[] = JSON.parse(
-        (await AsyncStorage.getItem('library-updates')) ?? '[]',
-      );
-      const mangaIdExists = previousChaptersTracker.findIndex(
-        val => val.mangaId === mangaId,
-      );
-
-      if (mangaIdExists === -1) {
-        previousChaptersTracker.push({
-          mangaId,
-          newChapterCount: chapterCount,
-          notificationId: `${mangaListNotifId}.updates-notif`,
-        });
-      } else {
-        const oldCount = previousChaptersTracker[mangaIdExists].newChapterCount;
-        previousChaptersTracker[mangaIdExists].newChapterCount =
-          oldCount + chapterCount;
-      }
-
-      await AsyncStorage.setItem(
-        'library-updates',
-        JSON.stringify(previousChaptersTracker),
-      );
-
-      await notifee.displayNotification({
-        id: `${mangaListNotifId}.updates-notif`,
+      const notificationId = await notifee.displayNotification({
+        id: `${mangaId}.updates-notif`,
         title: `${manga.attributes.title.en ?? mangaId} has new chapters.`,
         body: `${chapterCount} new chapters found and queued for download.`,
         android: {
-          channelId: `${mangaListNotifId}.updates-notif`,
+          channelId: channelId,
           badgeIconType: AndroidBadgeIconType.SMALL,
         },
       });
+
+      const previousChaptersTracker: UpdatedMangaNotifications[] = JSON.parse(
+        (await AsyncStorage.getItem('library-updates')) ?? '[]',
+      );
+      const mangaIdIndex = previousChaptersTracker.findIndex(val => val.mangaId === mangaId);
+
+      if (mangaIdIndex === -1) {
+        previousChaptersTracker.push({
+          mangaId,
+          newChapterCount: chapterCount,
+          notificationId,
+        });
+      } else {
+        const oldCount = previousChaptersTracker[mangaIdIndex].newChapterCount;
+        previousChaptersTracker[mangaIdIndex].newChapterCount = oldCount + chapterCount;
+      }
+
+      await AsyncStorage.setItem('library-updates', JSON.stringify(previousChaptersTracker));
     } catch (e) {
       console.error(`Error handling notifications/storage for ${mangaId}:`, e);
     }
 
-    return fulfillWithValue(
-      `MANGA: ${mangaId} - ${chapterCount} chapters enqueued for update.`,
-    );
+    return fulfillWithValue(`MANGA: ${mangaId} - ${chapterCount} chapters enqueued for update.`);
   },
 );
 
-export const processDownloadQueue = createAsyncThunk<
-  void,
-  void,
-  {state: RootState}
->('jobs/processDownloadQueue', async (_, {getState, dispatch}) => {
-  const state = getState().jobs;
-  const {activeDownloadsCount, downloadQueue} = state;
+export const processDownloadQueue = createAsyncThunk<void, void, {state: RootState}>(
+  'jobs/processDownloadQueue',
+  async (_, {getState, dispatch}) => {
+    const state = getState().jobs;
+    const {activeDownloadsCount, downloadQueue} = state;
 
-  if (
-    activeDownloadsCount < MAX_CONCURRENT_DOWNLOADS &&
-    downloadQueue.length > 0
-  ) {
-    const nextJob = downloadQueue[0];
-    dispatch(downloadChapter(nextJob));
-  }
-});
+    if (activeDownloadsCount < MAX_CONCURRENT_DOWNLOADS && downloadQueue.length > 0) {
+      const nextJob = downloadQueue[0];
+      dispatch(downloadChapter(nextJob));
+    }
+  },
+);
 
 export const downloadChapter = createAsyncThunk<
   {status: 'success' | 'failed' | 'aborted' | 'exists'; jobId: string},
@@ -281,19 +240,17 @@ export const downloadChapter = createAsyncThunk<
 >(
   'jobs/downloadChapter',
   async (
-    {
-      chapter,
-      mangaId,
-      isDataSaver,
-      isAnUpdate = false,
-      jobId,
-    }: DownloadQueueItem,
+    {chapter, mangaId, isDataSaver, isAnUpdate = false, jobId}: DownloadQueueItem,
     {fulfillWithValue, rejectWithValue, signal, dispatch},
   ) => {
     dispatch(
       setJobStatus({
         jobId,
-        status: {status: 'pending', jobType: 'downloadChapter', progress: 0},
+        status: {
+          status: 'pending',
+          jobType: 'downloadChapter',
+          progress: 0,
+        },
       }),
     );
 
@@ -315,7 +272,10 @@ export const downloadChapter = createAsyncThunk<
       }
       if (chapterIsDownloaded && !isAnUpdate) {
         await FS.unlink(chapterDirectory);
-        return rejectWithValue({reason: 'Chapter already downloaded', jobId});
+        return rejectWithValue({
+          reason: 'Chapter already downloaded',
+          jobId,
+        });
       }
 
       const langFolderExists = await FS.exists(
@@ -354,9 +314,7 @@ export const downloadChapter = createAsyncThunk<
         });
       }
 
-      const pageList = isDataSaver
-        ? chapterData.chapter.dataSaver
-        : chapterData.chapter.data;
+      const pageList = isDataSaver ? chapterData.chapter.dataSaver : chapterData.chapter.data;
       const baseUrlSegment = isDataSaver ? 'data-saver' : 'data';
 
       const chapterDetails: DownloadedChapterDetails = {
@@ -367,10 +325,7 @@ export const downloadChapter = createAsyncThunk<
 
       await FS.mkdir(chapterDirectory);
 
-      await FS.writeFile(
-        `${chapterDirectory}/chapter.json`,
-        JSON.stringify(chapterDetails),
-      );
+      await FS.writeFile(`${chapterDirectory}/chapter.json`, JSON.stringify(chapterDetails));
 
       let downloadedCount = 0;
       const totalPages = pageList.length;
@@ -429,7 +384,11 @@ export const cacheChapter = createAsyncThunk<
     dispatch(
       setJobStatus({
         jobId,
-        status: {status: 'pending', jobType: 'cacheChapter', progress: 0},
+        status: {
+          status: 'pending',
+          jobType: 'cacheChapter',
+          progress: 0,
+        },
       }),
     );
 
@@ -450,9 +409,7 @@ export const cacheChapter = createAsyncThunk<
         }
         await FS.mkdir(cacheDirectory);
 
-        const downloadedChapters = isDataSaver
-          ? data.chapter.dataSaver
-          : data.chapter.data;
+        const downloadedChapters = isDataSaver ? data.chapter.dataSaver : data.chapter.data;
         const baseUrlSegment = isDataSaver ? 'data-saver' : 'data';
 
         const chapterDetails: DownloadedChapterDetails = {
@@ -461,28 +418,22 @@ export const cacheChapter = createAsyncThunk<
           isDataSaver,
         };
 
-        await FS.writeFile(
-          `${cacheDirectory}/chapter.json`,
-          JSON.stringify(chapterDetails),
-        );
+        await FS.writeFile(`${cacheDirectory}/chapter.json`, JSON.stringify(chapterDetails));
 
         const totalPages = downloadedChapters.length;
 
-        const pagePromises: Promise<FS.DownloadResult>[] =
-          downloadedChapters.map(pageId => {
-            const pageUrl = `${data.baseUrl}/${baseUrlSegment}/${data.chapter.hash}/${pageId}`;
-            const localPath = `${cacheDirectory}/${pageId}`;
+        const pagePromises: Promise<FS.DownloadResult>[] = downloadedChapters.map(pageId => {
+          const pageUrl = `${data.baseUrl}/${baseUrlSegment}/${data.chapter.hash}/${pageId}`;
+          const localPath = `${cacheDirectory}/${pageId}`;
 
-            const {promise} = FS.downloadFile({
-              fromUrl: pageUrl,
-              toFile: localPath,
-            });
-            return promise;
+          const {promise} = FS.downloadFile({
+            fromUrl: pageUrl,
+            toFile: localPath,
           });
+          return promise;
+        });
 
-        const filePaths = downloadedChapters.map(
-          pageId => `file://${cacheDirectory}/${pageId}`,
-        );
+        const filePaths = downloadedChapters.map(pageId => `file://${cacheDirectory}/${pageId}`);
 
         callback(
           pagePromises.map((promise, index) => ({
@@ -494,12 +445,8 @@ export const cacheChapter = createAsyncThunk<
 
         const results = await Promise.allSettled(pagePromises);
 
-        const successfulDownloads = results.filter(
-          r => r.status === 'fulfilled',
-        ).length;
-        const finalProgress = Math.floor(
-          (successfulDownloads / totalPages) * 100,
-        );
+        const successfulDownloads = results.filter(r => r.status === 'fulfilled').length;
+        const finalProgress = Math.floor((successfulDownloads / totalPages) * 100);
         dispatch(updateJobProgress({jobId, progress: finalProgress}));
 
         const failedDownloads = results.filter(r => r.status === 'rejected');
@@ -558,7 +505,10 @@ export const cacheChapter = createAsyncThunk<
           }),
         );
         if (data.result === 'error') dispatch(setError(data));
-        return rejectWithValue({reason: `API Error: ${data.result}`, jobId});
+        return rejectWithValue({
+          reason: `API Error: ${data.result}`,
+          jobId,
+        });
       }
     } catch (error: any) {
       await FS.unlink(cacheDirectory).catch(e =>
@@ -584,10 +534,7 @@ export const cacheChapter = createAsyncThunk<
 
 export const addOrRemoveFromLibrary = createAsyncThunk(
   'jobs/addRemToLibraryJob',
-  async (
-    mangaDetails: MangaDetails,
-    {dispatch, rejectWithValue, fulfillWithValue},
-  ) => {
+  async (mangaDetails: MangaDetails, {dispatch, rejectWithValue, fulfillWithValue}) => {
     const {manga} = mangaDetails;
     const mangaDir = `${FS.DocumentDirectoryPath}/manga/${manga.id}`;
     try {
@@ -601,13 +548,9 @@ export const addOrRemoveFromLibrary = createAsyncThunk(
       } else {
         await FS.mkdir(mangaDir);
 
-        const coverRelationship = manga.relationships.find(
-          rs => rs.type === 'cover_art',
-        );
+        const coverRelationship = manga.relationships.find(rs => rs.type === 'cover_art');
         const coverItem = (
-          coverRelationship?.type === 'cover_art'
-            ? coverRelationship
-            : undefined
+          coverRelationship?.type === 'cover_art' ? coverRelationship : undefined
         ) as res_get_cover_$['data'] | undefined;
 
         if (coverItem?.attributes.fileName) {
@@ -615,19 +558,14 @@ export const addOrRemoveFromLibrary = createAsyncThunk(
           await FS.downloadFile({
             fromUrl: coverUrl,
             toFile: `${mangaDir}/cover.png`,
-          }).promise.catch(e =>
-            console.error(`Failed to download cover for ${manga.id}: ${e}`),
-          );
+          }).promise.catch(e => console.error(`Failed to download cover for ${manga.id}: ${e}`));
         }
 
         const toFile: MangaDetails = {
           ...mangaDetails,
           dateAdded: getDateMDEX(),
         };
-        await FS.writeFile(
-          `${mangaDir}/manga-details.json`,
-          JSON.stringify(toFile),
-        );
+        await FS.writeFile(`${mangaDir}/manga-details.json`, JSON.stringify(toFile));
 
         dispatch(addRemToLibraryList(manga.id));
         ToastAndroid.show('Added to Library.', 1000);
@@ -655,28 +593,26 @@ export const jobsSlice = createSlice({
   name: 'jobs',
   initialState: initialState,
   reducers: {
-    queueDownloadChapter: (
-      state,
-      action: PayloadAction<Omit<DownloadQueueItem, 'jobId'>>,
-    ) => {
+    queueDownloadChapter: (state, action: PayloadAction<Omit<DownloadQueueItem, 'jobId'>>) => {
       const potentialJobId = `${action.payload.mangaId}-${action.payload.chapter.id}`;
       const isInQueue = state.downloadQueue.some(
         item => item.chapter.id === action.payload.chapter.id,
       );
 
-      const isAlreadyProcessing = Object.keys(state.jobs).some(
-        existingJobId => {
-          if (existingJobId.startsWith(potentialJobId)) {
-            const job = state.jobs[existingJobId];
-            return job && (job.status === 'pending' || job.status === 'queued');
-          }
-          return false;
-        },
-      );
+      const isAlreadyProcessing = Object.keys(state.jobs).some(existingJobId => {
+        if (existingJobId.startsWith(potentialJobId)) {
+          const job = state.jobs[existingJobId];
+          return job && (job.status === 'pending' || job.status === 'queued');
+        }
+        return false;
+      });
 
       if (!isInQueue && !isAlreadyProcessing) {
         const jobId = `${potentialJobId}`;
-        const newQueueItem: DownloadQueueItem = {...action.payload, jobId};
+        const newQueueItem: DownloadQueueItem = {
+          ...action.payload,
+          jobId,
+        };
         state.downloadQueue.push(newQueueItem);
         state.jobs[jobId] = {
           status: 'queued',
@@ -687,21 +623,14 @@ export const jobsSlice = createSlice({
         console.log(`Download Queued: ${jobId}`);
       } else {
         if (isInQueue) {
-          console.log(
-            `Download skipped: Chapter ${action.payload.chapter.id} already in queue.`,
-          );
+          console.log(`Download skipped: Chapter ${action.payload.chapter.id} already in queue.`);
         }
         if (isAlreadyProcessing) {
-          console.log(
-            `Download skipped: Chapter ${action.payload.chapter.id} already processing.`,
-          );
+          console.log(`Download skipped: Chapter ${action.payload.chapter.id} already processing.`);
         }
       }
     },
-    setJobStatus: (
-      state,
-      action: PayloadAction<{jobId: string; status: JobStatus}>,
-    ) => {
+    setJobStatus: (state, action: PayloadAction<{jobId: string; status: JobStatus}>) => {
       if (
         action.payload.status.jobType === 'downloadChapter' ||
         action.payload.status.jobType === 'cacheChapter'
@@ -709,16 +638,10 @@ export const jobsSlice = createSlice({
         state.jobs[action.payload.jobId] = action.payload.status;
       }
     },
-    updateJobProgress: (
-      state,
-      action: PayloadAction<{jobId: string; progress: number}>,
-    ) => {
+    updateJobProgress: (state, action: PayloadAction<{jobId: string; progress: number}>) => {
       const {jobId, progress} = action.payload;
       const job = state.jobs[jobId];
-      if (
-        job &&
-        (job.jobType === 'downloadChapter' || job.jobType === 'cacheChapter')
-      ) {
+      if (job && (job.jobType === 'downloadChapter' || job.jobType === 'cacheChapter')) {
         if (job.status === 'pending' || job.status === 'queued') {
           job.progress = Math.max(0, Math.min(100, progress));
           if (job.status === 'queued') job.status = 'pending';
@@ -728,18 +651,13 @@ export const jobsSlice = createSlice({
     },
     clearJob: (state, action: PayloadAction<{jobId: string}>) => {
       const {jobId} = action.payload;
-      state.downloadQueue = state.downloadQueue.filter(
-        item => item.jobId !== jobId,
-      );
+      state.downloadQueue = state.downloadQueue.filter(item => item.jobId !== jobId);
       delete state.jobs[jobId];
     },
     clearFinishedJobs: state => {
       Object.keys(state.jobs).forEach(jobId => {
         const job = state.jobs[jobId];
-        if (
-          job &&
-          (job.jobType === 'downloadChapter' || job.jobType === 'cacheChapter')
-        ) {
+        if (job && (job.jobType === 'downloadChapter' || job.jobType === 'cacheChapter')) {
           if (job.status === 'succeeded') {
             delete state.jobs[jobId];
           }
@@ -748,16 +666,11 @@ export const jobsSlice = createSlice({
     },
     cancelDownload: (state, action: PayloadAction<{jobId: string}>) => {
       const {jobId} = action.payload;
-      const jobIndexInQueue = state.downloadQueue.findIndex(
-        item => item.jobId === jobId,
-      );
+      const jobIndexInQueue = state.downloadQueue.findIndex(item => item.jobId === jobId);
 
       if (jobIndexInQueue > -1) {
         state.downloadQueue.splice(jobIndexInQueue, 1);
-        if (
-          state.jobs[jobId] &&
-          state.jobs[jobId].jobType === 'downloadChapter'
-        ) {
+        if (state.jobs[jobId] && state.jobs[jobId].jobType === 'downloadChapter') {
           state.jobs[jobId].status = 'failed';
           state.jobs[jobId].error = 'Cancelled';
           state.jobs[jobId].progress = undefined;
@@ -783,9 +696,7 @@ export const jobsSlice = createSlice({
     builder
       .addCase(downloadChapter.pending, (state, action) => {
         const jobId = action.meta.arg.jobId;
-        const jobInQueueIndex = state.downloadQueue.findIndex(
-          item => item.jobId === jobId,
-        );
+        const jobInQueueIndex = state.downloadQueue.findIndex(item => item.jobId === jobId);
 
         if (!state.jobs[jobId]) {
           state.jobs[jobId] = {
@@ -801,9 +712,7 @@ export const jobsSlice = createSlice({
         if (jobInQueueIndex > -1) {
           state.activeDownloadsCount += 1;
           state.downloadQueue.splice(jobInQueueIndex, 1);
-          console.log(
-            `Download Starting: ${jobId}, Active: ${state.activeDownloadsCount}`,
-          );
+          console.log(`Download Starting: ${jobId}, Active: ${state.activeDownloadsCount}`);
         } else {
           state.activeDownloadsCount += 1;
           console.warn(
@@ -813,15 +722,10 @@ export const jobsSlice = createSlice({
       })
       .addCase(downloadChapter.fulfilled, (state, action) => {
         const {jobId, status} = action.payload;
-        state.activeDownloadsCount = Math.max(
-          0,
-          state.activeDownloadsCount - 1,
-        );
+        state.activeDownloadsCount = Math.max(0, state.activeDownloadsCount - 1);
         if (state.jobs[jobId]) {
           state.jobs[jobId].status =
-            status === 'success' || status === 'exists'
-              ? 'succeeded'
-              : 'failed';
+            status === 'success' || status === 'exists' ? 'succeeded' : 'failed';
           state.jobs[jobId].progress = 100;
           state.jobs[jobId].error =
             status === 'aborted'
@@ -836,12 +740,8 @@ export const jobsSlice = createSlice({
       })
       .addCase(downloadChapter.rejected, (state, action) => {
         const jobId = action.meta.arg.jobId;
-        const reason =
-          action.payload?.reason || action.error.message || 'Unknown rejection';
-        state.activeDownloadsCount = Math.max(
-          0,
-          state.activeDownloadsCount - 1,
-        );
+        const reason = action.payload?.reason || action.error.message || 'Unknown rejection';
+        state.activeDownloadsCount = Math.max(0, state.activeDownloadsCount - 1);
         if (state.jobs[jobId]) {
           state.jobs[jobId].status = 'failed';
           state.jobs[jobId].progress = undefined;

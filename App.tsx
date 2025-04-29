@@ -59,9 +59,7 @@ export async function backgroundWork() {
     `BGFETCH: MANGA UPDATES START - ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`,
   );
 
-  const mangaList: string[] = await FS.readdir(
-    `${FS.DocumentDirectoryPath}/manga/`,
-  );
+  const mangaList: string[] = await FS.readdir(`${FS.DocumentDirectoryPath}/manga/`);
 
   if (mangaList.length === 0) {
     date = new Date();
@@ -78,9 +76,7 @@ export async function backgroundWork() {
 
   const settledMangaUpdates = await Promise.allSettled(promises);
   date = new Date();
-  console.log(
-    `BGFETCH END: ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`,
-  );
+  console.log(`BGFETCH END: ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`);
 
   settledMangaUpdates.forEach(mangaUpdate =>
     mangaUpdate.status === 'fulfilled'

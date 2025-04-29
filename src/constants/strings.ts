@@ -2,9 +2,7 @@ import {RootState, useAppSelector} from '@store';
 import {Language} from './languages';
 
 export function useLabels() {
-  const language = useAppSelector(
-    (state: RootState) => state.userPreferences.language,
-  );
+  const language = useAppSelector((state: RootState) => state.userPreferences.language);
 
   return LABELS[language];
 }
@@ -16,6 +14,7 @@ type Labels = {
       home: string;
       search: string;
       library: string;
+      downloads: string;
       account: string;
       homeTab: {
         mDexButtonLabel: string;
@@ -36,6 +35,9 @@ type Labels = {
       };
       libraryTab: {
         libraryLabel: string;
+      };
+      downloadsTab: {
+        downloadsLabel: string;
       };
       accountTab: {
         accountSection: {
@@ -83,6 +85,7 @@ export const LABELS: Labels = {
       home: 'Home',
       search: 'Search',
       library: 'Library',
+      downloads: 'Downloads',
       account: 'Account',
       homeTab: {
         developerChoiceLabel: "Developer's Choice",
@@ -92,6 +95,9 @@ export const LABELS: Labels = {
       },
       libraryTab: {
         libraryLabel: 'Library',
+      },
+      downloadsTab: {
+        downloadsLabel: 'Downloads',
       },
       searchTab: {
         searchLabel: 'Search',
@@ -127,8 +133,7 @@ export const LABELS: Labels = {
           allowPornLabel: 'Allow NSFW?',
           allowPornSubLabel: 'bungaku will be able to fetch manga that is NSFW',
           feedbackLabel: 'Feedback',
-          feedbackSubLabel:
-            "Your feedback is important for bungaku's improvement!",
+          feedbackSubLabel: "Your feedback is important for bungaku's improvement!",
           creditsLabel: 'Credits',
           creditsSubLabel:
             'List of people that contributed and technologies used to create bungaku',
@@ -188,8 +193,7 @@ export const LABELS: Labels = {
           feedbackLabel: 'フィードバック',
           feedbackSubLabel: 'bungakuの改善にフィードバックは重要です！',
           creditsLabel: 'クレジット',
-          creditsSubLabel:
-            'bungakuの作成に貢献した人々や使用された技術のリスト',
+          creditsSubLabel: 'bungakuの作成に貢献した人々や使用された技術のリスト',
         },
         privacySection: {
           headingLabel: 'プライバシー',

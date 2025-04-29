@@ -11,26 +11,19 @@ enum Tabs {
   HOME = 'HomeScreen',
   SEARCH = 'SearchScreen',
   LIBRARY = 'LibraryScreen',
+  DOWNLOADS = 'DownloadsScreen',
   ACCSETTINGSSCREEN = 'AccSettingsScreen',
-  CHAPTERS = 'MCSChaptersTab',
-  DETAILS = 'MCSDetailsTab',
 }
 
-export function TabBar({
-  state,
-  navigation,
-  descriptors,
-}: MaterialTopTabBarProps) {
-  const {colorScheme} = useAppSelector(
-    (rState: RootState) => rState.userPreferences,
-  );
+export function TabBar({state, navigation, descriptors}: MaterialTopTabBarProps) {
+  const {colorScheme} = useAppSelector((rState: RootState) => rState.userPreferences);
   const styles = getStyles(colorScheme);
+
   return (
     <View style={styles.container}>
       {state.routes.map((route, index) => {
         const {options} = descriptors[route.key];
-        const tabLabel =
-          options.title !== undefined ? options.title : route.name;
+        const tabLabel = options.title !== undefined ? options.title : route.name;
 
         const focused = state.index === index;
 
@@ -60,9 +53,7 @@ export function TabBar({
           <GestureDetector key={route.name} gesture={tap}>
             <Animated.View style={[styles.tabContainer, bgColorStyle]}>
               <TabBarIcon tabTitle={route.name} />
-              <Animated.Text style={[styles.tabContLabel]}>
-                {tabLabel}
-              </Animated.Text>
+              <Animated.Text style={[styles.tabContLabel]}>{tabLabel}</Animated.Text>
             </Animated.View>
           </GestureDetector>
         );
@@ -76,63 +67,27 @@ type TabBarIconProps = {
 };
 
 function TabBarIcon({tabTitle}: TabBarIconProps) {
-  const {colorScheme} = useAppSelector(
-    (rState: RootState) => rState.userPreferences,
-  );
+  const {colorScheme} = useAppSelector((rState: RootState) => rState.userPreferences);
   const styles = getStyles(colorScheme);
 
   if (tabTitle === Tabs.HOME) {
-    return (
-      <Animated.Image
-        source={require('@assets/icons/home.png')}
-        style={[styles.icon]}
-      />
-    );
-  }
-
-  if (tabTitle === Tabs.LIBRARY) {
-    return (
-      <Animated.Image
-        source={require('@assets/icons/bookshelf.png')}
-        style={[styles.icon]}
-      />
-    );
+    return <Animated.Image source={require('@assets/icons/home.png')} style={[styles.icon]} />;
   }
 
   if (tabTitle === Tabs.SEARCH) {
-    return (
-      <Animated.Image
-        source={require('@assets/icons/magnify.png')}
-        style={[styles.icon]}
-      />
-    );
+    return <Animated.Image source={require('@assets/icons/magnify.png')} style={[styles.icon]} />;
   }
 
-  if (tabTitle === Tabs.CHAPTERS) {
-    return (
-      <Animated.Image
-        source={require('@assets/icons/bookshelf.png')}
-        style={[styles.icon]}
-      />
-    );
+  if (tabTitle === Tabs.LIBRARY) {
+    return <Animated.Image source={require('@assets/icons/bookshelf.png')} style={[styles.icon]} />;
   }
 
-  if (tabTitle === Tabs.DETAILS) {
-    return (
-      <Animated.Image
-        source={require('@assets/icons/details.png')}
-        style={[styles.icon]}
-      />
-    );
+  if (tabTitle === Tabs.DOWNLOADS) {
+    return <Animated.Image source={require('@assets/icons/download.png')} style={[styles.icon]} />;
   }
 
   if (tabTitle === Tabs.ACCSETTINGSSCREEN) {
-    return (
-      <Animated.Image
-        source={require('@assets/icons/account.png')}
-        style={[styles.icon]}
-      />
-    );
+    return <Animated.Image source={require('@assets/icons/account.png')} style={[styles.icon]} />;
   }
 
   return null;
