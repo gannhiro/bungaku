@@ -15,15 +15,17 @@ export type RootStackParamsList = {
   HomeNavigator: undefined;
   TestScreen: undefined;
   LoginScreen: undefined;
-  MangaChaptersScreen: {
-    manga: res_get_manga['data'][0];
-    mangaId?: never
-  } | {
-    manga?: never;
-    mangaId: string
-  };
+  MangaChaptersScreen:
+    | {
+        manga: res_get_manga['data'][0];
+        mangaId?: never;
+      }
+    | {
+        manga?: never;
+        mangaId: string;
+      };
   ReadChapterScreen: {
-    mangaId: string;
+    manga: res_get_manga['data'][0];
     chapters: res_get_manga_$_feed['data'];
     initialChapterIndex: number;
     originalLanguage: Language;

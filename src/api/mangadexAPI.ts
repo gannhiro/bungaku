@@ -1,10 +1,4 @@
-import {
-  aborted_request,
-  API_URL,
-  endpoints,
-  gen_error,
-  internal_gen_error,
-} from './types';
+import {aborted_request, API_URL, endpoints, gen_error, internal_gen_error} from './types';
 
 export const mangadexAPI = async <R, P extends Object>(
   method: 'get' | 'post',
@@ -57,14 +51,12 @@ export const mangadexAPI = async <R, P extends Object>(
       if (Array.isArray(parameters[key as keyof P])) {
         // check if the array length is greater than 0
         if ((parameters[key as keyof P] as any[]).length > 0) {
-          (parameters[key as keyof P] as any[]).forEach(
-            (value, index2, values) => {
-              request += key + '%5B%5D=' + value;
-              if (index2 < values.length - 1) {
-                request += '&';
-              }
-            },
-          );
+          (parameters[key as keyof P] as any[]).forEach((value, index2, values) => {
+            request += key + '%5B%5D=' + value;
+            if (index2 < values.length - 1) {
+              request += '&';
+            }
+          });
           if (index1 < keys.length - 1) {
             request += '&';
           }
@@ -80,10 +72,7 @@ export const mangadexAPI = async <R, P extends Object>(
           if (tempParamObj[subParamKey as keyof typeof tempParamObj]) {
             request += key + '%5B';
             request +=
-              subParamKey +
-              '%5D=' +
-              tempParamObj[subParamKey as keyof typeof tempParamObj] +
-              '&';
+              subParamKey + '%5D=' + tempParamObj[subParamKey as keyof typeof tempParamObj] + '&';
 
             if (index1 < keys.length - 1) {
               request += '&';

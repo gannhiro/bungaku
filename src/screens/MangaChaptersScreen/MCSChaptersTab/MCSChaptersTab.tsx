@@ -133,7 +133,6 @@ export function MCSChaptersTab({}: Props) {
   }
 
   function onPressOrderSwitch() {
-    setChapters(chapters.reverse());
     if (order === ORDER.ASCENDING) {
       setOrder(ORDER.DESCENDING);
     }

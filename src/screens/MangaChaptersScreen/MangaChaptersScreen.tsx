@@ -43,9 +43,7 @@ export function MangaChaptersScreen({route, navigation}: Props) {
   const intError = useInternetConn();
   const dispatch = useAppDispatch();
 
-  const {colorScheme} = useAppSelector(
-    (state: RootState) => state.userPreferences,
-  );
+  const {colorScheme} = useAppSelector((state: RootState) => state.userPreferences);
   const styles = getStyles(colorScheme);
 
   const orderItems: GenericDropdownValues = [
@@ -55,8 +53,7 @@ export function MangaChaptersScreen({route, navigation}: Props) {
 
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [loadingText, setLoadingText] = useState('loading');
-  const [statistics, setStatistics] =
-    useState<res_get_statistics_manga | null>();
+  const [statistics, setStatistics] = useState<res_get_statistics_manga | null>();
   const [chapters, setChapters] = useState<res_get_manga_$_feed['data']>([]);
   const [loading, setLoading] = useState(true);
   const [languages, setLanguages] = useState<Array<Language>>([]);
@@ -68,9 +65,9 @@ export function MangaChaptersScreen({route, navigation}: Props) {
 
   const abortController = useRef<AbortController | null>(null);
 
-  const coverItem = localManga?.relationships.find(
-    rs => rs.type === 'cover_art',
-  ) as res_get_cover_$['data'] | undefined;
+  const coverItem = localManga?.relationships.find(rs => rs.type === 'cover_art') as
+    | res_get_cover_$['data']
+    | undefined;
   const coverSrc = coverItem?.attributes?.fileName
     ? `https://uploads.mangadex.org/covers/${localManga?.id}/${
         coverItem?.attributes?.fileName ?? ''
@@ -160,9 +157,7 @@ export function MangaChaptersScreen({route, navigation}: Props) {
     const tempDownloadedChapters: res_get_manga_$_feed['data'] = [];
 
     async function fetchDownloadedChapters() {
-      const directories = await FS.readDir(
-        `${FS.DocumentDirectoryPath}/manga/${localManga?.id}`,
-      );
+      const directories = await FS.readDir(`${FS.DocumentDirectoryPath}/manga/${localManga?.id}`);
 
       for (let i = 0; i < directories.length; i++) {
         if (directories[i].isFile()) {
@@ -190,9 +185,7 @@ export function MangaChaptersScreen({route, navigation}: Props) {
     }
 
     async function fetchCachedChapters() {
-      const chapterDirectories = await FS.readDir(
-        `${FS.CachesDirectoryPath}/${localManga?.id}`,
-      );
+      const chapterDirectories = await FS.readDir(`${FS.CachesDirectoryPath}/${localManga?.id}`);
 
       for (let i = 0; i < chapterDirectories.length; i++) {
         if (chapterDirectories[i].isFile()) {
@@ -228,6 +221,7 @@ export function MangaChaptersScreen({route, navigation}: Props) {
       let total: null | number = null;
       let offset = 0;
       const tempChapters: res_get_manga_$_feed['data'] = [];
+      const cachedAndDownloadedChapterIds = chapters.map(chapter => chapter.id);
 
       setLoadingText('fetching chapters...');
       while (true) {
@@ -238,16 +232,13 @@ export function MangaChaptersScreen({route, navigation}: Props) {
         newAbortController = new AbortController();
         abortController.current = newAbortController;
 
-        const chapterData = await mangadexAPI<
-          res_get_manga_$_feed,
-          get_manga_$_feed
-        >(
+        const chapterData = await mangadexAPI<res_get_manga_$_feed, get_manga_$_feed>(
           'get',
           '/manga/$/feed',
           {
             limit: limit,
             offset: offset,
-            order: {volume: ORDER.DESCENDING, chapter: ORDER.DESCENDING},
+            order: {volume: order, chapter: order},
             includes: ['scanlation_group', 'user'],
             contentRating: ['safe', 'suggestive', 'erotica', 'pornographic'],
           },
@@ -261,6 +252,11 @@ export function MangaChaptersScreen({route, navigation}: Props) {
             total = chapterData.total;
           }
           tempChapters.push(...chapterData.data);
+
+          if (tempChapters.length > 0) {
+            tempChapters.filter(chapter => cachedAndDownloadedChapterIds.includes(chapter.id));
+            setChapters(tempChapters);
+          }
 
           if (offset + limit < chapterData.total) {
             offset += limit;
@@ -284,16 +280,6 @@ export function MangaChaptersScreen({route, navigation}: Props) {
           break;
         }
       }
-
-      if (tempChapters.length > 0) {
-        const cachedAndDownloadedChapterIds = chapters.map(
-          chapter => chapter.id,
-        );
-        tempChapters.filter(chapter =>
-          cachedAndDownloadedChapterIds.includes(chapter.id),
-        );
-        setChapters(tempChapters);
-      }
     }
 
     async function fetchStatistics() {
@@ -308,10 +294,7 @@ export function MangaChaptersScreen({route, navigation}: Props) {
       abortController.current = newAbortController;
 
       setLoadingText('fetching statistics...');
-      const statisticsData = await mangadexAPI<
-        res_get_statistics_manga,
-        get_statistics_manga
-      >(
+      const statisticsData = await mangadexAPI<res_get_statistics_manga, get_statistics_manga>(
         'get',
         '/statistics/manga',
         {manga: [localManga?.id ?? '']},
@@ -372,11 +355,7 @@ export function MangaChaptersScreen({route, navigation}: Props) {
     <MangaChaptersScreenContext.Provider value={context}>
       <View style={styles.container}>
         <Animated.View style={styles.mangaCoverHeader} entering={FadeIn}>
-          <Image
-            source={{uri: coverSrc ?? ''}}
-            style={styles.cover}
-            key={coverSrc}
-          />
+          <Image source={{uri: coverSrc ?? ''}} style={styles.cover} key={coverSrc} />
           <LinearGradient
             style={styles.mangaCoverGradient}
             colors={[`${colorScheme.colors.main}99`, colorScheme.colors.main]}

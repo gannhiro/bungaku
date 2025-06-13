@@ -11,12 +11,7 @@ import {
 } from '@constants';
 import {RootStackParamsList} from '@navigation';
 import {NavigationProp, useNavigation} from '@react-navigation/native';
-import {
-  queueDownloadChapter,
-  RootState,
-  useAppDispatch,
-  useAppSelector,
-} from '@store';
+import {queueDownloadChapter, RootState, useAppDispatch, useAppSelector} from '@store';
 import {textColor} from '@utils';
 import React, {memo, useEffect, useState} from 'react';
 import {Dimensions, Image, StyleSheet, Text, Vibration} from 'react-native';
@@ -57,15 +52,11 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
   const dispatch = useAppDispatch();
 
   const potentialJobId = `${manga?.id}-${chapter.id}`;
-  const jobStatus = useAppSelector(
-    (state: RootState) => state.jobs.jobs[potentialJobId]?.status,
-  );
+  const jobStatus = useAppSelector((state: RootState) => state.jobs.jobs[potentialJobId]?.status);
   const jobProgress = useAppSelector(
     (state: RootState) => state.jobs.jobs[potentialJobId]?.progress,
   );
-  const {colorScheme} = useAppSelector(
-    (state: RootState) => state.userPreferences,
-  );
+  const {colorScheme} = useAppSelector((state: RootState) => state.userPreferences);
   const {libraryList} = useAppSelector((state: RootState) => state.libraryList);
 
   const isJobPending = jobStatus === 'pending' || jobStatus === 'queued';
@@ -76,9 +67,9 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
 
   const inLibrary = libraryList.includes(manga?.id ?? '');
   const isSelected = selectedChapters.includes(chapter.id);
-  const scanlator = chapter?.relationships.find(
-    rs => rs.type === 'scanlation_group',
-  ) as res_get_group_$['data'] | undefined;
+  const scanlator = chapter?.relationships.find(rs => rs.type === 'scanlation_group') as
+    | res_get_group_$['data']
+    | undefined;
   const user = chapter?.relationships.find(rs => rs.type === 'user') as
     | res_get_user_$['data']
     | undefined;
@@ -125,10 +116,7 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
         withTiming('#0000'),
       );
       chapterTranslationX.value = withRepeat(
-        withSequence(
-          withTiming(2, {duration: 40}),
-          withTiming(-2, {duration: 40}),
-        ),
+        withSequence(withTiming(2, {duration: 40}), withTiming(-2, {duration: 40})),
         4,
         false,
         finished => {
@@ -173,7 +161,7 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
       dispatch(
         queueDownloadChapter({
           chapter,
-          mangaId: manga.id,
+          manga,
           isDataSaver: false,
         }),
       );
@@ -228,8 +216,7 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
         return item;
       }
     });
-    const finalChapters =
-      order === 'asc' ? tempChapters : tempChapters.reverse();
+    const finalChapters = order === 'asc' ? tempChapters : tempChapters.reverse();
 
     let initialIndex =
       finalChapters.findIndex(item => {
@@ -237,7 +224,7 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
       }) ?? 0;
 
     navigation.navigate('ReadChapterScreen', {
-      mangaId: manga.id,
+      manga,
       chapters: finalChapters,
       originalLanguage: manga.attributes.originalLanguage,
       initialChapterIndex: initialIndex,
@@ -279,9 +266,7 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
       const isDL = await FS.exists(
         `${FS.DocumentDirectoryPath}/manga/${manga?.id}/${chapter.attributes.translatedLanguage}/${chapter.id}`,
       );
-      const isCD = await FS.exists(
-        `${FS.CachesDirectoryPath}/${manga?.id}/${chapter.id}`,
-      );
+      const isCD = await FS.exists(`${FS.CachesDirectoryPath}/${manga?.id}/${chapter.id}`);
 
       setIsDownloaded(isDL);
 
@@ -294,20 +279,11 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
       const isChapterDownloadable = !chapter.attributes.externalUrl;
       setDownloadable(isChapterDownloadable);
     })();
-  }, [
-    chapter,
-    manga,
-    libraryList,
-    chapterPressableBorderColor,
-    colorScheme,
-    jobStatus,
-  ]);
+  }, [chapter, manga, libraryList, chapterPressableBorderColor, colorScheme, jobStatus]);
 
   return (
     <GestureDetector gesture={gestures}>
-      <Animated.View
-        entering={FadeIn}
-        style={[styles.container, chapterPressableStyle]}>
+      <Animated.View entering={FadeIn} style={[styles.container, chapterPressableStyle]}>
         {selectMode && (
           <Animated.View entering={SlideInLeft} style={[styles.leftCheckbox]}>
             {isSelected ? (
@@ -325,10 +301,7 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
         )}
         <Animated.View style={styles.leftGroup}>
           <Animated.View style={styles.topRow}>
-            <FlagIcon
-              language={chapter?.attributes.translatedLanguage}
-              style={styles.flagIcon}
-            />
+            <FlagIcon language={chapter?.attributes.translatedLanguage} style={styles.flagIcon} />
             <Animated.Text
               style={[styles.chapterTitleLabel]}
               ellipsizeMode={'tail'}
@@ -353,9 +326,7 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
                   source={require('@assets/icons/account-multiple-outline.png')}
                   style={styles.accountIcon}
                 />
-                <Text style={styles.scanlatorLabel}>
-                  {scanlator?.attributes.name}
-                </Text>
+                <Text style={styles.scanlatorLabel}>{scanlator?.attributes.name}</Text>
               </>
             )}
             {user && (
@@ -364,24 +335,16 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
                   source={require('@assets/icons/account-outline.png')}
                   style={styles.accountIcon}
                 />
-                <Text style={styles.scanlatorLabel}>
-                  {user?.attributes.username}
-                </Text>
+                <Text style={styles.scanlatorLabel}>{user?.attributes.username}</Text>
               </>
             )}
           </Animated.View>
         </Animated.View>
         <Animated.View style={[styles.rightGroup, rightGroupStyle]}>
           {isDownloaded ? (
-            <Image
-              source={require('@assets/icons/close.png')}
-              style={styles.rmIcon}
-            />
+            <Image source={require('@assets/icons/close.png')} style={styles.rmIcon} />
           ) : (
-            <Image
-              source={require('@assets/icons/tray-arrow-down.png')}
-              style={styles.dlIcon}
-            />
+            <Image source={require('@assets/icons/tray-arrow-down.png')} style={styles.dlIcon} />
           )}
         </Animated.View>
         {isJobPending && (

@@ -21,6 +21,4 @@ export const DEVS_CHOICE = {
 export const APP_BUILD = 10;
 export const APP_VERS = '0.1.10';
 
-export const TOP_OVERLAY_HEIGHT = StatusBar.currentHeight
-  ? StatusBar.currentHeight + 20
-  : 20;
+export const TOP_OVERLAY_HEIGHT = StatusBar.currentHeight ? StatusBar.currentHeight + 20 : 20;

@@ -14,24 +14,16 @@ import {RootStackParamsList} from '@navigation';
 import {BlurView} from '@react-native-community/blur';
 import {StackScreenProps} from '@react-navigation/stack';
 import {
-  addOrRemoveFromLibrary,
+  addOrRemoveMangaFromLibrary,
   RootState,
   updateDownloadedMangaSettings,
   useAppDispatch,
   useAppSelector,
 } from '@store';
 import {MangaDetails} from '@types';
-import {getDateMDEX, textColor} from '@utils';
-import React, {Fragment, useEffect, useState} from 'react';
-import {
-  Dimensions,
-  Keyboard,
-  StyleSheet,
-  Switch,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import {getDateTodayAtMidnight, textColor} from '@utils';
+import React, {useEffect, useState} from 'react';
+import {Dimensions, Keyboard, StyleSheet, Switch, Text, TextInput, View} from 'react-native';
 import FS from 'react-native-fs';
 import Animated, {
   FadeIn,
@@ -44,19 +36,14 @@ import Animated, {
 } from 'react-native-reanimated';
 
 const {width, height} = Dimensions.get('screen');
-const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
 
 type Props = StackScreenProps<RootStackParamsList, 'AddToLibraryModal'>;
 
 export function AddToLibraryModal({route, navigation}: Props) {
   const {manga, statistics} = route.params;
   const dispatch = useAppDispatch();
-  const {colorScheme} = useAppSelector(
-    (state: RootState) => state.userPreferences,
-  );
+  const {colorScheme} = useAppSelector((state: RootState) => state.userPreferences);
   const {libraryList} = useAppSelector((state: RootState) => state.libraryList);
-  const jobStatus = useAppSelector((state: RootState) => state.jobs[manga.id]);
-  const isJobPending = jobStatus?.status === 'pending';
   const inLibrary = libraryList.includes(manga.id);
   const styles = getStyles(colorScheme);
 
@@ -80,14 +67,15 @@ export function AddToLibraryModal({route, navigation}: Props) {
     manga.attributes.availableTranslatedLanguages[0] as Language,
   ]);
 
-  const availableLangs: GenericDropdownValues =
-    manga.attributes.availableTranslatedLanguages.map(lang => {
+  const availableLangs: GenericDropdownValues = manga.attributes.availableTranslatedLanguages.map(
+    lang => {
       return {
         value: lang,
         label: ISO_LANGS[lang as Language].name,
         subLabel: `${ISO_LANGS[lang as Language].name} | ${lang}`,
       };
-    });
+    },
+  );
 
   const dateTextInputBorderColor = useSharedValue(colorScheme.colors.secondary);
   const dateTextInputStyle = useAnimatedStyle(() => {
@@ -149,40 +137,22 @@ export function AddToLibraryModal({route, navigation}: Props) {
     const mangaDetails: MangaDetails = {
       manga,
       statistics,
-      dateAdded: getDateMDEX(),
+      dateAdded: getDateTodayAtMidnight(),
       stayUpdated: stayUpdatedLoc,
       stayUpdatedLanguages: targetLanguages,
-      stayUpdatedAfterDate: `${stayUpdatedYrLoc}-${
-        parseInt(stayUpdatedMoLoc, 10) < 10
-          ? `0${parseInt(stayUpdatedMoLoc, 10)}`
-          : stayUpdatedMoLoc
-      }-${
-        parseInt(stayUpdatedDyLoc, 10) < 10
-          ? `0${parseInt(stayUpdatedMoLoc, 10)}`
-          : stayUpdatedDyLoc
-      }T09:00:00`,
       isDataSaver,
     };
 
-    dispatch(addOrRemoveFromLibrary(mangaDetails));
+    dispatch(addOrRemoveMangaFromLibrary(mangaDetails));
   }
 
   function onUpdateSettingsPress() {
     const mangaDetails: MangaDetails = {
       manga,
       statistics,
-      dateAdded: getDateMDEX(),
+      dateAdded: getDateTodayAtMidnight(),
       stayUpdated: stayUpdatedLoc,
       stayUpdatedLanguages: targetLanguages,
-      stayUpdatedAfterDate: `${stayUpdatedYrLoc}-${
-        parseInt(stayUpdatedMoLoc, 10) < 10
-          ? `0${parseInt(stayUpdatedMoLoc, 10)}`
-          : stayUpdatedMoLoc
-      }-${
-        parseInt(stayUpdatedDyLoc, 10) < 10
-          ? `0${parseInt(stayUpdatedDyLoc, 10)}`
-          : stayUpdatedDyLoc
-      }T09:00:00`,
       isDataSaver,
     };
 
@@ -204,18 +174,15 @@ export function AddToLibraryModal({route, navigation}: Props) {
       const {
         stayUpdated,
         stayUpdatedLanguages,
-        stayUpdatedAfterDate,
         isDataSaver: parsedIsDataSaver,
       }: MangaDetails = JSON.parse(extractedDetails);
 
-      const date = new Date(stayUpdatedAfterDate);
+      const date = new Date();
 
       setStayUpdatedLoc(stayUpdated);
       setIsDataSaver(parsedIsDataSaver);
       setStayUpdatedDyLoc(
-        date.getUTCDate() < 10
-          ? `0${date.getUTCDate()}`
-          : date.getUTCDate().toString(),
+        date.getUTCDate() < 10 ? `0${date.getUTCDate()}` : date.getUTCDate().toString(),
       );
       setStayUpdatedMoLoc(
         date.getUTCMonth() + 1 < 10
@@ -231,9 +198,7 @@ export function AddToLibraryModal({route, navigation}: Props) {
     let localDateError = false;
 
     if (!stayUpdatedYrLoc || parseInt(stayUpdatedYrLoc, 10) < 1900) {
-      console.log(
-        'year error' + new Date(manga.attributes.createdAt).getUTCFullYear(),
-      );
+      console.log('year error' + new Date(manga.attributes.createdAt).getUTCFullYear());
       setDateError(true);
       localDateError = true;
     }
@@ -276,103 +241,34 @@ export function AddToLibraryModal({route, navigation}: Props) {
 
   return (
     <Animated.View style={[styles.container]}>
-      <BlurView
-        style={styles.blur}
-        blurType={colorScheme.type}
-        blurRadius={3}
-      />
-      <Animated.View
-        entering={FadeIn}
-        layout={LinearTransition}
-        style={styles.innerCont}>
+      <BlurView style={styles.blur} blurType={colorScheme.type} blurRadius={3} />
+      <Animated.View entering={FadeIn} layout={LinearTransition} style={styles.innerCont}>
         <Text style={styles.addToLibLabel}>Adding To Library</Text>
         <Text style={styles.mangaTitleLabel}>{manga.attributes.title.en}</Text>
         <View style={styles.groupRow}>
           <Text style={styles.groupRowLabel}>Stay Updated?</Text>
-          <Switch
-            value={stayUpdatedLoc}
-            onValueChange={onStayUpdatedSwitchChange}
-          />
+          <Switch value={stayUpdatedLoc} onValueChange={onStayUpdatedSwitchChange} />
         </View>
         <View style={styles.groupRow}>
           <Text style={styles.groupRowLabel}>Download Data Saver Pages?</Text>
-          <Switch
-            value={isDataSaver}
-            onValueChange={onIsDataSaverSwitchChange}
-          />
+          <Switch value={isDataSaver} onValueChange={onIsDataSaverSwitchChange} />
         </View>
-        {stayUpdatedLoc && (
-          <Fragment>
-            <Animated.View
-              entering={FadeInLeft.delay(200)}
-              exiting={FadeOut.duration(75)}
-              style={styles.group}>
-              <Text style={styles.groupRowLabel}>Stay Updated After?</Text>
-              <Text style={styles.groupSubLabel}>
-                *chapters uploaded after this date will be downloaded.
-              </Text>
-              <View style={styles.dateTextInputsRow}>
-                <AnimatedTextInput
-                  style={[styles.dateTextInputs, dateTextInputStyle]}
-                  keyboardType="number-pad"
-                  placeholder="YYYY"
-                  placeholderTextColor={`${textColor(
-                    colorScheme.colors.primary,
-                  )}8`}
-                  onChangeText={onYearChange}
-                  value={stayUpdatedYrLoc}
-                  maxLength={4}
-                />
-                <AnimatedTextInput
-                  style={[
-                    styles.dateTextInputs,
-                    styles.dateTextInputsMid,
-                    dateTextInputStyle,
-                  ]}
-                  keyboardType="number-pad"
-                  placeholder="MM"
-                  placeholderTextColor={`${textColor(
-                    colorScheme.colors.primary,
-                  )}8`}
-                  maxLength={2}
-                  value={stayUpdatedMoLoc}
-                  onChangeText={onMonthChange}
-                  onBlur={onMonthBlur}
-                />
-                <AnimatedTextInput
-                  style={[styles.dateTextInputs, dateTextInputStyle]}
-                  keyboardType="number-pad"
-                  placeholder="DD"
-                  placeholderTextColor={`${textColor(
-                    colorScheme.colors.primary,
-                  )}8`}
-                  maxLength={2}
-                  value={stayUpdatedDyLoc}
-                  onChangeText={onDayChange}
-                  onBlur={onDayBlur}
-                />
-              </View>
-            </Animated.View>
-            <Animated.View
-              entering={FadeInLeft.delay(200)}
-              exiting={FadeOut.duration(75)}
-              style={styles.group}>
-              <Text style={styles.groupRowLabel}>Target Languages</Text>
-              <Text style={styles.groupSubLabel}>
-                *only chapters with this language will be downloaded.
-              </Text>
-              <View style={styles.group}>
-                <Dropdown
-                  items={availableLangs}
-                  selection={targetLanguages}
-                  setSelection={setTargetLanguages}
-                  atLeastOne
-                />
-              </View>
-            </Animated.View>
-          </Fragment>
-        )}
-
+        <Animated.View
+          entering={FadeInLeft.delay(200)}
+          exiting={FadeOut.duration(75)}
+          style={styles.group}>
+          <Text style={styles.groupRowLabel}>Target Languages</Text>
+          <Text style={styles.groupSubLabel}>
+            *only chapters with this language will be downloaded.
+          </Text>
+          <View style={styles.group}>
+            <Dropdown
+              items={availableLangs}
+              selection={targetLanguages}
+              setSelection={setTargetLanguages}
+            />
+          </View>
+        </Animated.View>
         <Animated.View layout={LinearTransition} style={styles.groupRow}>
           <Button
             title="Back"
@@ -389,16 +285,13 @@ export function AddToLibraryModal({route, navigation}: Props) {
               btnColor={systemPurple}
               imageReq={require('@assets/icons/book-remove.png')}
               onButtonPress={onAddToLibPress}
-              loading={isJobPending}
-              disabled={isJobPending}
             />
           ) : (
             <Button
               title="Add"
               containerStyle={styles.navButtonAdd}
               btnColor={systemGreen}
-              loading={isJobPending}
-              disabled={dateError || isJobPending}
+              disabled={dateError}
               imageReq={require('@assets/icons/book.png')}
               onButtonPress={onAddToLibPress}
             />
@@ -413,8 +306,7 @@ export function AddToLibraryModal({route, navigation}: Props) {
             <Button
               title="Update Settings"
               btnColor={systemIndigo}
-              loading={isJobPending}
-              disabled={dateError || isJobPending}
+              disabled={dateError}
               imageReq={require('@assets/icons/book.png')}
               onButtonPress={onUpdateSettingsPress}
             />

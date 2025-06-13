@@ -12,7 +12,9 @@ enum Tabs {
   SEARCH = 'SearchScreen',
   LIBRARY = 'LibraryScreen',
   DOWNLOADS = 'DownloadsScreen',
-  ACCSETTINGSSCREEN = 'AccSettingsScreen',
+  ACCOUNTSETTINGS = 'AccSettingsScreen',
+  CHAPTERS = 'MCSChaptersTab',
+  DETAILS = 'MCSDetailsTab',
 }
 
 export function TabBar({state, navigation, descriptors}: MaterialTopTabBarProps) {
@@ -86,8 +88,16 @@ function TabBarIcon({tabTitle}: TabBarIconProps) {
     return <Animated.Image source={require('@assets/icons/download.png')} style={[styles.icon]} />;
   }
 
-  if (tabTitle === Tabs.ACCSETTINGSSCREEN) {
+  if (tabTitle === Tabs.ACCOUNTSETTINGS) {
     return <Animated.Image source={require('@assets/icons/account.png')} style={[styles.icon]} />;
+  }
+
+  if (tabTitle === Tabs.CHAPTERS) {
+    return <Animated.Image source={require('@assets/icons/bookshelf.png')} style={[styles.icon]} />;
+  }
+
+  if (tabTitle === Tabs.DETAILS) {
+    return <Animated.Image source={require('@assets/icons/details.png')} style={[styles.icon]} />;
   }
 
   return null;

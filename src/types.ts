@@ -5,7 +5,6 @@ export type MangaDetails = {
   dateAdded: string;
   isDataSaver: boolean;
   stayUpdated: boolean;
-  stayUpdatedAfterDate: string;
   stayUpdatedLanguages: Language[];
   manga: res_get_manga['data'][0];
   statistics: res_get_statistics_manga | undefined | null;

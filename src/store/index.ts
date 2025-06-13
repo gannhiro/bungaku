@@ -7,3 +7,4 @@ export * from './slices/errorSlice';
 export * from './slices/libraryListSlice';
 export * from './slices/libraryUpdates';
 export * from './slices/jobsSlice';
+export * from './types';

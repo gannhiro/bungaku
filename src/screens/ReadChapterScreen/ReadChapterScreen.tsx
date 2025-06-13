@@ -20,11 +20,7 @@ import {
 } from 'react-native';
 import FastImage from 'react-native-fast-image';
 import FS from 'react-native-fs';
-import {
-  Directions,
-  Gesture,
-  GestureDetector,
-} from 'react-native-gesture-handler';
+import {Directions, Gesture, GestureDetector} from 'react-native-gesture-handler';
 import * as Progress from 'react-native-progress';
 import Animated, {
   runOnJS,
@@ -39,10 +35,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import {RCSBottomSheet} from './RCSBottomSheet';
 import {RCSChapterImages} from './RCSChapterImages';
-import {
-  ReadChapterScreenContext,
-  iReadChapterScreenContext,
-} from './useReadChapterScreenContext';
+import {ReadChapterScreenContext, iReadChapterScreenContext} from './useReadChapterScreenContext';
 import {useFocusEffect} from '@react-navigation/native';
 
 type Props = StackScreenProps<RootStackParamsList, 'ReadChapterScreen'>;
@@ -62,17 +55,14 @@ const {width, height} = Dimensions.get('screen');
 
 export function ReadChapterScreen({route, navigation}: Props) {
   const dispatch = useAppDispatch();
-  const {mangaId, chapters, originalLanguage, initialChapterIndex} =
-    route.params;
+  const {manga, chapters, originalLanguage, initialChapterIndex} = route.params;
   const {colorScheme, preferDataSaver} = useAppSelector(
     (state: RootState) => state.userPreferences,
   );
   const styles = getStyles(colorScheme);
 
   const [locReadingMode, setLocReadingMode] = useState<ReadingMode>(
-    originalLanguage === 'ko' || originalLanguage === 'ko-ro'
-      ? 'webtoon'
-      : 'horizontal',
+    originalLanguage === 'ko' || originalLanguage === 'ko-ro' ? 'webtoon' : 'horizontal',
   );
   const [currentPage, setCurrentPage] = useState(0);
   const [chapterPages, setChapterPages] = useState<res_at_home_$>();
@@ -81,25 +71,23 @@ export function ReadChapterScreen({route, navigation}: Props) {
   const [showBottomOverlay, setShowBottomOverlay] = useState(false);
   const [isDataSaver, setIsDataSaver] = useState(preferDataSaver);
   const [loading, setLoading] = useState(true);
-  const [pages, setPages] = useState<
-    {pagePromise?: Promise<FS.DownloadResult>; path: string}[]
-  >([]);
-
-  const potentialJobId = `${mangaId}-${chapters[currentChapter].id}`;
-  const jobStatus = useAppSelector(
-    (state: RootState) => state.jobs.jobs[potentialJobId],
+  const [pages, setPages] = useState<{pagePromise?: Promise<FS.DownloadResult>; path: string}[]>(
+    [],
   );
+
+  const potentialJobId = `${manga.id}-${chapters[currentChapter].id}`;
+  const jobStatus = useAppSelector((state: RootState) => state.jobs.jobs[potentialJobId]);
   const isJobPending = jobStatus?.status === 'pending';
-  const cacheDirectory = `${FS.CachesDirectoryPath}/${mangaId}/${chapters[currentChapter].id}`;
-  const downloadsDirectory = `${FS.DocumentDirectoryPath}/manga/${mangaId}/${chapters[currentChapter].attributes.translatedLanguage}/${chapters[currentChapter].id}`;
+  const cacheDirectory = `${FS.CachesDirectoryPath}/${manga.id}/${chapters[currentChapter].id}`;
+  const downloadsDirectory = `${FS.DocumentDirectoryPath}/manga/${manga.id}/${chapters[currentChapter].attributes.translatedLanguage}/${chapters[currentChapter].id}`;
 
   const scanlator = chapters[currentChapter].relationships.find(
     rs => rs.type === 'scanlation_group',
   ) as res_get_group_$['data'] | undefined;
 
-  const user = chapters[currentChapter].relationships.find(
-    rs => rs.type === 'user',
-  ) as res_get_user_$['data'] | undefined;
+  const user = chapters[currentChapter].relationships.find(rs => rs.type === 'user') as
+    | res_get_user_$['data']
+    | undefined;
 
   const listRef = useRef<FlatList<string>>(null);
 
@@ -124,8 +112,7 @@ export function ReadChapterScreen({route, navigation}: Props) {
     .runOnJS(true)
     .onEnd(() => {
       console.log('tap');
-      const endReached =
-        currentPage + 1 === chapterPages?.chapter.dataSaver.length;
+      const endReached = currentPage + 1 === chapterPages?.chapter.dataSaver.length;
       setShowBottomOverlay(!showBottomOverlay);
       if (showSettingsSheet) {
         setShowSettingsSheet(false);
@@ -182,8 +169,7 @@ export function ReadChapterScreen({route, navigation}: Props) {
   function onScroll(e: NativeSyntheticEvent<NativeScrollEvent>) {
     const offsetY = e.nativeEvent.contentOffset.y;
     const offsetX = e.nativeEvent.contentOffset.x;
-    const endReached =
-      currentPage + 1 === chapterPages?.chapter.dataSaver.length;
+    const endReached = currentPage + 1 === chapterPages?.chapter.dataSaver.length;
 
     if (locReadingMode === 'horizontal') {
       const tempPage = Math.round(offsetX / width);
@@ -232,16 +218,13 @@ export function ReadChapterScreen({route, navigation}: Props) {
       await FastImage.clearDiskCache();
 
       const isDownloaded = await FS.exists(
-        `${FS.DocumentDirectoryPath}/manga/${mangaId}/${chapters[currentChapter].attributes.translatedLanguage}/${chapters[currentChapter].id}/chapter.json`,
+        `${FS.DocumentDirectoryPath}/manga/${manga.id}/${chapters[currentChapter].attributes.translatedLanguage}/${chapters[currentChapter].id}/chapter.json`,
       );
 
       if (!isJobPending && isDownloaded) {
         console.log('chapter is downloaded');
-        const chapterDetails = await FS.readFile(
-          `${downloadsDirectory}/chapter.json`,
-        );
-        const parsedDetails: DownloadedChapterDetails =
-          JSON.parse(chapterDetails);
+        const chapterDetails = await FS.readFile(`${downloadsDirectory}/chapter.json`);
+        const parsedDetails: DownloadedChapterDetails = JSON.parse(chapterDetails);
 
         const finalPageObjects = parsedDetails.pageFileNames.map(item => {
           return {
@@ -284,7 +267,7 @@ export function ReadChapterScreen({route, navigation}: Props) {
       dispatch(
         cacheChapter({
           chapter: chapters[currentChapter],
-          mangaId,
+          manga,
           isDataSaver,
           callback: cacheChapterCallback,
         }),
@@ -302,26 +285,23 @@ export function ReadChapterScreen({route, navigation}: Props) {
     currentChapter,
     dispatch,
     isDataSaver,
-    mangaId,
+    manga,
     locReadingMode,
     cacheDirectory,
     downloadsDirectory,
   ]);
 
   useFocusEffect(() => {
-    const backHandlerSub = BackHandler.addEventListener(
-      'hardwareBackPress',
-      () => {
-        if (showSettingsSheet) {
-          setShowSettingsSheet(false);
-          return true;
-        }
+    const backHandlerSub = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (showSettingsSheet) {
+        setShowSettingsSheet(false);
+        return true;
+      }
 
-        FastImage.clearMemoryCache();
-        FastImage.clearDiskCache();
-        return false;
-      },
-    );
+      FastImage.clearMemoryCache();
+      FastImage.clearDiskCache();
+      return false;
+    });
 
     return () => backHandlerSub.remove();
   });
@@ -379,9 +359,7 @@ export function ReadChapterScreen({route, navigation}: Props) {
                   style={[styles.prevBtnContainer]}
                   entering={SlideInLeft}
                   exiting={SlideOutLeft}>
-                  <Animated.Text style={styles.nextPrevLabels}>
-                    Prev Chapter
-                  </Animated.Text>
+                  <Animated.Text style={styles.nextPrevLabels}>Prev Chapter</Animated.Text>
                 </Animated.View>
               </GestureDetector>
             )}
@@ -391,9 +369,7 @@ export function ReadChapterScreen({route, navigation}: Props) {
                   style={[styles.nextBtnContainer]}
                   entering={SlideInRight}
                   exiting={SlideOutRight}>
-                  <Animated.Text style={styles.nextPrevLabels}>
-                    Next Chapter
-                  </Animated.Text>
+                  <Animated.Text style={styles.nextPrevLabels}>Next Chapter</Animated.Text>
                 </Animated.View>
               </GestureDetector>
             )}
@@ -402,10 +378,7 @@ export function ReadChapterScreen({route, navigation}: Props) {
 
         {locReadingMode !== 'webtoon' && (
           <Progress.Bar
-            progress={
-              chapterPages &&
-              (currentPage + 1) / chapterPages?.chapter.dataSaver.length
-            }
+            progress={chapterPages && (currentPage + 1) / chapterPages?.chapter.dataSaver.length}
             style={styles.pageProgressBar}
             width={width}
             borderColor={white}

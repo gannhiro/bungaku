@@ -3,17 +3,14 @@ import {ColorScheme} from '@constants';
 import Color from 'color';
 
 // ^\d{4}-[0-1]\d-([0-2]\d|3[0-1])T([0-1]\d|2[0-3]):[0-5]\d:[0-5]\d$
-// 2025-03-24T14:45:30
-export function getDateMDEX() {
-  const date = new Date();
+// 2025-03-24T00:00:00
+export function getDateTodayAtMidnight() {
   function pad(n: number) {
     return n < 10 ? '0' + n : n;
   }
-  return `${date.getUTCFullYear()}-${pad(date.getUTCMonth())}-${pad(
-    date.getUTCDate(),
-  )}T${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())}:${pad(
-    date.getUTCSeconds(),
-  )}`;
+
+  const date = new Date();
+  return `${date.getUTCFullYear()}-${pad(date.getUTCMonth())}-${pad(date.getUTCDate())}T00:00:00`;
 }
 
 export function numberShorten(number: number) {
