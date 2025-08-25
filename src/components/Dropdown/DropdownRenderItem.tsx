@@ -10,17 +10,14 @@ import Animated, {
 } from 'react-native-reanimated';
 import {GenericDropdownValues} from './Dropdown';
 import React, {Dispatch, SetStateAction, useEffect, useState} from 'react';
-import {RootState, useAppSelector} from '@store';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
-import {textColor} from '@utils';
+import {textColor, useAppCore} from '@utils';
 
 type Props = {
   item: GenericDropdownValues[0];
   renderBotBorder: boolean;
   selection: string | number | null | Array<string | number | null>;
-  setSelection: Dispatch<
-    SetStateAction<string | number | null | Array<string | number | null>>
-  >;
+  setSelection: Dispatch<SetStateAction<string | number | null | Array<string | number | null>>>;
   atLeastOne: boolean;
   onSelectionPress?: (value: string | number | null) => void;
 };
@@ -33,9 +30,8 @@ export function DropdownRenderItem({
   onSelectionPress,
   atLeastOne,
 }: Props) {
-  const {colorScheme} = useAppSelector(
-    (state: RootState) => state.userPreferences,
-  );
+  const {colorScheme} = useAppCore();
+
   const styles = getStyles(colorScheme);
   const [selected, setSelected] = useState(false);
 
@@ -114,9 +110,7 @@ export function DropdownRenderItem({
       <Animated.View style={[styles.selections, renderItemStyle]}>
         <View style={styles.selectionGroup}>
           <Text style={[styles.selectionLabel]}>{item.label}</Text>
-          {item.subLabel && (
-            <Text style={[styles.selectionSubLabel]}>{item.subLabel}</Text>
-          )}
+          {item.subLabel && <Text style={[styles.selectionSubLabel]}>{item.subLabel}</Text>}
         </View>
         {selected && (
           <Animated.Image

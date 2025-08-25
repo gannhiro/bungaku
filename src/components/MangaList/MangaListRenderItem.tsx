@@ -1,16 +1,7 @@
 import {res_get_cover_$, res_get_manga} from '@api';
-import {
-  PRETENDARD_JP,
-  systemLightGray3,
-  systemPurple,
-  systemRed,
-  white,
-} from '@constants';
-import {RootStackParamsList} from '@navigation';
-import {useNavigation} from '@react-navigation/native';
-import {StackNavigationProp} from '@react-navigation/stack';
+import {PRETENDARD_JP, systemLightGray3, systemPurple, systemRed, white} from '@constants';
 import {RootState, useAppSelector} from '@store';
-import {textColor, useInternetConn} from '@utils';
+import {textColor, useAppCore, useInternetConn} from '@utils';
 import React, {memo, useEffect, useState} from 'react';
 import {Dimensions, StyleSheet, Text, Vibration, View} from 'react-native';
 import FastImage from 'react-native-fast-image';
@@ -38,27 +29,17 @@ interface Props {
 const {width} = Dimensions.get('window');
 
 export const MangaListRenderItem = memo(({manga}: Props) => {
-  const intError = useInternetConn();
-  const navigation =
-    useNavigation<
-      StackNavigationProp<RootStackParamsList, 'HomeNavigator', undefined>
-    >();
-  const {colorScheme} = useAppSelector(
-    (state: RootState) => state.userPreferences,
-  );
+  const {colorScheme, intError, navigation} = useAppCore<'HomeNavigator'>();
+
   const {libraryList} = useAppSelector((state: RootState) => state.libraryList);
-  const {language} = useAppSelector(
-    (state: RootState) => state.userPreferences,
-  );
+  const {language} = useAppSelector((state: RootState) => state.userPreferences);
   const [loadingCover, setLoadingCover] = useState(true);
   const [coverRetries, setCoverRetries] = useState(0);
   const [coverError, setCoverError] = useState(false);
 
   const mangaTitle =
     manga.attributes.title[language] ??
-    manga.attributes.altTitles.find(altTitle => altTitle[language])?.[
-      language
-    ] ??
+    manga.attributes.altTitles.find(altTitle => altTitle[language])?.[language] ??
     manga.attributes.title.en ??
     'NO TITLE!';
   const coverItem = manga.relationships.find(rs => rs.type === 'cover_art') as
@@ -72,19 +53,14 @@ export const MangaListRenderItem = memo(({manga}: Props) => {
     return {
       transform: [{scale: itemScale.value}],
       borderWidth: 1,
-      borderColor: withSpring(
-        inLibrary !== -1 ? systemPurple : colorScheme.colors.primary,
-      ),
+      borderColor: withSpring(inLibrary !== -1 ? systemPurple : colorScheme.colors.primary),
     };
   });
 
   const onPressItem = Gesture.Tap()
     .onStart(() => {
       runOnJS(Vibration.vibrate)([0, 50], false);
-      itemScale.value = withSequence(
-        withTiming(1.02, {duration: 100}),
-        withTiming(1, undefined),
-      );
+      itemScale.value = withSequence(withTiming(1.02, {duration: 100}), withTiming(1, undefined));
     })
     .onEnd(() => {
       runOnJS(goToChapters)();
@@ -123,9 +99,7 @@ export const MangaListRenderItem = memo(({manga}: Props) => {
 
   return (
     <GestureDetector gesture={onPressItem}>
-      <Animated.View
-        style={[styles.container, contAnimStyle]}
-        entering={FadeIn}>
+      <Animated.View style={[styles.container, contAnimStyle]} entering={FadeIn}>
         <FastImage
           source={{uri: `${url}.256.jpg`}}
           style={styles.coverImage}
@@ -138,13 +112,8 @@ export const MangaListRenderItem = memo(({manga}: Props) => {
           <View style={styles.overlayDetails}>
             <View style={styles.overlayDetUpper}>
               <MangaListRenderItemStatIcon status={manga.attributes.status} />
-              <MangaListRenderItemContRatIcon
-                contentRating={manga.attributes.contentRating}
-              />
-              <FlagIcon
-                language={manga.attributes.originalLanguage}
-                style={styles.flagIcon}
-              />
+              <MangaListRenderItemContRatIcon contentRating={manga.attributes.contentRating} />
+              <FlagIcon language={manga.attributes.originalLanguage} style={styles.flagIcon} />
             </View>
             <Text style={styles.overlayDetailsTitle} numberOfLines={2}>
               {mangaTitle}
@@ -153,10 +122,7 @@ export const MangaListRenderItem = memo(({manga}: Props) => {
         </View>
         <View style={styles.overlayProgress}>
           {loadingCover && (
-            <Progress.CircleSnail
-              color={textColor(colorScheme.colors.main)}
-              size={35}
-            />
+            <Progress.CircleSnail color={textColor(colorScheme.colors.main)} size={35} />
           )}
           {coverError && <Text style={styles.textError}>error 404</Text>}
         </View>

@@ -1,4 +1,3 @@
-import {RootState, useAppSelector} from '@store';
 import {ColorScheme, PRETENDARD_JP} from '@constants';
 import {
   Dimensions,
@@ -22,7 +21,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import * as Progress from 'react-native-progress';
-import {textColor} from '@utils';
+import {textColor, useAppCore} from '@utils';
 import Color from 'color';
 
 const {height} = Dimensions.get('screen');
@@ -56,14 +55,12 @@ export function Button({
   shouldTintImage,
   fontSize,
 }: Props) {
-  const {colorScheme} = useAppSelector(
-    (state: RootState) => state.userPreferences,
-  );
+  const {colorScheme} = useAppCore();
+
   const styles = getStyles(colorScheme);
   const [progressBarWidth, setProgressBarWidth] = useState(0);
 
-  const actualTextColor =
-    labelColor ?? textColor(btnColor ?? colorScheme.colors.primary);
+  const actualTextColor = labelColor ?? textColor(btnColor ?? colorScheme.colors.primary);
 
   const btnPressColor = btnColor
     ? Color(btnColor).darken(0.7).rgb().toString()
@@ -118,14 +115,7 @@ export function Button({
       buttonBg.value = btnColor ?? colorScheme.colors.primary;
       btnLabelColor.value = actualTextColor;
     });
-  }, [
-    actualTextColor,
-    btnColor,
-    btnLabelColor,
-    buttonBg,
-    colorScheme,
-    labelColor,
-  ]);
+  }, [actualTextColor, btnColor, btnLabelColor, buttonBg, colorScheme, labelColor]);
 
   return (
     <GestureDetector gesture={tapGesture}>
@@ -134,14 +124,9 @@ export function Button({
         layout={LinearTransition}
         onLayout={onButtonLayout}>
         {imageReq && (
-          <Animated.Image
-            source={imageReq}
-            style={[styles.image, leftImageStyle, imageStyle]}
-          />
+          <Animated.Image source={imageReq} style={[styles.image, leftImageStyle, imageStyle]} />
         )}
-        <Animated.Text style={[styles.title, labelStyle, buttonLabelStyle]}>
-          {title}
-        </Animated.Text>
+        <Animated.Text style={[styles.title, labelStyle, buttonLabelStyle]}>{title}</Animated.Text>
         {loading && (
           <Progress.Bar
             indeterminate

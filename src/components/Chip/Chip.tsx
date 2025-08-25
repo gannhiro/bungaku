@@ -1,6 +1,5 @@
 import {ColorScheme, PRETENDARD_JP} from '@constants';
-import {RootState, useAppSelector} from '@store';
-import {textColor} from '@utils';
+import {textColor, useAppCore} from '@utils';
 import React from 'react';
 import {StyleSheet, Text, View} from 'react-native';
 
@@ -9,9 +8,8 @@ type Props = {
 };
 
 export function Chip({label}: Props) {
-  const {colorScheme} = useAppSelector(
-    (state: RootState) => state.userPreferences,
-  );
+  const {colorScheme} = useAppCore();
+
   const styles = getStyles(colorScheme);
 
   return (

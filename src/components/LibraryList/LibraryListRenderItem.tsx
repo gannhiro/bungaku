@@ -4,7 +4,7 @@ import {useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
 import {removeLibraryUpdateNotifs, RootState, useAppDispatch, useAppSelector} from '@store';
 import {MangaDetails} from '@types';
-import {textColor} from '@utils';
+import {textColor, useAppCore} from '@utils';
 import React, {useEffect, useState} from 'react';
 import {Dimensions, Image, StyleSheet, Text, Vibration, View} from 'react-native';
 import FS from 'react-native-fs';
@@ -25,13 +25,12 @@ type Props = {
 };
 
 export function LibraryListRenderItem({mangaId}: Props) {
-  const dispatch = useAppDispatch();
-  const navigation =
-    useNavigation<StackNavigationProp<RootStackParamsList, 'HomeNavigator', undefined>>();
-  const {colorScheme, language} = useAppSelector((state: RootState) => state.userPreferences);
+  const {dispatch, colorScheme, preferences, navigation} = useAppCore<'HomeNavigator'>();
+  const {language} = preferences;
   const {updatedMangaList} = useAppSelector((state: RootState) => state.libraryUpdates);
-  const badgeCount = updatedMangaList.find(val => val.mangaId === mangaId)?.newChapterCount ?? 0;
+
   const styles = getStyles(colorScheme);
+  const badgeCount = updatedMangaList.find(val => val.mangaId === mangaId)?.newChapterCount ?? 0;
   const coverPath = `file://${FS.DocumentDirectoryPath}/manga/${mangaId}/cover.png`;
 
   const [mangaTitle, setMangaTitle] = useState('');

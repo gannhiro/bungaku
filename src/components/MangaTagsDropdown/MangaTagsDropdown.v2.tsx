@@ -21,22 +21,10 @@ import Animated, {
 } from 'react-native-reanimated';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import {res_get_manga_tag} from '@api';
-import {
-  PRETENDARD_JP,
-  ColorScheme,
-  systemBlue,
-  systemBrown,
-  systemYellow,
-} from '@constants';
+import {PRETENDARD_JP, ColorScheme, systemBlue, systemBrown, systemYellow} from '@constants';
 import {mangadexAPI} from '@api';
-import {
-  setMangaTags,
-  RootState,
-  setError,
-  useAppDispatch,
-  useAppSelector,
-} from '@store';
-import {textColor} from '@utils';
+import {setMangaTags, RootState, setError, useAppSelector} from '@store';
+import {textColor, useAppCore} from '@utils';
 
 type Props = {
   includedTags: string[];
@@ -44,16 +32,10 @@ type Props = {
   style?: ViewStyle;
 };
 
-export function MangaTagsDropdown({
-  includedTags,
-  setIncludedTags,
-  style,
-}: Props) {
-  const {colorScheme} = useAppSelector(
-    (state: RootState) => state.userPreferences,
-  );
+export function MangaTagsDropdown({includedTags, setIncludedTags, style}: Props) {
+  const {dispatch, colorScheme} = useAppCore<'HomeNavigator'>();
+
   const {tags} = useAppSelector((state: RootState) => state.mangaTags);
-  const dispatch = useAppDispatch();
 
   const styles = getStyles(colorScheme);
 
@@ -81,10 +63,7 @@ export function MangaTagsDropdown({
     };
   });
 
-  function renderItem({
-    item,
-    index,
-  }: ListRenderItemInfo<res_get_manga_tag['data'][0]>) {
+  function renderItem({item, index}: ListRenderItemInfo<res_get_manga_tag['data'][0]>) {
     if (!tags) {
       return;
     }
@@ -110,9 +89,7 @@ export function MangaTagsDropdown({
         key={item.id}>
         <View style={styles.selectionGroup}>
           <View style={[styles.selectionGroupIndicator, groupIndicatorColor]} />
-          <Animated.Text style={[styles.selectionText]}>
-            {item.attributes.name.en}
-          </Animated.Text>
+          <Animated.Text style={[styles.selectionText]}>{item.attributes.name.en}</Animated.Text>
         </View>
 
         {selected && (
@@ -159,12 +136,7 @@ export function MangaTagsDropdown({
   useEffect(() => {
     if (!tags) {
       (async () => {
-        const data = await mangadexAPI<res_get_manga_tag, {}>(
-          'get',
-          '/manga/tag',
-          {},
-          [],
-        );
+        const data = await mangadexAPI<res_get_manga_tag, {}>('get', '/manga/tag', {}, []);
         if (data && data.result === 'ok') {
           dispatch(setMangaTags(data));
         } else if (data && data.result === 'error') {
@@ -189,12 +161,7 @@ export function MangaTagsDropdown({
     return (
       <Fragment>
         <GestureDetector gesture={tapDropdown}>
-          <Animated.View
-            style={[
-              styles.selectedCont,
-              selectedStyle,
-              dropdownPressableBGStyle,
-            ]}>
+          <Animated.View style={[styles.selectedCont, selectedStyle, dropdownPressableBGStyle]}>
             <Animated.Text style={[styles.selectedText]}>
               {includedTags.length > 0
                 ? includedTags.length > 3
@@ -224,9 +191,7 @@ export function MangaTagsDropdown({
             entering={FadeInDown}
             style={[styles.selectionDropdownCont]}
             data={tags.data}
-            renderItem={
-              renderItem as ListRenderItem<res_get_manga_tag['data'][0]>
-            }
+            renderItem={renderItem as ListRenderItem<res_get_manga_tag['data'][0]>}
             nestedScrollEnabled
             initialNumToRender={tags.total}
           />

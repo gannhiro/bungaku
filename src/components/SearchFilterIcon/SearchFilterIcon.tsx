@@ -10,8 +10,7 @@ import Animated, {
 import {ColorScheme, systemOrangeLight} from '@constants';
 import React, {useEffect} from 'react';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
-import {RootState, useAppSelector} from '@store';
-import {textColor} from '@utils';
+import {textColor, useAppCore} from '@utils';
 
 type Props = {
   showBadge: boolean;
@@ -19,9 +18,8 @@ type Props = {
 };
 
 export function SearchFilterIcon({showBadge, filterIconOnPress}: Props) {
-  const {colorScheme} = useAppSelector(
-    (state: RootState) => state.userPreferences,
-  );
+  const {colorScheme} = useAppCore<'HomeNavigator'>();
+
   const styles = getStyles(colorScheme);
 
   const pressedScale = useSharedValue(1);
@@ -40,10 +38,7 @@ export function SearchFilterIcon({showBadge, filterIconOnPress}: Props) {
   const tapGesture = Gesture.Tap()
     .runOnJS(true)
     .onEnd(() => {
-      pressedScale.value = withSequence(
-        withTiming(1.2, {duration: 100}),
-        withTiming(1),
-      );
+      pressedScale.value = withSequence(withTiming(1.2, {duration: 100}), withTiming(1));
       pressedTint.value = withSequence(
         withTiming(colorScheme.colors.primary, {duration: 10}),
         withTiming(textColor(colorScheme.colors.primary)),

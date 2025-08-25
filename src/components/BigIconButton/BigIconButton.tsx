@@ -1,14 +1,7 @@
 import {ColorScheme, PRETENDARD_JP} from '@constants';
-import {RootState, useAppSelector} from '@store';
-import {textColor} from '@utils';
+import {textColor, useAppCore} from '@utils';
 import React from 'react';
-import {
-  Image,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  ViewStyle,
-} from 'react-native';
+import {Image, StyleSheet, Text, TouchableOpacity, ViewStyle} from 'react-native';
 import * as Progress from 'react-native-progress';
 
 enum LABEL_DIRECTION {
@@ -35,9 +28,8 @@ export function BigIconButton({
   style,
   onPressButton,
 }: Props) {
-  const {colorScheme} = useAppSelector(
-    (state: RootState) => state.userPreferences,
-  );
+  const {colorScheme} = useAppCore();
+
   const styles = getStyles(colorScheme);
 
   return (
@@ -45,17 +37,11 @@ export function BigIconButton({
       style={[styles.iconPressable, style]}
       disabled={disabled}
       onPress={onPressButton}>
-      {label && labelDirecton === LABEL_DIRECTION.LEFT && (
-        <Text style={styles.label}>{label}</Text>
-      )}
+      {label && labelDirecton === LABEL_DIRECTION.LEFT && <Text style={styles.label}>{label}</Text>}
       {!loading ? (
         <Image source={icon} style={styles.icon} />
       ) : (
-        <Progress.CircleSnail
-          indeterminate
-          size={30}
-          color={colorScheme.colors.primary}
-        />
+        <Progress.CircleSnail indeterminate size={30} color={colorScheme.colors.primary} />
       )}
       {label && labelDirecton === LABEL_DIRECTION.RIGHT && (
         <Text style={styles.label}>{label}</Text>

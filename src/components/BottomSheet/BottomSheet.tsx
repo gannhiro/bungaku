@@ -1,23 +1,9 @@
 import {ColorScheme} from '@constants';
 import {BlurView} from '@react-native-community/blur';
-import {useFocusEffect, useNavigation} from '@react-navigation/native';
-import {RootState, useAppSelector} from '@store';
-import React, {
-  Dispatch,
-  Fragment,
-  ReactNode,
-  SetStateAction,
-  useEffect,
-  useState,
-} from 'react';
-import {
-  BackHandler,
-  Dimensions,
-  Keyboard,
-  StyleSheet,
-  View,
-  ViewStyle,
-} from 'react-native';
+import {useFocusEffect} from '@react-navigation/native';
+import {useAppCore} from '@utils';
+import React, {Dispatch, Fragment, ReactNode, SetStateAction, useEffect, useState} from 'react';
+import {BackHandler, Dimensions, Keyboard, StyleSheet, View, ViewStyle} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import Animated, {
   FadeIn,
@@ -52,15 +38,11 @@ export function BottomSheet({
   children,
   style,
 }: Props) {
-  const navigation = useNavigation();
-  const {colorScheme} = useAppSelector(
-    (state: RootState) => state.userPreferences,
-  );
+  const {colorScheme, navigation} = useAppCore();
+
   const styles = getStyles(colorScheme);
 
-  const filteredChildren = Array.isArray(children)
-    ? children.filter(child => child)
-    : children;
+  const filteredChildren = Array.isArray(children) ? children.filter(child => child) : children;
 
   const [keyboardVisible, setKeyboardVisible] = useState(false);
 
@@ -108,15 +90,12 @@ export function BottomSheet({
   }, [navigation, setShowBottomSheet]);
 
   useFocusEffect(() => {
-    const backHandlerSub = BackHandler.addEventListener(
-      'hardwareBackPress',
-      () => {
-        if (showBottomSheet) {
-          setShowBottomSheet(false);
-        }
-        return showBottomSheet;
-      },
-    );
+    const backHandlerSub = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (showBottomSheet) {
+        setShowBottomSheet(false);
+      }
+      return showBottomSheet;
+    });
 
     return () => backHandlerSub.remove();
   });
@@ -126,8 +105,7 @@ export function BottomSheet({
       setKeyboardVisible(true);
       runOnUI(() => {
         'worklet';
-        const bottomSheetWillOverShoot =
-          containerHeight.value + screenHeight * 0.5 >= screenHeight;
+        const bottomSheetWillOverShoot = containerHeight.value + screenHeight * 0.5 >= screenHeight;
 
         if (bottomSheetWillOverShoot) {
           containerHeight.value = withSpring(screenHeight * 0.5, {
@@ -167,11 +145,7 @@ export function BottomSheet({
   return (
     <Fragment>
       <GestureDetector gesture={bgTap}>
-        <Animated.View
-          style={styles.background}
-          entering={FadeIn}
-          exiting={FadeOut}
-        />
+        <Animated.View style={styles.background} entering={FadeIn} exiting={FadeOut} />
       </GestureDetector>
       <Animated.View
         style={[styles.container, containerAnimStyle]}

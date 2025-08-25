@@ -1,36 +1,21 @@
 import {get_manga, mangadexAPI, res_get_manga} from '@api';
 import {ColorScheme, DEVS_CHOICE, PRETENDARD_JP} from '@constants';
-import {RootState, useAppDispatch, useAppSelector} from '@store';
-import {textColor} from '@utils';
+import {textColor, useAppCore} from '@utils';
 import {useEffect, useState} from 'react';
-import React, {
-  Dimensions,
-  FlatList,
-  ListRenderItemInfo,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import React, {FlatList, ListRenderItemInfo, StyleSheet, Text, View} from 'react-native';
 import {DCRenderItem} from './DCRenderItem';
-
-const {width, height} = Dimensions.get('screen');
 
 type Props = {};
 
 export function DevelopersChoice({}: Props) {
-  const dispatch = useAppDispatch();
-  const {colorScheme} = useAppSelector(
-    (state: RootState) => state.userPreferences,
-  );
+  const {colorScheme} = useAppCore();
+
   const styles = getStyles(colorScheme);
   const [mangas, setMangas] = useState<res_get_manga['data']>([]);
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  function renderItem({
-    item,
-    index,
-  }: ListRenderItemInfo<res_get_manga['data'][0]>) {
+  function renderItem({item, index}: ListRenderItemInfo<res_get_manga['data'][0]>) {
     return <DCRenderItem manga={item} index={index} />;
   }
 

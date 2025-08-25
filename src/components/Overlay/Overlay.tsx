@@ -1,21 +1,9 @@
 import React, {useEffect, useState} from 'react';
-import {
-  Dimensions,
-  Image,
-  SafeAreaView,
-  StatusBar,
-  StyleSheet,
-  Text,
-} from 'react-native';
-import Animated, {
-  SlideInDown,
-  SlideInUp,
-  SlideOutDown,
-  SlideOutUp,
-} from 'react-native-reanimated';
+import {Dimensions, Image, SafeAreaView, StatusBar, StyleSheet, Text} from 'react-native';
+import Animated, {SlideInDown, SlideInUp, SlideOutDown, SlideOutUp} from 'react-native-reanimated';
 import {ColorScheme, PRETENDARD_JP, systemRed, white} from '@constants';
-import {RootState, setError, useAppDispatch, useAppSelector} from '@store';
-import {useInternetConn} from '@utils';
+import {RootState, setError, useAppSelector} from '@store';
+import {useAppCore, useInternetConn} from '@utils';
 
 type Props = {
   children: JSX.Element[];
@@ -24,11 +12,9 @@ type Props = {
 const {height} = Dimensions.get('window');
 
 export function Overlay({children}: Props) {
-  const {colorScheme} = useAppSelector(
-    (state: RootState) => state.userPreferences,
-  );
+  const {dispatch, colorScheme} = useAppCore<'HomeNavigator'>();
+
   const {error} = useAppSelector((state: RootState) => state.error);
-  const dispatch = useAppDispatch();
   const styles = getStyles(colorScheme);
   const intError = useInternetConn();
 
@@ -55,21 +41,14 @@ export function Overlay({children}: Props) {
           style={[styles.internetErrorOverlay]}>
           <SafeAreaView style={{flexDirection: 'row', alignItems: 'center'}}>
             <Text style={styles.noInternetLabel}>No Internet</Text>
-            <Image
-              source={require('@assets/icons/wifi-off.png')}
-              style={styles.wifiSlashIcon}
-            />
+            <Image source={require('@assets/icons/wifi-off.png')} style={styles.wifiSlashIcon} />
           </SafeAreaView>
         </Animated.View>
       )}
       {error && (
-        <Animated.View
-          entering={SlideInDown}
-          exiting={SlideOutDown}
-          style={[styles.errorOverlay]}>
+        <Animated.View entering={SlideInDown} exiting={SlideOutDown} style={[styles.errorOverlay]}>
           <Text style={styles.errorTitle}>
-            {error.result === 'error' &&
-              `${error?.errors[0].status}: ${error?.errors[0].title}`}
+            {error.result === 'error' && `${error?.errors[0].status}: ${error?.errors[0].title}`}
             {error.result === 'internal-error' && error.title}
           </Text>
           <Text style={styles.errorDesc}>

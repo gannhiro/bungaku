@@ -1,15 +1,7 @@
 import {ColorScheme, PRETENDARD_JP} from '@constants';
-import {RootState, useAppSelector} from '@store';
-import {textColor} from '@utils';
+import {textColor, useAppCore} from '@utils';
 import React, {Dispatch, SetStateAction, useState} from 'react';
-import {
-  ListRenderItemInfo,
-  StyleSheet,
-  Text,
-  Vibration,
-  View,
-  ViewStyle,
-} from 'react-native';
+import {ListRenderItemInfo, StyleSheet, Text, Vibration, View, ViewStyle} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import Animated, {
   EntryAnimationsValues,
@@ -50,18 +42,15 @@ export function Dropdown({
   onDropdownPress,
   style,
 }: Props) {
-  const {colorScheme} = useAppSelector(
-    (state: RootState) => state.userPreferences,
-  );
+  const {colorScheme} = useAppCore();
+
   const styles = getStyles(colorScheme);
 
   const [showDropdown, setShowDropdown] = useState(false);
 
   const chevronImgTransformStyle = useAnimatedStyle(() => {
     return {
-      transform: [
-        {rotate: showDropdown ? withSpring('180deg') : withSpring('0deg')},
-      ],
+      transform: [{rotate: showDropdown ? withSpring('180deg') : withSpring('0deg')}],
     };
   });
 
@@ -69,18 +58,10 @@ export function Dropdown({
     return {
       backgroundColor: withSequence(
         withTiming(colorScheme.colors.secondary + 99, {duration: 100}),
-        withTiming(
-          showDropdown
-            ? colorScheme.colors.primary
-            : colorScheme.colors.secondary,
-        ),
+        withTiming(showDropdown ? colorScheme.colors.primary : colorScheme.colors.secondary),
       ),
-      borderBottomLeftRadius: showDropdown
-        ? 0
-        : withDelay(100, withTiming(10, {duration: 250})),
-      borderBottomRightRadius: showDropdown
-        ? 0
-        : withDelay(100, withTiming(10, {duration: 250})),
+      borderBottomLeftRadius: showDropdown ? 0 : withDelay(100, withTiming(10, {duration: 250})),
+      borderBottomRightRadius: showDropdown ? 0 : withDelay(100, withTiming(10, {duration: 250})),
     };
   });
 
@@ -134,10 +115,7 @@ export function Dropdown({
     return `${item.value} - ${index}`;
   }
 
-  function renderItem({
-    item,
-    index,
-  }: ListRenderItemInfo<GenericDropdownValues[0]>) {
+  function renderItem({item, index}: ListRenderItemInfo<GenericDropdownValues[0]>) {
     return (
       <DropdownRenderItem
         item={item}
@@ -153,27 +131,20 @@ export function Dropdown({
   return (
     <View>
       <GestureDetector gesture={tapDropdown}>
-        <Animated.View
-          style={[styles.selectedCont, dropdownPressableStyle, style]}>
+        <Animated.View style={[styles.selectedCont, dropdownPressableStyle, style]}>
           <Text style={[styles.selectedText]}>
             {Array.isArray(selection)
               ? selection.length > 0
                 ? selection.length < 4
                   ? selection.map((val, index) => {
-                      if (
-                        index === selection.length - 1 ||
-                        selection.length === 1
-                      ) {
+                      if (index === selection.length - 1 || selection.length === 1) {
                         return items.find(item => item.value === val)?.label;
                       }
-                      return `${
-                        items.find(item => item.value === val)?.label
-                      }, `;
+                      return `${items.find(item => item.value === val)?.label}, `;
                     })
                   : `${selection.length} items selected`
                 : 'No Selection'
-              : items.find(item => item.value === selection)?.label ??
-                'No Selection'}
+              : items.find(item => item.value === selection)?.label ?? 'No Selection'}
           </Text>
           <Animated.Image
             source={require('@assets/icons/chevron-down.png')}

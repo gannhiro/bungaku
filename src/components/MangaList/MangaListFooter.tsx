@@ -1,15 +1,12 @@
 import {ColorScheme, PRETENDARD_JP} from '@constants';
-import {RootState, useAppSelector} from '@store';
 import React, {Fragment} from 'react';
 import {StyleSheet, View, Text} from 'react-native';
 import * as Progress from 'react-native-progress';
-import {textColor, useInternetConn} from '@utils';
+import {textColor, useAppCore} from '@utils';
 
 export function MangaListFooter() {
-  const intError = useInternetConn();
-  const {colorScheme} = useAppSelector(
-    (state: RootState) => state.userPreferences,
-  );
+  const {colorScheme, intError} = useAppCore();
+
   const styles = getStyles(colorScheme);
   return (
     <View style={styles.container}>
@@ -19,10 +16,7 @@ export function MangaListFooter() {
         </Fragment>
       ) : (
         <Fragment>
-          <Progress.CircleSnail
-            color={textColor(colorScheme.colors.main)}
-            size={30}
-          />
+          <Progress.CircleSnail color={textColor(colorScheme.colors.main)} size={30} />
           <Text style={styles.loadingLabel}>loading!</Text>
         </Fragment>
       )}

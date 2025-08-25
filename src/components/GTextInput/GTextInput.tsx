@@ -1,20 +1,7 @@
 import {ColorScheme, PRETENDARD_JP} from '@constants';
-import {RootState, useAppSelector} from '@store';
-import {textColor} from '@utils';
-import React, {
-  Dispatch,
-  SetStateAction,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
-import {
-  Keyboard,
-  KeyboardType,
-  StyleSheet,
-  TextInput,
-  ViewStyle,
-} from 'react-native';
+import {textColor, useAppCore} from '@utils';
+import React, {Dispatch, SetStateAction, useEffect, useRef, useState} from 'react';
+import {Keyboard, KeyboardType, StyleSheet, TextInput, ViewStyle} from 'react-native';
 import Animated, {useAnimatedStyle, withTiming} from 'react-native-reanimated';
 
 type Props = {
@@ -36,9 +23,8 @@ export function GTextInput({
   keyboardType = 'default',
   disabled = false,
 }: Props) {
-  const {colorScheme} = useAppSelector(
-    (state: RootState) => state.userPreferences,
-  );
+  const {colorScheme} = useAppCore();
+
   const styles = getStyles(colorScheme);
 
   const [focused, setFocused] = useState(false);

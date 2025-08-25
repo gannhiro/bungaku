@@ -3,9 +3,8 @@ import {StyleSheet, Vibration, View} from 'react-native';
 import {MaterialTopTabBarProps} from '@react-navigation/material-top-tabs';
 import Animated, {useAnimatedStyle} from 'react-native-reanimated';
 import {ColorScheme, PRETENDARD_JP} from '@constants';
-import {RootState, useAppSelector} from '@store';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
-import {textColor} from '@utils';
+import {textColor, useAppCore} from '@utils';
 
 enum Tabs {
   HOME = 'HomeScreen',
@@ -18,7 +17,8 @@ enum Tabs {
 }
 
 export function TabBar({state, navigation, descriptors}: MaterialTopTabBarProps) {
-  const {colorScheme} = useAppSelector((rState: RootState) => rState.userPreferences);
+  const {colorScheme} = useAppCore();
+
   const styles = getStyles(colorScheme);
 
   return (
@@ -69,7 +69,8 @@ type TabBarIconProps = {
 };
 
 function TabBarIcon({tabTitle}: TabBarIconProps) {
-  const {colorScheme} = useAppSelector((rState: RootState) => rState.userPreferences);
+  const {colorScheme} = useAppCore<'HomeNavigator'>();
+
   const styles = getStyles(colorScheme);
 
   if (tabTitle === Tabs.HOME) {

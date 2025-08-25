@@ -1,15 +1,9 @@
 import React, {memo} from 'react';
-import {RootState, useAppSelector} from '@store';
 import {Pressable, StyleSheet, View, ViewStyle} from 'react-native';
-import {
-  ColorScheme,
-  PRETENDARD_JP,
-  systemBlue,
-  systemBrown,
-  systemYellow,
-} from '@constants';
+import {ColorScheme, PRETENDARD_JP, systemBlue, systemBrown, systemYellow} from '@constants';
 import Animated, {SlideInRight, SlideOutRight} from 'react-native-reanimated';
 import {res_get_manga_tag} from '@api';
+import {useAppCore} from '@utils';
 
 type Props = {
   tag: res_get_manga_tag['data'][0];
@@ -21,10 +15,8 @@ type Props = {
 
 export const MTDItem = memo(
   ({tag, tags, includedTags, index, onSelectionPress}: Props) => {
-    console.log('rerendered');
-    const {colorScheme} = useAppSelector(
-      (state: RootState) => state.userPreferences,
-    );
+    const {colorScheme} = useAppCore<'HomeNavigator'>();
+
     const styles = getStyles(colorScheme);
     const selected = includedTags.includes(tag.id);
     const border: ViewStyle = {
@@ -48,9 +40,7 @@ export const MTDItem = memo(
         key={tag.id}>
         <View style={styles.selectionGroup}>
           <View style={[styles.selectionGroupIndicator, groupIndicatorColor]} />
-          <Animated.Text style={[styles.selectionText]}>
-            {tag.attributes.name.en}
-          </Animated.Text>
+          <Animated.Text style={[styles.selectionText]}>{tag.attributes.name.en}</Animated.Text>
         </View>
 
         {selected && (

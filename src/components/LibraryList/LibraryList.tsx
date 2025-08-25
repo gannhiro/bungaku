@@ -4,12 +4,12 @@ import React from 'react';
 import {ListRenderItemInfo, StyleSheet, Text, View} from 'react-native';
 import Animated from 'react-native-reanimated';
 import {LibraryListRenderItem} from './LibraryListRenderItem';
+import {useAppCore} from '@utils';
 
 export function LibraryList() {
+  const {colorScheme} = useAppCore();
+
   const {libraryList} = useAppSelector((state: RootState) => state.libraryList);
-  const {colorScheme} = useAppSelector(
-    (state: RootState) => state.userPreferences,
-  );
   const styles = getStyles(colorScheme);
 
   function renderItem({item, index}: ListRenderItemInfo<string>) {

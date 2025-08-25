@@ -1,42 +1,20 @@
 import {ColorScheme, PRETENDARD_JP} from '@constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {useNavigation} from '@react-navigation/native';
-import {
-  RootState,
-  setLibraryUpdatesOnLaunch,
-  useAppDispatch,
-  useAppSelector,
-} from '@store';
+import {RootState, setLibraryUpdatesOnLaunch, useAppSelector} from '@store';
 import {UpdatedMangaNotifications} from '@types';
-import {textColor} from '@utils';
+import {textColor, useAppCore} from '@utils';
 import React, {useEffect} from 'react';
-import {
-  Dimensions,
-  FlatList,
-  ListRenderItemInfo,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import {Dimensions, FlatList, ListRenderItemInfo, StyleSheet, Text, View} from 'react-native';
 import {LibraryListRenderItem} from '../LibraryList/LibraryListRenderItem';
 
 const {width} = Dimensions.get('window');
 
 export function LibraryUpdates() {
-  const navigation = useNavigation();
-  const dispatch = useAppDispatch();
-  const {updatedMangaList} = useAppSelector(
-    (state: RootState) => state.libraryUpdates,
-  );
-  const {colorScheme} = useAppSelector(
-    (state: RootState) => state.userPreferences,
-  );
+  const {dispatch, colorScheme, navigation} = useAppCore<'HomeNavigator'>();
+  const {updatedMangaList} = useAppSelector((state: RootState) => state.libraryUpdates);
   const styles = getStyles(colorScheme);
 
-  function renderItem({
-    item,
-    index,
-  }: ListRenderItemInfo<UpdatedMangaNotifications>) {
+  function renderItem({item, index}: ListRenderItemInfo<UpdatedMangaNotifications>) {
     return <LibraryListRenderItem mangaId={item.mangaId} index={index} />;
   }
 

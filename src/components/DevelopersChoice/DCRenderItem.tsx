@@ -1,17 +1,8 @@
 import {res_get_cover_$, res_get_manga} from '@api';
 import {ColorScheme, DEVS_CHOICE, OTOMANOPEE, PRETENDARD_JP} from '@constants';
-import {useNavigation} from '@react-navigation/native';
-import {RootState, useAppDispatch, useAppSelector} from '@store';
-import {textColor} from '@utils';
+import {textColor, useAppCore} from '@utils';
 import React from 'react';
-import {
-  Dimensions,
-  Image,
-  StyleSheet,
-  Text,
-  View,
-  ViewStyle,
-} from 'react-native';
+import {Dimensions, Image, StyleSheet, Text, View, ViewStyle} from 'react-native';
 import Animated from 'react-native-reanimated';
 
 const {height, width} = Dimensions.get('window');
@@ -22,11 +13,8 @@ type Props = {
 };
 
 export function DCRenderItem({manga, index}: Props) {
-  const navigation = useNavigation();
-  const dispatch = useAppDispatch();
-  const {colorScheme} = useAppSelector(
-    (state: RootState) => state.userPreferences,
-  );
+  const {colorScheme} = useAppCore();
+
   const styles = getStyles(colorScheme);
   const marginStyles: ViewStyle = {
     marginLeft: index === 0 ? 15 : 0,
@@ -49,9 +37,7 @@ export function DCRenderItem({manga, index}: Props) {
         <Image source={{uri: coverSrc}} style={styles.cover} />
         <View style={{marginHorizontal: 5, marginVertical: 10}}>
           <Text style={styles.titleLabel}>{manga.attributes.title.en}</Text>
-          <Text style={styles.desc}>
-            {DEVS_CHOICE[manga.id as keyof typeof DEVS_CHOICE]}
-          </Text>
+          <Text style={styles.desc}>{DEVS_CHOICE[manga.id as keyof typeof DEVS_CHOICE]}</Text>
         </View>
       </Animated.ScrollView>
     </Animated.View>
