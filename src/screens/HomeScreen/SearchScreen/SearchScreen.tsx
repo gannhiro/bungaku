@@ -25,7 +25,7 @@ import {
 } from '@constants';
 import {MaterialTopTabScreenProps} from '@react-navigation/material-top-tabs';
 import {RootState, useAppSelector} from '@store';
-import {textColor} from '@utils';
+import {textColor, useAppCore} from '@utils';
 import React, {useEffect, useState} from 'react';
 import {
   Dimensions,
@@ -46,10 +46,10 @@ const {height, width} = Dimensions.get('window');
 type Props = MaterialTopTabScreenProps<HomeBottomTabsParamsList, 'SearchScreen', undefined>;
 
 export function SearchScreen({}: Props) {
-  const {colorScheme, allowPornography} = useAppSelector(
-    (state: RootState) => state.userPreferences,
-  );
+  const {colorScheme, preferences} = useAppCore();
   const {tags} = useAppSelector((state: RootState) => state.mangaTags);
+  const {allowPornography} = preferences;
+
   const styles = getStyles(colorScheme);
 
   const [params, setParams] = useState<get_manga>({

@@ -3,7 +3,7 @@ import {useAppSelector} from '@store';
 import {StyleSheet, Text, TouchableOpacity, View, ViewStyle} from 'react-native';
 import {GroupedJobSection} from './DownloadsScreen';
 import {FlagIcon} from '@components';
-import {textColor} from '@utils';
+import {textColor, useAppCore} from '@utils';
 import Color from 'color';
 
 type Props = {
@@ -12,7 +12,7 @@ type Props = {
 };
 
 export function DownloadsListRenderItem({jobDetails, onPress}: Props) {
-  const {colorScheme} = useAppSelector(state => state.userPreferences);
+  const {colorScheme} = useAppCore();
   const job = useAppSelector(state => state.jobs.jobs[jobDetails.jobId]);
 
   const styles = getStyles(colorScheme);

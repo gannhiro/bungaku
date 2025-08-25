@@ -20,22 +20,17 @@ import {
   systemPurple,
   systemYellow,
 } from '@constants';
-import {RootState, useAppSelector} from '@store';
-import {numberShorten, textColor} from '@utils';
+import {numberShorten, textColor, useAppCore} from '@utils';
 import {FlagIcon} from '@components';
 import {useMangaChaptersScreenContext} from '../useMangaChaptersScreenContext';
 
-type Props = MaterialTopTabScreenProps<
-  MCSBottomTabsParamsList,
-  'MCSDetailsTab'
->;
+type Props = MaterialTopTabScreenProps<MCSBottomTabsParamsList, 'MCSDetailsTab'>;
 
 const {width} = Dimensions.get('screen');
 
 export function MCSDetailsTab({}: Props) {
-  const {colorScheme} = useAppSelector(
-    (state: RootState) => state.userPreferences,
-  );
+  const {colorScheme} = useAppCore();
+
   const styles = getStyles(colorScheme);
   const {manga, statistics, loading} = useMangaChaptersScreenContext();
 
@@ -46,24 +41,13 @@ export function MCSDetailsTab({}: Props) {
           <Text style={styles.label}>Statistics</Text>
           <View style={styles.groupRow}>
             <Text style={styles.statLabel}>
-              {numberShorten(
-                statistics?.statistics[manga?.id ?? ''].follows ?? 0,
-              )}{' '}
-              Follows
+              {numberShorten(statistics?.statistics[manga?.id ?? ''].follows ?? 0)} Follows
             </Text>
-            <Image
-              source={require('@assets/icons/book.png')}
-              style={styles.bookIcon}
-            />
+            <Image source={require('@assets/icons/book.png')} style={styles.bookIcon} />
             <Text style={styles.statLabel}>
-              {statistics?.statistics[manga?.id ?? ''].rating.bayesian.toFixed(
-                2,
-              )}{' '}
+              {statistics?.statistics[manga?.id ?? ''].rating.bayesian.toFixed(2)}{' '}
             </Text>
-            <Image
-              source={require('@assets/icons/star.png')}
-              style={styles.starIcon}
-            />
+            <Image source={require('@assets/icons/star.png')} style={styles.starIcon} />
           </View>
           <Text style={styles.label}>Descriptions</Text>
           <View style={styles.titlesGroup}>
@@ -71,9 +55,7 @@ export function MCSDetailsTab({}: Props) {
               return (
                 <TouchableOpacity style={styles.titleChip} key={lang}>
                   <FlagIcon language={lang as Language} style={styles.flag} />
-                  <Text style={styles.titleChipLabel}>
-                    {ISO_LANGS[lang as Language].name}
-                  </Text>
+                  <Text style={styles.titleChipLabel}>{ISO_LANGS[lang as Language].name}</Text>
                 </TouchableOpacity>
               );
             })}

@@ -3,18 +3,8 @@ import {APP_NAME, ColorScheme, PRETENDARD_JP} from '@constants';
 import {RootStackParamsList} from '@navigation';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {StackScreenProps} from '@react-navigation/stack';
-import {
-  RootState,
-  setConfig,
-  setError,
-  setLibraryList,
-  setLibraryUpdatesOnLaunch,
-  setMangaTags,
-  useAppDispatch,
-  useAppSelector,
-} from '@store';
-import {UpdatedMangaNotifications} from '@types';
-import {textColor} from '@utils';
+import {RootState, setConfig, setError, setLibraryList, setMangaTags, useAppSelector} from '@store';
+import {textColor, useAppCore} from '@utils';
 import {Config} from 'config';
 import React, {useEffect, useState} from 'react';
 import {PermissionsAndroid, StyleSheet, View} from 'react-native';
@@ -25,12 +15,9 @@ import Animated, {FadeIn} from 'react-native-reanimated';
 type Props = StackScreenProps<RootStackParamsList, 'SplashScreen'>;
 
 export function SplashScreen({navigation}: Props) {
-  const preferences = useAppSelector(
-    (state: RootState) => state.userPreferences,
-  );
+  const {dispatch, colorScheme, preferences} = useAppCore();
   const {tags} = useAppSelector((state: RootState) => state.mangaTags);
-  const styles = getStyles(preferences.colorScheme);
-  const dispatch = useAppDispatch();
+  const styles = getStyles(colorScheme);
 
   const [loadingText, setLoadingText] = useState('loading');
   const [numDots, setNumDots] = useState(0);
@@ -74,8 +61,7 @@ export function SplashScreen({navigation}: Props) {
           'android.permission.POST_NOTIFICATIONS',
           {
             title: 'bungaku Notifications',
-            message:
-              'Let bungaku send you update notifications for your Library?',
+            message: 'Let bungaku send you update notifications for your Library?',
             buttonPositive: 'Yes',
             buttonNegative: 'No',
           },
@@ -89,12 +75,7 @@ export function SplashScreen({navigation}: Props) {
       const storedTags = await AsyncStorage.getItem('tags');
       if (!storedTags) {
         setLoadingText('fetching tags');
-        const data = await mangadexAPI<res_get_manga_tag, {}>(
-          'get',
-          '/manga/tag',
-          {},
-          [],
-        );
+        const data = await mangadexAPI<res_get_manga_tag, {}>('get', '/manga/tag', {}, []);
         if (data.result === 'ok') {
           dispatch(setMangaTags(data));
           await AsyncStorage.setItem('tags', JSON.stringify(data));
@@ -121,9 +102,7 @@ export function SplashScreen({navigation}: Props) {
 
       // initialize library list
       setLoadingText('getting library');
-      const libraryDirList = await FS.readDir(
-        `${FS.DocumentDirectoryPath}/manga/`,
-      );
+      const libraryDirList = await FS.readDir(`${FS.DocumentDirectoryPath}/manga/`);
       const libraryList = libraryDirList.map(dir => dir.name);
       dispatch(setLibraryList(libraryList));
 
@@ -153,7 +132,7 @@ export function SplashScreen({navigation}: Props) {
             borderWidth={0}
             borderColor={'#0000'}
             style={styles.progressBar}
-            color={preferences.colorScheme.colors.secondary}
+            color={colorScheme.colors.secondary}
           />
         </View>
 

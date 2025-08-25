@@ -5,7 +5,7 @@ import {ScrollView, Text, View, Switch, StyleSheet} from 'react-native';
 import {useReadChapterScreenContext} from './useReadChapterScreenContext';
 import {RootState, useAppSelector} from '@store';
 import {ColorScheme, PRETENDARD_JP} from '@constants';
-import {textColor} from '@utils';
+import {textColor, useAppCore} from '@utils';
 import Animated, {LinearTransition} from 'react-native-reanimated';
 
 type Props = {
@@ -14,9 +14,7 @@ type Props = {
 };
 
 export function RCSBottomSheet({showBottomSheet, setShowBottomSheet}: Props) {
-  const {colorScheme} = useAppSelector(
-    (state: RootState) => state.userPreferences,
-  );
+  const {colorScheme} = useAppCore();
 
   const styles = getStyles(colorScheme);
 
@@ -36,9 +34,7 @@ export function RCSBottomSheet({showBottomSheet, setShowBottomSheet}: Props) {
   } = useReadChapterScreenContext();
 
   return (
-    <BottomSheet
-      showBottomSheet={showBottomSheet}
-      setShowBottomSheet={setShowBottomSheet}>
+    <BottomSheet showBottomSheet={showBottomSheet} setShowBottomSheet={setShowBottomSheet}>
       <ScrollView
         contentContainerStyle={styles.settingsSheetScrollView}
         showsVerticalScrollIndicator={false}
@@ -52,9 +48,7 @@ export function RCSBottomSheet({showBottomSheet, setShowBottomSheet}: Props) {
           <Text style={styles.settingsSheetSmall}>
             Chapter {chapters[currentChapter].attributes.chapter}
           </Text>
-          <Text style={styles.settingsSheetSmall}>
-            {chapters[currentChapter].id}
-          </Text>
+          <Text style={styles.settingsSheetSmall}>{chapters[currentChapter].id}</Text>
           <Text style={styles.settingsSheetSmall}>
             Scanlator: {scanlator?.attributes.name ?? 'No Scanlator'}
           </Text>
@@ -62,9 +56,7 @@ export function RCSBottomSheet({showBottomSheet, setShowBottomSheet}: Props) {
             Uploaded by User: {user?.attributes.username ?? 'No User Available'}
           </Text>
         </View>
-        <Animated.View
-          layout={LinearTransition}
-          style={styles.settingsSheetGroup}>
+        <Animated.View layout={LinearTransition} style={styles.settingsSheetGroup}>
           <Text style={styles.settingsSheetSmall}>Reading Mode</Text>
           <Dropdown
             items={readingModes}
@@ -77,9 +69,7 @@ export function RCSBottomSheet({showBottomSheet, setShowBottomSheet}: Props) {
             atLeastOne
           />
         </Animated.View>
-        <Animated.View
-          layout={LinearTransition}
-          style={styles.settingsSheetGroup}>
+        <Animated.View layout={LinearTransition} style={styles.settingsSheetGroup}>
           <Text style={styles.settingsSheetSmall}>Chapter</Text>
           <Dropdown
             items={chapters.map((chapter, index) => {
@@ -107,16 +97,12 @@ export function RCSBottomSheet({showBottomSheet, setShowBottomSheet}: Props) {
             }}
           />
         </Animated.View>
-        <Animated.View
-          layout={LinearTransition}
-          style={styles.settingsSheetGroupRow}>
+        <Animated.View layout={LinearTransition} style={styles.settingsSheetGroupRow}>
           <Text style={styles.settingsSheetReg}>Data Saver</Text>
           <Switch value={isDataSaver} onValueChange={onDataSaverSwitchChange} />
         </Animated.View>
 
-        <Animated.View
-          layout={LinearTransition}
-          style={styles.settingsSheetGroupRow}>
+        <Animated.View layout={LinearTransition} style={styles.settingsSheetGroupRow}>
           <Button
             title="Go Back"
             onButtonPress={() => {

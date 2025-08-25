@@ -1,21 +1,12 @@
 import {ColorScheme, PRETENDARD_JP, TOP_OVERLAY_HEIGHT} from '@constants';
-import {RootStackParamsList} from '@navigation';
-import {useNavigation} from '@react-navigation/native';
-import {StackNavigationProp} from '@react-navigation/stack';
-import {RootState, useAppSelector} from '@store';
-import {textColor} from '@utils';
+import {textColor, useAppCore} from '@utils';
 import React from 'react';
 import {StyleSheet, Text, View} from 'react-native';
 import {LibraryList} from '@components';
 
 export function LibraryScreen() {
-  const navigation =
-    useNavigation<
-      StackNavigationProp<RootStackParamsList, 'HomeNavigator', undefined>
-    >();
-  const {colorScheme} = useAppSelector(
-    (state: RootState) => state.userPreferences,
-  );
+  const {colorScheme} = useAppCore();
+
   const styles = getStyles(colorScheme);
 
   return (

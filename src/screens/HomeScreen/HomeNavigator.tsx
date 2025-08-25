@@ -18,34 +18,30 @@ export type HomeBottomTabsParamsList = {
 const BottomTabs = createMaterialTopTabNavigator<HomeBottomTabsParamsList>();
 
 export function HomeNavigator() {
-  const labels = useLabels();
+  const labels = useLabels().homeScreen;
 
   return (
     <BottomTabs.Navigator tabBarPosition="bottom" tabBar={TabBar} screenOptions={{lazy: true}}>
-      <BottomTabs.Screen
-        name="HomeScreen"
-        component={HomeScreen}
-        options={{title: labels.homeScreen.home}}
-      />
+      <BottomTabs.Screen name="HomeScreen" component={HomeScreen} options={{title: labels.home}} />
       <BottomTabs.Screen
         name="SearchScreen"
         component={SearchScreen}
-        options={{title: labels.homeScreen.search}}
+        options={{title: labels.search}}
       />
       <BottomTabs.Screen
         name="LibraryScreen"
         component={LibraryScreen}
-        options={{title: labels.homeScreen.library}}
+        options={{title: labels.library}}
       />
       <BottomTabs.Screen
         name="DownloadsScreen"
         component={DownloadsScreen}
-        options={{title: labels.homeScreen.downloads}}
+        options={{title: labels.downloads}}
       />
       <BottomTabs.Screen
         name="AccSettingsScreen"
         component={AccSettingsScreen}
-        options={{title: labels.homeScreen.account}}
+        options={{title: labels.account}}
       />
     </BottomTabs.Navigator>
   );

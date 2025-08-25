@@ -9,10 +9,8 @@ import {
   systemOrange,
   systemRed,
 } from '@constants';
-import {RootStackParamsList} from '@navigation';
-import {NavigationProp, useNavigation} from '@react-navigation/native';
 import {queueDownloadChapter, RootState, useAppDispatch, useAppSelector} from '@store';
-import {textColor} from '@utils';
+import {textColor, useAppCore} from '@utils';
 import React, {memo, useEffect, useState} from 'react';
 import {Dimensions, Image, StyleSheet, Text, Vibration} from 'react-native';
 import FS from 'react-native-fs';
@@ -48,19 +46,17 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
     selectedChapters,
     setSelectedChapters,
   } = useMangaChaptersScreenContext();
-  const navigation = useNavigation<NavigationProp<RootStackParamsList>>();
-  const dispatch = useAppDispatch();
+
+  const {dispatch, colorScheme, navigation} = useAppCore();
+  const {libraryList} = useAppSelector((state: RootState) => state.libraryList);
+  const styles = getStyles(colorScheme);
 
   const potentialJobId = `${manga?.id}-${chapter.id}`;
   const jobStatus = useAppSelector((state: RootState) => state.jobs.jobs[potentialJobId]?.status);
   const jobProgress = useAppSelector(
     (state: RootState) => state.jobs.jobs[potentialJobId]?.progress,
   );
-  const {colorScheme} = useAppSelector((state: RootState) => state.userPreferences);
-  const {libraryList} = useAppSelector((state: RootState) => state.libraryList);
-
   const isJobPending = jobStatus === 'pending' || jobStatus === 'queued';
-  const styles = getStyles(colorScheme);
 
   const [downloadable, setDownloadable] = useState(false);
   const [isDownloaded, setIsDownloaded] = useState(false);

@@ -1,7 +1,7 @@
 import {MaterialTopTabScreenProps} from '@react-navigation/material-top-tabs';
 import {HomeBottomTabsParamsList} from '../HomeNavigator';
 import {JobStatus, RootState, useAppSelector} from '@store';
-import {ColorScheme, TOP_OVERLAY_HEIGHT} from '@constants';
+import {ColorScheme} from '@constants';
 import {
   SectionList,
   SectionListData,
@@ -14,6 +14,7 @@ import {createSelector} from '@reduxjs/toolkit';
 import {res_get_manga_$_feed} from '@api';
 import {DownloadsListRenderHeaderItem} from './DownloadsListRenderHeaderItem';
 import {useEffect} from 'react';
+import {useAppCore} from '@utils';
 
 export interface GroupedJobSection {
   mangaId: string;
@@ -29,7 +30,7 @@ export interface GroupedJobSection {
 type Props = MaterialTopTabScreenProps<HomeBottomTabsParamsList, 'DownloadsScreen', undefined>;
 
 export function DownloadsScreen({}: Props) {
-  const {colorScheme} = useAppSelector(state => state.userPreferences);
+  const {colorScheme} = useAppCore();
   const jobs = useAppSelector(selectGroupedJobs);
 
   const styles = getStyles(colorScheme);

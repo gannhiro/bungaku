@@ -1,16 +1,14 @@
 import {ColorScheme} from '@constants';
-import {textColor} from '@utils';
+import {textColor, useAppCore} from '@utils';
 import React, {memo, useEffect, useState} from 'react';
 import {Dimensions, Image, StyleSheet, Text, View} from 'react-native';
 import FastImage, {FastImageProps} from 'react-native-fast-image';
 import {Gesture} from 'react-native-gesture-handler';
 import {useSharedValue, withTiming} from 'react-native-reanimated';
-import {RootState} from '../../store/store';
 import {ReadingMode} from './ReadChapterScreen';
 import {useReadChapterScreenContext} from './useReadChapterScreenContext';
 import FS from 'react-native-fs';
 import {Button} from '@components';
-import {useAppSelector} from '@store';
 
 type Props = {
   path: string;
@@ -21,9 +19,8 @@ type Props = {
 const {width, height} = Dimensions.get('screen');
 
 export const RCSChapterImages = memo(({pagePromise, path}: Props) => {
-  const colorScheme = useAppSelector(
-    (state: RootState) => state.userPreferences.colorScheme,
-  );
+  const {colorScheme} = useAppCore();
+
   const styles = getStyles(colorScheme);
 
   const [imHeight, setImHeight] = useState<number | null>(null);

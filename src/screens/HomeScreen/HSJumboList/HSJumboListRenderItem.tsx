@@ -8,20 +8,9 @@ import {
 } from '@api';
 import {Chip} from '@components';
 import {ColorScheme, PRETENDARD_JP} from '@constants';
-import {RootStackParamsList} from '@navigation';
-import {useNavigation} from '@react-navigation/native';
-import {StackNavigationProp} from '@react-navigation/stack';
-import {RootState, useAppSelector} from '@store';
-import {textColor} from '@utils';
+import {textColor, useAppCore} from '@utils';
 import React, {useEffect, useState} from 'react';
-import {
-  Dimensions,
-  Image,
-  StyleSheet,
-  Text,
-  Vibration,
-  View,
-} from 'react-native';
+import {Dimensions, Image, StyleSheet, Text, Vibration, View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import Animated, {FadeIn} from 'react-native-reanimated';
 
@@ -32,22 +21,10 @@ interface Props {
   setCurrCoverSrc: React.Dispatch<React.SetStateAction<string | undefined>>;
 }
 
-const {width, height} = Dimensions.get('window');
+const {width} = Dimensions.get('window');
 
-export function HSJumboListRenderItem({
-  manga,
-  index,
-  currentPage,
-  setCurrCoverSrc,
-}: Props) {
-  const {colorScheme} = useAppSelector(
-    (state: RootState) => state.userPreferences,
-  );
-
-  const navigation =
-    useNavigation<
-      StackNavigationProp<RootStackParamsList, 'HomeNavigator', undefined>
-    >();
+export function HSJumboListRenderItem({manga, index, currentPage, setCurrCoverSrc}: Props) {
+  const {colorScheme, navigation} = useAppCore<'HomeNavigator'>();
 
   const styles = getStyles(colorScheme);
   const [mangaCoverSrc, setMangaCoverSrc] = useState<string>();
@@ -96,25 +73,15 @@ export function HSJumboListRenderItem({
         }
       });
 
-      const data = await mangadexAPI<res_get_cover_$, {}>(
-        'get',
-        '/cover/$',
-        {},
-        [mangaCoverId],
-      );
+      const data = await mangadexAPI<res_get_cover_$, {}>('get', '/cover/$', {}, [mangaCoverId]);
 
       if (data.result === 'ok') {
-        setMangaCoverSrc(
-          `${API_COVER_URL}/${manga.id}/${data.data.attributes.fileName}`,
-        );
+        setMangaCoverSrc(`${API_COVER_URL}/${manga.id}/${data.data.attributes.fileName}`);
       }
     }
 
     async function getRatings() {
-      const data = (await mangadexAPI<
-        res_get_statistics_manga,
-        get_statistics_manga
-      >(
+      const data = (await mangadexAPI<res_get_statistics_manga, get_statistics_manga>(
         'get',
         '/statistics/manga',
         {manga: [manga.id]},
@@ -152,10 +119,7 @@ export function HSJumboListRenderItem({
           <Text style={styles.title} numberOfLines={3} ellipsizeMode={'tail'}>
             {manga.attributes.title.en}
           </Text>
-          <Text
-            style={styles.description}
-            numberOfLines={7}
-            ellipsizeMode={'tail'}>
+          <Text style={styles.description} numberOfLines={7} ellipsizeMode={'tail'}>
             {manga.attributes.description.en}
           </Text>
 
@@ -166,9 +130,7 @@ export function HSJumboListRenderItem({
               }
             })}
             {manga.attributes.tags.length > 5 && (
-              <Text style={styles.tagName}>
-                {manga.attributes.tags.length - 5} more tags...
-              </Text>
+              <Text style={styles.tagName}>{manga.attributes.tags.length - 5} more tags...</Text>
             )}
           </View>
         </View>

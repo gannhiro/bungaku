@@ -3,9 +3,9 @@ import {GenericDropdownValues} from '@components';
 import {ColorScheme, PRETENDARD_JP, white} from '@constants';
 import {RootStackParamsList} from '@navigation';
 import {StackScreenProps} from '@react-navigation/stack';
-import {cacheChapter, RootState, useAppDispatch, useAppSelector} from '@store';
+import {cacheChapter, RootState, useAppSelector} from '@store';
 import {DownloadedChapterDetails} from '@types';
-import {textColor} from '@utils';
+import {textColor, useAppCore} from '@utils';
 import React, {Fragment, useEffect, useRef, useState} from 'react';
 import {
   BackHandler,
@@ -54,11 +54,10 @@ const readingModes: GenericDropdownValues = [
 const {width, height} = Dimensions.get('screen');
 
 export function ReadChapterScreen({route, navigation}: Props) {
-  const dispatch = useAppDispatch();
+  const {dispatch, colorScheme, preferences} = useAppCore();
+
   const {manga, chapters, originalLanguage, initialChapterIndex} = route.params;
-  const {colorScheme, preferDataSaver} = useAppSelector(
-    (state: RootState) => state.userPreferences,
-  );
+  const {preferDataSaver} = preferences;
   const styles = getStyles(colorScheme);
 
   const [locReadingMode, setLocReadingMode] = useState<ReadingMode>(

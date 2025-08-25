@@ -80,15 +80,9 @@ export const systemBrown =
 export const systemMain = Appearance.getColorScheme() === 'dark' ? black : white;
 export const systemMainText = Appearance.getColorScheme() === 'dark' ? white : black;
 
-export enum COLOR_SCHEMES {
-  DARK = 'Dark',
-  LIGHT = 'Light',
-  JUNGLE = 'Jungle',
-  JET = 'Jet',
-}
+export type ColorSchemeName = 'Dark' | 'Light' | 'Jungle' | 'Jet';
 
 export type ColorScheme = {
-  name: `${COLOR_SCHEMES}`;
   type: 'dark' | 'light';
   colors: {
     main: string;
@@ -97,8 +91,7 @@ export type ColorScheme = {
   };
 };
 
-export const dark: ColorScheme = {
-  name: COLOR_SCHEMES.DARK,
+export const Dark: ColorScheme = {
   type: 'dark',
   colors: {
     main: '#000000',
@@ -107,8 +100,7 @@ export const dark: ColorScheme = {
   },
 };
 
-export const light: ColorScheme = {
-  name: COLOR_SCHEMES.LIGHT,
+export const Light: ColorScheme = {
   type: 'light',
   colors: {
     main: '#f8f9fa',
@@ -117,8 +109,7 @@ export const light: ColorScheme = {
   },
 };
 
-export const jet: ColorScheme = {
-  name: COLOR_SCHEMES.JET,
+export const Jet: ColorScheme = {
   type: 'dark',
   colors: {
     main: '#353535',
@@ -127,8 +118,7 @@ export const jet: ColorScheme = {
   },
 };
 
-export const jungle: ColorScheme = {
-  name: COLOR_SCHEMES.JUNGLE,
+export const Jungle: ColorScheme = {
   type: 'dark',
   colors: {
     main: '#2F3E46',
@@ -137,4 +127,9 @@ export const jungle: ColorScheme = {
   },
 };
 
-export const AVAILABLE_COLOR_SCHEMES: ColorScheme[] = [light, dark, jungle, jet];
+export const AVAILABLE_COLOR_SCHEMES: Record<ColorSchemeName, ColorScheme> = {
+  Light,
+  Dark,
+  Jungle,
+  Jet,
+};

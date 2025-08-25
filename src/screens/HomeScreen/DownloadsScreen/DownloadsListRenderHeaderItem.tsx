@@ -1,15 +1,14 @@
 import {ColorScheme, OTOMANOPEE} from '@constants';
-import {useAppSelector} from '@store';
 import {SectionListData, StyleSheet, Text, View} from 'react-native';
 import {GroupedJobSection} from './DownloadsScreen';
-import {textColor} from '@utils';
+import {textColor, useAppCore} from '@utils';
 
 type Props = {
   section: SectionListData<GroupedJobSection['data'][0], GroupedJobSection>;
 };
 
 export function DownloadsListRenderHeaderItem({section}: Props) {
-  const {colorScheme} = useAppSelector(state => state.userPreferences);
+  const {colorScheme} = useAppCore();
 
   const styles = getStyles(colorScheme);
 

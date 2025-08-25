@@ -1,11 +1,7 @@
 import React, {StyleSheet} from 'react-native';
 import {ColorScheme} from '@constants';
-import {RootState, useAppSelector} from '@store';
-import Animated, {
-  useAnimatedStyle,
-  withSpring,
-  withTiming,
-} from 'react-native-reanimated';
+import Animated, {useAnimatedStyle, withSpring, withTiming} from 'react-native-reanimated';
+import {useAppCore} from '@utils';
 
 type Props = {
   currentPage: number;
@@ -13,9 +9,8 @@ type Props = {
 };
 
 export function HSJLPageIndicatorDot({currentPage, index}: Props) {
-  const {colorScheme} = useAppSelector(
-    (state: RootState) => state.userPreferences,
-  );
+  const {colorScheme} = useAppCore();
+
   const styles = getStyles(colorScheme);
   const isActive = currentPage === index;
 

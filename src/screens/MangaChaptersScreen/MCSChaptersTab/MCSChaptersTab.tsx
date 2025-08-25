@@ -12,7 +12,7 @@ import Clipboard from '@react-native-clipboard/clipboard';
 import {MaterialTopTabScreenProps} from '@react-navigation/material-top-tabs';
 import {FlashList, ListRenderItemInfo} from '@shopify/flash-list';
 import {RootState, useAppSelector} from '@store';
-import {textColor} from '@utils';
+import {textColor, useAppCore} from '@utils';
 import React, {useRef, useState} from 'react';
 import {
   Dimensions,
@@ -43,13 +43,9 @@ type Props = MaterialTopTabScreenProps<MCSBottomTabsParamsList, 'MCSChaptersTab'
 const {height, width} = Dimensions.get('screen');
 
 export function MCSChaptersTab({}: Props) {
-  const {colorScheme} = useAppSelector((state: RootState) => state.userPreferences);
-  const {libraryList} = useAppSelector((state: RootState) => state.libraryList);
-  const styles = getStyles(colorScheme);
   const {
     manga,
     chapters,
-    setChapters,
     onAddToLibPress,
     loading,
     loadingProgress,
@@ -59,6 +55,11 @@ export function MCSChaptersTab({}: Props) {
     order,
     setOrder,
   } = useMangaChaptersScreenContext();
+
+  const {colorScheme} = useAppCore();
+  const {libraryList} = useAppSelector((state: RootState) => state.libraryList);
+
+  const styles = getStyles(colorScheme);
 
   const listRef = useRef<FlashList<res_get_manga_$_feed['data'][0]>>(null);
 

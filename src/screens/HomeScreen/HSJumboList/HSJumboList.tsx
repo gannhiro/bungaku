@@ -1,12 +1,6 @@
 import {get_manga, mangadexAPI, res_get_manga} from '@api';
-import {
-  APP_NAME,
-  ColorScheme,
-  PRETENDARD_JP,
-  TOP_OVERLAY_HEIGHT,
-} from '@constants';
-import {RootState, useAppSelector} from '@store';
-import {textColor, useInternetConn} from '@utils';
+import {APP_NAME, ColorScheme, PRETENDARD_JP, TOP_OVERLAY_HEIGHT} from '@constants';
+import {textColor, useAppCore} from '@utils';
 import React, {Fragment, useEffect, useRef, useState} from 'react';
 import {
   Dimensions,
@@ -20,10 +14,7 @@ import {
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import * as Progress from 'react-native-progress';
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-} from 'react-native-reanimated';
+import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
 import {HSJumboListPageIndicator} from './HSJumboListPageIndicator';
 import {HSJumboListRenderItem} from './HSJumboListRenderItem';
 
@@ -33,10 +24,8 @@ export type CoverSources = {
 };
 
 export function HSJumboList() {
-  const intError = useInternetConn();
-  const {colorScheme} = useAppSelector(
-    (state: RootState) => state.userPreferences,
-  );
+  const {colorScheme, intError} = useAppCore();
+
   const styles = getStyles(colorScheme);
 
   const listRef = useRef<FlatList>(null);
@@ -54,10 +43,7 @@ export function HSJumboList() {
     };
   });
 
-  function renderItem({
-    item,
-    index,
-  }: ListRenderItemInfo<res_get_manga['data'][0]>) {
+  function renderItem({item, index}: ListRenderItemInfo<res_get_manga['data'][0]>) {
     return (
       <HSJumboListRenderItem
         manga={item}
@@ -76,10 +62,7 @@ export function HSJumboList() {
     }
   }
 
-  function getItemLayout(
-    data: res_get_manga['data'] | null | undefined,
-    index: number,
-  ) {
+  function getItemLayout(data: res_get_manga['data'] | null | undefined, index: number) {
     return {
       length: width,
       offset: 0,
@@ -146,10 +129,7 @@ export function HSJumboList() {
               style={[styles.bgImage]}
               key={'cover: ' + currCoverSrc}
             />
-            <LinearGradient
-              colors={['#0000', colorScheme.colors.main]}
-              style={[styles.gradient]}
-            />
+            <LinearGradient colors={['#0000', colorScheme.colors.main]} style={[styles.gradient]} />
           </Animated.View>
 
           <HSJumboListPageIndicator currentPage={currentPage} />
@@ -159,10 +139,7 @@ export function HSJumboList() {
           {intError ? (
             <Text>No Internet!</Text>
           ) : (
-            <Progress.CircleSnail
-              style={styles.spinner}
-              color={colorScheme.colors.secondary}
-            />
+            <Progress.CircleSnail style={styles.spinner} color={colorScheme.colors.secondary} />
           )}
         </View>
       )}

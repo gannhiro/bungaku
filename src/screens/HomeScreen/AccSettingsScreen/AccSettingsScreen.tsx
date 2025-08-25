@@ -10,12 +10,9 @@ import {
   TOP_OVERLAY_HEIGHT,
   useLabels,
 } from '@constants';
-import {RootStackParamsList} from '@navigation';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {useNavigation} from '@react-navigation/native';
-import {StackNavigationProp} from '@react-navigation/stack';
-import {RootState, setDataSaver, setPornographyVis, useAppDispatch, useAppSelector} from '@store';
-import {textColor} from '@utils';
+import {setDataSaver, setPornographyVis} from '@store';
+import {textColor, useAppCore} from '@utils';
 import React, {Fragment} from 'react';
 import {
   Alert,
@@ -50,15 +47,12 @@ export type Settings = {
 type SettingsType = 'page' | 'switch';
 
 export function AccSettingsScreen() {
-  const navigation =
-    useNavigation<StackNavigationProp<RootStackParamsList, 'HomeNavigator', undefined>>();
-  const dispatch = useAppDispatch();
-  const preferences = useAppSelector((state: RootState) => state.userPreferences);
-  const {colorScheme, preferDataSaver, allowPornography} = useAppSelector(
-    (state: RootState) => state.userPreferences,
-  );
-  const labels = useLabels();
+  const {dispatch, navigation, colorScheme, preferences} = useAppCore<'HomeNavigator'>();
+  const {preferDataSaver, allowPornography} = preferences;
+  const labels = useLabels().homeScreen.accountTab;
+
   const styles = getStyles(colorScheme);
+
   const browserSettings: InAppBrowserAndroidOptions = {
     enableUrlBarHiding: false,
     toolbarColor: colorScheme.colors.primary,
@@ -67,8 +61,8 @@ export function AccSettingsScreen() {
 
   const accountSettings: Settings['data'] = [
     {
-      label: labels.homeScreen.accountTab.accountSection.loginLabel,
-      subtitle: labels.homeScreen.accountTab.accountSection.loginSubLabel,
+      label: labels.accountSection.loginLabel,
+      subtitle: labels.accountSection.loginSubLabel,
       onPress: () => {
         navigation.navigate('LoginScreen');
       },
@@ -77,7 +71,7 @@ export function AccSettingsScreen() {
 
   const privacySettings: Settings['data'] = [
     {
-      label: labels.homeScreen.accountTab.privacySection.bungakuPrivPolicyLabel,
+      label: labels.privacySection.bungakuPrivPolicyLabel,
       onPress: async () => {
         await InAppBrowser.open(
           'https://sites.google.com/view/bungaku-privacy-policy/home',
@@ -86,7 +80,7 @@ export function AccSettingsScreen() {
       },
     },
     {
-      label: labels.homeScreen.accountTab.privacySection.mDexPrivPolicyLabel,
+      label: labels.privacySection.mDexPrivPolicyLabel,
       onPress: async () => {
         await InAppBrowser.open(
           'https://forums.mangadex.org/help/privacy-policy/',
@@ -95,13 +89,13 @@ export function AccSettingsScreen() {
       },
     },
     {
-      label: labels.homeScreen.accountTab.privacySection.mDexTermsLabel,
+      label: labels.privacySection.mDexTermsLabel,
       onPress: async () => {
         await InAppBrowser.open('https://forums.mangadex.org/help/terms/', browserSettings);
       },
     },
     {
-      label: labels.homeScreen.accountTab.privacySection.mDexCookieLabel,
+      label: labels.privacySection.mDexCookieLabel,
       onPress: async () => {
         InAppBrowser.open('https://forums.mangadex.org/help/cookies/', browserSettings);
       },
@@ -110,8 +104,8 @@ export function AccSettingsScreen() {
 
   const appearanceSettings: Settings['data'] = [
     {
-      label: labels.homeScreen.accountTab.appearanceSection.dataSaverLabel,
-      subtitle: labels.homeScreen.accountTab.appearanceSection.dataSaverSubLabel,
+      label: labels.appearanceSection.dataSaverLabel,
+      subtitle: labels.appearanceSection.dataSaverSubLabel,
       rightComponent: (
         <Switch
           trackColor={{
@@ -131,8 +125,8 @@ export function AccSettingsScreen() {
       ),
     },
     {
-      label: labels.homeScreen.accountTab.appearanceSection.themeLabel,
-      subtitle: labels.homeScreen.accountTab.appearanceSection.themeSubLabel,
+      label: labels.appearanceSection.themeLabel,
+      subtitle: labels.appearanceSection.themeSubLabel,
       onPress: () => {
         navigation.navigate('ThemeModal');
       },
@@ -141,8 +135,8 @@ export function AccSettingsScreen() {
 
   const languageSettings: Settings['data'] = [
     {
-      label: labels.homeScreen.accountTab.languageSection.interfaceLabel,
-      subtitle: labels.homeScreen.accountTab.languageSection.interfaceSubLabel,
+      label: labels.languageSection.interfaceLabel,
+      subtitle: labels.languageSection.interfaceSubLabel,
       onPress: () => {
         navigation.navigate('LanguageModal');
       },
@@ -151,7 +145,7 @@ export function AccSettingsScreen() {
 
   const otherSettings: Settings['data'] = [
     {
-      label: labels.homeScreen.accountTab.otherSection.allowPornLabel,
+      label: labels.otherSection.allowPornLabel,
       rightComponent: (
         <Switch
           trackColor={{
@@ -206,7 +200,7 @@ export function AccSettingsScreen() {
           }}
         />
       ),
-      subtitle: labels.homeScreen.accountTab.otherSection.allowPornSubLabel,
+      subtitle: labels.otherSection.allowPornSubLabel,
     },
     {
       label: 'Delete Cache',
@@ -222,15 +216,15 @@ export function AccSettingsScreen() {
       },
     },
     {
-      label: labels.homeScreen.accountTab.otherSection.creditsLabel,
-      subtitle: labels.homeScreen.accountTab.otherSection.creditsSubLabel,
+      label: labels.otherSection.creditsLabel,
+      subtitle: labels.otherSection.creditsSubLabel,
       onPress: () => {
         navigation.navigate('CreditsScreen');
       },
     },
     {
-      label: labels.homeScreen.accountTab.otherSection.feedbackLabel,
-      subtitle: labels.homeScreen.accountTab.otherSection.feedbackSubLabel,
+      label: labels.otherSection.feedbackLabel,
+      subtitle: labels.otherSection.feedbackSubLabel,
       onPress: () => {
         InAppBrowser.open('https://forms.gle/GK6c1xm3QcLaFxMZ9');
       },
@@ -254,27 +248,27 @@ export function AccSettingsScreen() {
 
   const settingsSectionList: Settings[] = [
     {
-      title: labels.homeScreen.accountTab.accountSection.headingLabel,
+      title: labels.accountSection.headingLabel,
       data: accountSettings,
       icon: <Image source={require('@assets/icons/account.png')} style={styles.icon} />,
     },
     {
-      title: labels.homeScreen.accountTab.privacySection.headingLabel,
+      title: labels.privacySection.headingLabel,
       data: privacySettings,
       icon: <Image source={require('@assets/icons/cookie.png')} style={styles.icon} />,
     },
     {
-      title: labels.homeScreen.accountTab.appearanceSection.headingLabel,
+      title: labels.appearanceSection.headingLabel,
       data: appearanceSettings,
       icon: <Image source={require('@assets/icons/compare.png')} style={styles.icon} />,
     },
     {
-      title: labels.homeScreen.accountTab.languageSection.headingLabel,
+      title: labels.languageSection.headingLabel,
       data: languageSettings,
       icon: <Image source={require('@assets/icons/earth.png')} style={styles.icon} />,
     },
     {
-      title: labels.homeScreen.accountTab.otherSection.headingLabel,
+      title: labels.otherSection.headingLabel,
       data: otherSettings,
       icon: <Image source={require('@assets/icons/cog.png')} style={styles.icon} />,
     },

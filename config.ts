@@ -1,8 +1,8 @@
-import {ColorScheme, Language, dark} from '@constants';
+import {Language, ColorSchemeName} from '@constants';
 import {ReadingMode} from '@screens';
 
 export type Config = {
-  colorScheme: ColorScheme;
+  colorScheme: ColorSchemeName;
   language: Language;
   readingMode: ReadingMode;
   preferDataSaver: boolean;
@@ -12,7 +12,7 @@ export type Config = {
 };
 
 export const CONFIG: Config = {
-  colorScheme: dark,
+  colorScheme: 'Dark',
   language: 'en',
   preferSystemColor: true,
   preferDataSaver: true,

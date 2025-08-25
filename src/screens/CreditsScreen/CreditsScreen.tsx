@@ -1,16 +1,9 @@
-import {
-  ColorScheme,
-  PRETENDARD_JP,
-  TOP_OVERLAY_HEIGHT,
-  mangaDexOrange,
-} from '@constants';
-import {RootState, useAppSelector} from '@store';
-import {textColor} from '@utils';
+import {ColorScheme, PRETENDARD_JP, TOP_OVERLAY_HEIGHT, mangaDexOrange} from '@constants';
+import {textColor, useAppCore} from '@utils';
 import React from 'react';
 import {
   Dimensions,
   Image,
-  Linking,
   ScrollView,
   StyleSheet,
   Text,
@@ -22,9 +15,8 @@ import InAppBrowser from 'react-native-inappbrowser-reborn';
 const {width} = Dimensions.get('screen');
 
 export function CreditsScreen() {
-  const {colorScheme} = useAppSelector(
-    (state: RootState) => state.userPreferences,
-  );
+  const {colorScheme} = useAppCore();
+
   const styles = getStyles(colorScheme);
 
   async function onSupportBtnPress() {
@@ -44,9 +36,7 @@ export function CreditsScreen() {
 
   return (
     <View style={styles.container}>
-      <ScrollView
-        style={styles.scrollview}
-        contentContainerStyle={styles.scrollviewCont}>
+      <ScrollView style={styles.scrollview} contentContainerStyle={styles.scrollviewCont}>
         <TouchableOpacity style={styles.touchableGroup} onPress={onPressMe}>
           <Image
             source={{
@@ -56,10 +46,7 @@ export function CreditsScreen() {
           />
           <View style={styles.row}>
             <Text style={styles.myLabel}>@gannhiro</Text>
-            <Image
-              source={require('@assets/icons/github.png')}
-              style={styles.myGitIcon}
-            />
+            <Image source={require('@assets/icons/github.png')} style={styles.myGitIcon} />
           </View>
           <Text style={styles.mySubLabel}>Creator of bungaku</Text>
         </TouchableOpacity>

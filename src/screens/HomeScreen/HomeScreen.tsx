@@ -1,16 +1,14 @@
 import {Button, DevelopersChoice, LibraryUpdates} from '@components';
 import {ColorScheme, PRETENDARD_JP, mangaDexOrange, neko} from '@constants';
-import {RootState, useAppSelector} from '@store';
-import {textColor} from '@utils';
+import {textColor, useAppCore} from '@utils';
 import React from 'react';
 import {ScrollView, StyleSheet, View} from 'react-native';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 import {HSJumboList} from './HSJumboList/HSJumboList';
 
 export function HomeScreen() {
-  const {colorScheme} = useAppSelector(
-    (state: RootState) => state.userPreferences,
-  );
+  const {colorScheme} = useAppCore();
+
   const styles = getStyles(colorScheme);
 
   async function onSupportBtnPress() {

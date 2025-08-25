@@ -1,5 +1,5 @@
 import {Button, Dropdown, GenericDropdownValues} from '@components';
-import {AVAILABLE_COLOR_SCHEMES, ColorScheme, PRETENDARD_JP} from '@constants';
+import {AVAILABLE_COLOR_SCHEMES, ColorSchemeName, ColorScheme, PRETENDARD_JP} from '@constants';
 import {RootStackParamsList} from '@navigation';
 import {BlurView} from '@react-native-community/blur';
 import {StackScreenProps} from '@react-navigation/stack';
@@ -24,16 +24,14 @@ export function ThemeModal({navigation}: Props) {
   const {colorScheme, preferSystemColor} = useAppSelector(
     (state: RootState) => state.userPreferences,
   );
-  const styles = getStyles(colorScheme);
+  const styles = getStyles(AVAILABLE_COLOR_SCHEMES[colorScheme]);
 
-  const [locColorScheme, setLocColorScheme] = useState<ColorScheme['name']>(
-    colorScheme.name,
-  );
+  const [locColorScheme, setLocColorScheme] = useState<ColorSchemeName>(colorScheme);
 
-  const choices: GenericDropdownValues = AVAILABLE_COLOR_SCHEMES.map(scheme => {
+  const choices: GenericDropdownValues = Object.keys(AVAILABLE_COLOR_SCHEMES).map(scheme => {
     return {
-      label: scheme.name,
-      value: scheme.name,
+      label: scheme,
+      value: scheme,
     };
   });
 
@@ -42,35 +40,21 @@ export function ThemeModal({navigation}: Props) {
   }
 
   useEffect(() => {
-    const locScheme = AVAILABLE_COLOR_SCHEMES.find(scheme => {
-      return scheme.name === locColorScheme;
-    });
-
     if (preferSystemColor) {
       dispatch(setPreferSystemColor(false));
       return;
     }
 
-    if (locScheme) {
-      dispatch(setColorScheme(locScheme));
-    }
+    dispatch(setColorScheme(locColorScheme));
   }, [dispatch, locColorScheme, preferSystemColor]);
 
   return (
     <View style={[styles.container]}>
-      <BlurView style={styles.blur} blurType={colorScheme.type} />
+      <BlurView style={styles.blur} blurType={AVAILABLE_COLOR_SCHEMES[colorScheme].type} />
       <Animated.View style={styles.innerCont} layout={LinearTransition}>
         <Text style={styles.label}>Theme</Text>
-        <Dropdown
-          items={choices}
-          selection={locColorScheme}
-          setSelection={setLocColorScheme}
-        />
-        <Button
-          title="Back"
-          onButtonPress={onBackBtnPress}
-          containerStyle={styles.backBtn}
-        />
+        <Dropdown items={choices} selection={locColorScheme} setSelection={setLocColorScheme} />
+        <Button title="Back" onButtonPress={onBackBtnPress} containerStyle={styles.backBtn} />
       </Animated.View>
     </View>
   );

@@ -3,7 +3,6 @@ import {
   get_manga_$_feed,
   get_statistics_manga,
   mangadexAPI,
-  ORDER,
   Ordering,
   res_get_cover_$,
   res_get_manga_$,
@@ -15,8 +14,8 @@ import {ColorScheme, Language} from '@constants';
 import {RootStackParamsList} from '@navigation';
 import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
 import {StackScreenProps} from '@react-navigation/stack';
-import {RootState, setError, useAppDispatch, useAppSelector} from '@store';
-import {useInternetConn} from '@utils';
+import {setError} from '@store';
+import {useAppCore} from '@utils';
 import React, {useEffect, useRef, useState} from 'react';
 import {Dimensions, Image, StyleSheet, View} from 'react-native';
 import FS from 'react-native-fs';
@@ -40,10 +39,8 @@ export type MCSBottomTabsParamsList = {
 const BottomTabs = createMaterialTopTabNavigator<MCSBottomTabsParamsList>();
 
 export function MangaChaptersScreen({route, navigation}: Props) {
-  const intError = useInternetConn();
-  const dispatch = useAppDispatch();
+  const {dispatch, colorScheme, preferences} = useAppCore();
 
-  const {colorScheme} = useAppSelector((state: RootState) => state.userPreferences);
   const styles = getStyles(colorScheme);
 
   const orderItems: GenericDropdownValues = [

@@ -16,9 +16,10 @@ import {MangaListRenderItem} from './MangaListRenderItem';
 import {mangadexAPI, get_manga, res_get_manga} from '@api';
 import {MangaListFooter} from './MangaListFooter';
 import {ColorScheme, PRETENDARD_JP} from '@constants';
-import {RootState, setError, useAppDispatch, useAppSelector} from '@store';
-import {textColor, useInternetConn} from '@utils';
+import {setError} from '@store';
+import {textColor} from '@utils';
 import * as Progress from 'react-native-progress';
+import {useAppCore} from 'src/utils/hooks/useAppCore';
 
 const {width} = Dimensions.get('screen');
 
@@ -31,9 +32,7 @@ interface Props {
 }
 
 export function MangaList({params, horizontal, style, contentViewStyle, onScroll}: Props) {
-  const intError = useInternetConn();
-  const dispatch = useAppDispatch();
-  const {colorScheme} = useAppSelector((state: RootState) => state.userPreferences);
+  const {dispatch, colorScheme, intError} = useAppCore();
 
   const styles = getStyles(colorScheme);
 

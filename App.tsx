@@ -1,7 +1,7 @@
 import {updateManga} from '@store';
 import React, {useEffect} from 'react';
 import {LogBox} from 'react-native';
-import BackgroundFetch from 'react-native-background-fetch';
+import BackgroundFetch, {HeadlessEvent} from 'react-native-background-fetch';
 import FS from 'react-native-fs';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {Provider} from 'react-redux';
@@ -15,7 +15,10 @@ export default function App() {
     (async () => {
       async function initBackgroundFetch() {
         function onEvent(taskId: string) {
-          backgroundWork(taskId);
+          backgroundWork({
+            taskId: taskId,
+            timeout: false,
+          });
         }
 
         function onTimeout(taskId: string) {
@@ -52,7 +55,7 @@ export default function App() {
   );
 }
 
-export async function backgroundWork(taskId: string) {
+export async function backgroundWork(event: HeadlessEvent) {
   let date = new Date();
   console.log(
     `BGFETCH: MANGA UPDATES START - ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`,
@@ -83,5 +86,5 @@ export async function backgroundWork(taskId: string) {
       : console.log('FAILED'),
   );
 
-  BackgroundFetch.finish(taskId);
+  BackgroundFetch.finish(event.taskId);
 }

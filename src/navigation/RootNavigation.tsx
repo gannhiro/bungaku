@@ -1,5 +1,5 @@
 import {Overlay} from '@components';
-import {AVAILABLE_COLOR_SCHEMES, dark, light} from '@constants';
+import {AVAILABLE_COLOR_SCHEMES, ColorSchemeName, Dark, Light} from '@constants';
 import {AddToLibraryModal, LanguageModal, ThemeModal} from '@modals';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
@@ -66,13 +66,11 @@ const linking: LinkingOptions<RootStackParamsList> = {
 
 export default function RootNavigation() {
   const dispatch = useAppDispatch();
-  const {preferSystemColor, colorScheme} = useAppSelector(
-    (state: RootState) => state.userPreferences,
-  );
-  const preferences = useAppSelector((state: RootState) => state.userPreferences);
+  const userPreferences = useAppSelector((state: RootState) => state.userPreferences);
+  const {preferSystemColor, colorScheme} = userPreferences;
   const systemColorScheme = useColorScheme();
 
-  const [theme, setTheme] = useState<Theme>(themeConverter(dark));
+  const [theme, setTheme] = useState<Theme>(themeConverter(Dark));
 
   const stackNavOption: StackNavigationOptions = {
     headerShown: false,
@@ -94,31 +92,39 @@ export default function RootNavigation() {
     (async () => {
       if (preferSystemColor) {
         if (systemColorScheme === 'dark') {
-          dispatch(setColorScheme(dark));
-          setTheme(themeConverter(dark));
+          dispatch(setColorScheme('Dark'));
+          setTheme(themeConverter(Dark));
         } else {
-          dispatch(setColorScheme(light));
-          setTheme(themeConverter(light));
+          dispatch(setColorScheme('Light'));
+          setTheme(themeConverter(Light));
         }
         return;
       }
 
-      await AsyncStorage.setItem('settings', JSON.stringify(preferences));
+      await AsyncStorage.setItem('settings', JSON.stringify(userPreferences));
 
-      AVAILABLE_COLOR_SCHEMES.forEach(scheme => {
-        if (scheme.name === colorScheme.name) {
-          changeNavigationBarColor(colorScheme.colors.main, colorScheme.type === 'light', true);
+      Object.keys(AVAILABLE_COLOR_SCHEMES).forEach(scheme => {
+        if (scheme === colorScheme) {
+          const chosenColorScheme = AVAILABLE_COLOR_SCHEMES[colorScheme];
+
+          changeNavigationBarColor(
+            chosenColorScheme.colors.main,
+            chosenColorScheme.type === 'light',
+            true,
+          );
           dispatch(setColorScheme(scheme));
-          setTheme(themeConverter(scheme));
+          setTheme(themeConverter(chosenColorScheme));
         }
       });
     })();
-  }, [systemColorScheme, preferSystemColor, dispatch, colorScheme, preferences]);
+  }, [systemColorScheme, userPreferences, dispatch]);
 
   return (
     <Overlay>
       <StatusBar
-        barStyle={colorScheme.type === 'dark' ? 'light-content' : 'dark-content'}
+        barStyle={
+          AVAILABLE_COLOR_SCHEMES[colorScheme].type === 'dark' ? 'light-content' : 'dark-content'
+        }
         translucent={true}
         backgroundColor={'#00000000'}
       />

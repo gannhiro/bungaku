@@ -2,7 +2,7 @@ import {createSlice} from '@reduxjs/toolkit';
 import {PayloadAction} from '@reduxjs/toolkit';
 import type {RootState} from '@store';
 import {CONFIG, Config} from '../../../config';
-import {ColorScheme, Language} from '@constants';
+import {ColorSchemeName, Language} from '@constants';
 import {READING_MODES} from '@screens';
 
 const initialState: Config = CONFIG;
@@ -11,7 +11,7 @@ export const userPreferencesSlice = createSlice({
   name: 'userPreferences',
   initialState: initialState,
   reducers: {
-    setColorScheme: (state, action: PayloadAction<ColorScheme>) => {
+    setColorScheme: (state, action: PayloadAction<ColorSchemeName>) => {
       state.colorScheme = action.payload;
     },
     setPornographyVis: (state, action: PayloadAction<boolean>) => {

@@ -2,16 +2,15 @@ import {StyleSheet, View} from 'react-native';
 import React, {Fragment} from 'react';
 import {HSJLPageIndicatorDot} from './HSJLPageIndicatorDot';
 import {ColorScheme} from '@constants';
-import {RootState, useAppSelector} from '@store';
+import {useAppCore} from '@utils';
 
 type Props = {
   currentPage: number;
 };
 
 export function HSJumboListPageIndicator({currentPage}: Props) {
-  const {colorScheme} = useAppSelector(
-    (state: RootState) => state.userPreferences,
-  );
+  const {colorScheme} = useAppCore();
+
   const styles = getStyles(colorScheme);
 
   return (

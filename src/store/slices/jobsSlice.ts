@@ -370,6 +370,7 @@ export const cacheChapter = createAsyncThunk<
     {chapter, manga, isDataSaver, callback}: CacheChapterProps,
     {fulfillWithValue, rejectWithValue, signal, dispatch},
   ) => {
+    // TODO
     const cacheDirectory = `${FS.CachesDirectoryPath}/${manga.id}/${chapter.id}`;
     const data = await mangadexAPI<res_at_home_$, {}>(
       'get',
@@ -418,9 +419,19 @@ export const cacheChapter = createAsyncThunk<
       await Promise.allSettled(pagePromises);
 
       return fulfillWithValue({success: true});
-    } else if (signal?.aborted || data.result === 'aborted') {
-      return rejectWithValue({reason: 'Aborted'});
     }
+
+    if (signal?.aborted || data.result === 'aborted') {
+      return rejectWithValue({
+        reason: 'Aborted',
+        jobId: '', // TODO
+      });
+    }
+
+    return rejectWithValue({
+      reason: 'Aborted',
+      jobId: '', // TODO
+    });
   },
 );
 
