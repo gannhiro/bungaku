@@ -1,21 +1,28 @@
 import {MaterialTopTabScreenProps} from '@react-navigation/material-top-tabs';
 import {HomeBottomTabsParamsList} from '../HomeNavigator';
 import {JobStatus, RootState, useAppSelector} from '@store';
-import {ColorScheme} from '@constants';
-import {SectionList, SectionListRenderItemInfo, StyleSheet, View} from 'react-native';
+import {ColorScheme, TOP_OVERLAY_HEIGHT} from '@constants';
+import {
+  SectionList,
+  SectionListData,
+  SectionListRenderItemInfo,
+  StyleSheet,
+  View,
+} from 'react-native';
 import {DownloadsListRenderItem} from './DownloadsListRenderItem';
 import {createSelector} from '@reduxjs/toolkit';
 import {res_get_manga_$_feed} from '@api';
+import {DownloadsListRenderHeaderItem} from './DownloadsListRenderHeaderItem';
+import {useEffect} from 'react';
 
 export interface GroupedJobSection {
   mangaId: string;
   title: string;
   coverFileName?: string;
-  // Data now includes jobId, status, and potentially the chapter object
   data: {
     jobId: string;
-    status: JobStatus; // Full status object might be useful for renderItem
-    chapter?: res_get_manga_$_feed['data'][0]; // Pass chapter info if needed
+    status: JobStatus;
+    chapter?: res_get_manga_$_feed['data'][0];
   }[];
 }
 
@@ -31,6 +38,18 @@ export function DownloadsScreen({}: Props) {
     return <DownloadsListRenderItem jobDetails={item} />;
   }
 
+  function renderSectionHeader({
+    section,
+  }: {
+    section: SectionListData<GroupedJobSection['data'][0], GroupedJobSection>;
+  }) {
+    return <DownloadsListRenderHeaderItem section={section} />;
+  }
+
+  useEffect(() => {
+    console.log('changed jobs');
+  }, [jobs]);
+
   return (
     <View style={styles.container}>
       <SectionList
@@ -38,6 +57,7 @@ export function DownloadsScreen({}: Props) {
         contentContainerStyle={styles.downloadsListContent}
         sections={jobs}
         renderItem={renderItem}
+        renderSectionHeader={renderSectionHeader}
       />
     </View>
   );
@@ -60,7 +80,7 @@ const selectGroupedJobs = createSelector([selectJobsMap], (jobs): GroupedJobSect
 
       grouped[mangaId] = {
         mangaId: mangaId,
-        title: manga?.attributes?.title?.en ?? mangaId, // Use manga title, fallback to ID
+        title: manga?.attributes?.title?.en ?? mangaId,
         coverFileName: coverFileName,
         data: [],
       };
@@ -98,7 +118,8 @@ function getStyles(colorScheme: ColorScheme) {
       flex: 1,
     },
     downloadsListContent: {
-      paddingTop: 10,
+      paddingTop: 50,
+      paddingBottom: 50,
       paddingHorizontal: 10,
     },
   });

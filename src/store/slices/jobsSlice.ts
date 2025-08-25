@@ -370,20 +370,6 @@ export const cacheChapter = createAsyncThunk<
     {chapter, manga, isDataSaver, callback}: CacheChapterProps,
     {fulfillWithValue, rejectWithValue, signal, dispatch},
   ) => {
-    const jobId = `cache-${chapter.id}`;
-    dispatch(
-      setJobStatus({
-        jobId,
-        status: {
-          manga,
-          chapter,
-          status: 'pending',
-          jobType: 'cacheChapter',
-          progress: 0,
-        },
-      }),
-    );
-
     const cacheDirectory = `${FS.CachesDirectoryPath}/${manga.id}/${chapter.id}`;
     const data = await mangadexAPI<res_at_home_$, {}>(
       'get',
@@ -408,8 +394,6 @@ export const cacheChapter = createAsyncThunk<
 
       await FS.writeFile(`${cacheDirectory}/chapter.json`, JSON.stringify(chapterDetails));
 
-      const totalPages = downloadedChapters.length;
-
       const pagePromises: Promise<FS.DownloadResult>[] = downloadedChapters.map(pageId => {
         const pageUrl = `${data.baseUrl}/${baseUrlSegment}/${data.chapter.hash}/${pageId}`;
         const localPath = `${cacheDirectory}/${pageId}`;
@@ -431,72 +415,11 @@ export const cacheChapter = createAsyncThunk<
         data,
       );
 
-      const results = await Promise.allSettled(pagePromises);
+      await Promise.allSettled(pagePromises);
 
-      const successfulDownloads = results.filter(r => r.status === 'fulfilled').length;
-      const finalProgress = Math.floor((successfulDownloads / totalPages) * 100);
-      dispatch(updateJobProgress({jobId, progress: finalProgress}));
-
-      const failedDownloads = results.filter(r => r.status === 'rejected');
-      if (failedDownloads.length > 0) {
-        await FS.unlink(cacheDirectory).catch(e =>
-          console.error(`Cleanup error for cache ${jobId}: ${e}`),
-        );
-        dispatch(
-          setJobStatus({
-            jobId,
-            status: {
-              status: 'failed',
-              jobType: 'cacheChapter',
-              error: `${failedDownloads.length} cache pages failed`,
-            },
-          }),
-        );
-        return rejectWithValue({
-          reason: `${failedDownloads.length} cache pages failed`,
-          jobId,
-        });
-      }
-
-      dispatch(
-        setJobStatus({
-          jobId,
-          status: {
-            status: 'succeeded',
-            jobType: 'cacheChapter',
-            progress: 100,
-          },
-        }),
-      );
-      return fulfillWithValue({success: true, jobId});
+      return fulfillWithValue({success: true});
     } else if (signal?.aborted || data.result === 'aborted') {
-      dispatch(
-        setJobStatus({
-          jobId,
-          status: {
-            status: 'failed',
-            jobType: 'cacheChapter',
-            error: 'Aborted',
-          },
-        }),
-      );
-      return rejectWithValue({reason: 'Aborted', jobId});
-    } else {
-      dispatch(
-        setJobStatus({
-          jobId,
-          status: {
-            status: 'failed',
-            jobType: 'cacheChapter',
-            error: data.result,
-          },
-        }),
-      );
-      if (data.result === 'error') dispatch(setError(data));
-      return rejectWithValue({
-        reason: `API Error: ${data.result}`,
-        jobId,
-      });
+      return rejectWithValue({reason: 'Aborted'});
     }
   },
 );
@@ -559,9 +482,9 @@ export const jobsSlice = createSlice({
     updateJobProgress: (state, action: PayloadAction<{jobId: string; progress: number}>) => {
       const {jobId, progress} = action.payload;
       const job = state.jobs[jobId];
-      if (job && (job.jobType === 'downloadChapter' || job.jobType === 'cacheChapter')) {
+      if (job && job.jobType === 'downloadChapter') {
         if (job.status === 'pending' || job.status === 'queued') {
-          job.progress = Math.max(0, Math.min(100, progress));
+          job.progress = progress;
           if (job.status === 'queued') job.status = 'pending';
           job.error = undefined;
         }
@@ -633,7 +556,7 @@ export const jobsSlice = createSlice({
         if (state.jobs[jobId]) {
           state.jobs[jobId].status =
             result === 'success' || result === 'exists' ? 'succeeded' : 'failed';
-          state.jobs[jobId].progress = 100;
+          state.jobs[jobId].progress = 1;
           state.jobs[jobId].error =
             result === 'aborted'
               ? 'Aborted'

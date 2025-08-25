@@ -27,23 +27,13 @@ interface Props {
   horizontal?: boolean;
   style?: StyleProp<ViewStyle>;
   contentViewStyle?: StyleProp<ViewStyle>;
-  onScroll?:
-    | ((event: NativeSyntheticEvent<NativeScrollEvent>) => void)
-    | undefined;
+  onScroll?: ((event: NativeSyntheticEvent<NativeScrollEvent>) => void) | undefined;
 }
 
-export function MangaList({
-  params,
-  horizontal,
-  style,
-  contentViewStyle,
-  onScroll,
-}: Props) {
+export function MangaList({params, horizontal, style, contentViewStyle, onScroll}: Props) {
   const intError = useInternetConn();
   const dispatch = useAppDispatch();
-  const {colorScheme} = useAppSelector(
-    (state: RootState) => state.userPreferences,
-  );
+  const {colorScheme} = useAppSelector((state: RootState) => state.userPreferences);
 
   const styles = getStyles(colorScheme);
 
@@ -57,17 +47,9 @@ export function MangaList({
   const flatlistRef = useRef<FlatList>(null);
   const abortController = useRef<AbortController | null>(null);
 
-  function renderItem({
-    item,
-    index,
-  }: ListRenderItemInfo<res_get_manga['data'][0]>) {
+  function renderItem({item, index}: ListRenderItemInfo<res_get_manga['data'][0]>) {
     return (
-      <MangaListRenderItem
-        key={item.id + index}
-        manga={item}
-        index={index}
-        size={mangas.length}
-      />
+      <MangaListRenderItem key={item.id + index} manga={item} index={index} size={mangas.length} />
     );
   }
 
@@ -83,6 +65,7 @@ export function MangaList({
         ...params,
         offset: offset + params.limit,
         includes: ['artist', 'author', 'cover_art'],
+        contentRating: ['safe'],
       },
       [],
     );
@@ -199,16 +182,11 @@ export function MangaList({
           renderItem={renderItem}
           horizontal={horizontal}
           style={styles.container}
-          contentContainerStyle={[
-            styles.flatlistContainerStyle,
-            contentViewStyle,
-          ]}
+          contentContainerStyle={[styles.flatlistContainerStyle, contentViewStyle]}
           keyExtractor={(_item, index) => _item.id + ' - ' + index.toString()}
           onEndReached={onEndReached}
           ref={flatlistRef}
-          ListFooterComponent={
-            !(total <= offset + params.limit) ? <MangaListFooter /> : undefined
-          }
+          ListFooterComponent={!(total <= offset + params.limit) ? <MangaListFooter /> : undefined}
           onEndReachedThreshold={0.1}
           numColumns={horizontal ? 0 : 2}
           showsVerticalScrollIndicator={false}
@@ -237,10 +215,7 @@ export function MangaList({
             intError ? (
               <Text style={styles.noInternetLabel}>No Internet!</Text>
             ) : (
-              <Progress.CircleSnail
-                size={width / 4}
-                color={textColor(colorScheme.colors.main)}
-              />
+              <Progress.CircleSnail size={width / 4} color={textColor(colorScheme.colors.main)} />
             )
           ) : (
             <Fragment>

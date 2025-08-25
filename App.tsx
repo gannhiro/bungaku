@@ -11,35 +11,34 @@ import {store} from './src/store/store';
 export default function App() {
   LogBox.ignoreAllLogs();
 
-  async function initBackgroundFetch() {
-    async function onEvent(taskId: string) {
-      await backgroundWork();
-      BackgroundFetch.finish(taskId);
-    }
-
-    async function onTimeout(taskId: string) {
-      console.error('[BackgroundFetch] TIMEOUT task: ', taskId);
-      BackgroundFetch.finish(taskId);
-    }
-
-    await BackgroundFetch.configure(
-      {
-        minimumFetchInterval: 15,
-        requiredNetworkType: BackgroundFetch.NETWORK_TYPE_UNMETERED,
-        forceAlarmManager: true,
-        requiresBatteryNotLow: true,
-        requiresStorageNotLow: true,
-        startOnBoot: true,
-        enableHeadless: true,
-        stopOnTerminate: false,
-      },
-      onEvent,
-      onTimeout,
-    );
-  }
-
   useEffect(() => {
     (async () => {
+      async function initBackgroundFetch() {
+        function onEvent(taskId: string) {
+          backgroundWork(taskId);
+        }
+
+        function onTimeout(taskId: string) {
+          console.error('[BackgroundFetch] TIMEOUT task: ', taskId);
+          BackgroundFetch.finish(taskId);
+        }
+
+        await BackgroundFetch.configure(
+          {
+            minimumFetchInterval: 60,
+            requiredNetworkType: BackgroundFetch.NETWORK_TYPE_UNMETERED,
+            forceAlarmManager: true,
+            requiresBatteryNotLow: true,
+            requiresStorageNotLow: true,
+            startOnBoot: true,
+            enableHeadless: true,
+            stopOnTerminate: false,
+          },
+          onEvent,
+          onTimeout,
+        );
+      }
+
       await initBackgroundFetch();
     })();
   }, []);
@@ -53,7 +52,7 @@ export default function App() {
   );
 }
 
-export async function backgroundWork() {
+export async function backgroundWork(taskId: string) {
   let date = new Date();
   console.log(
     `BGFETCH: MANGA UPDATES START - ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`,
@@ -83,4 +82,6 @@ export async function backgroundWork() {
       ? console.log(`MANGA ${mangaUpdate.value.meta.arg}: SUCCESS`)
       : console.log('FAILED'),
   );
+
+  BackgroundFetch.finish(taskId);
 }

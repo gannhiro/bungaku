@@ -58,35 +58,27 @@ export const systemGray5 =
 export const systemGray6 =
   Appearance.getColorScheme() === 'dark' ? systemDarkGray6 : systemLightGray6;
 
-export const systemRed =
-  Appearance.getColorScheme() === 'dark' ? systemRedDark : systemRedDark;
+export const systemRed = Appearance.getColorScheme() === 'dark' ? systemRedDark : systemRedDark;
 export const systemOrange =
   Appearance.getColorScheme() === 'dark' ? systemOrangeDark : systemOrangeLight;
 export const systemYellow =
   Appearance.getColorScheme() === 'dark' ? systemYellowDark : systemYellowLight;
 export const systemGreen =
   Appearance.getColorScheme() === 'dark' ? systemGreenDark : systemGreenLight;
-export const systemMint =
-  Appearance.getColorScheme() === 'dark' ? systemMintDark : systemMintLight;
-export const systemTeal =
-  Appearance.getColorScheme() === 'dark' ? systemTealDark : systemTealLight;
-export const systemCyan =
-  Appearance.getColorScheme() === 'dark' ? systemCyanDark : systemCyanLight;
-export const systemBlue =
-  Appearance.getColorScheme() === 'dark' ? systemBlueDark : systemBlueLight;
+export const systemMint = Appearance.getColorScheme() === 'dark' ? systemMintDark : systemMintLight;
+export const systemTeal = Appearance.getColorScheme() === 'dark' ? systemTealDark : systemTealLight;
+export const systemCyan = Appearance.getColorScheme() === 'dark' ? systemCyanDark : systemCyanLight;
+export const systemBlue = Appearance.getColorScheme() === 'dark' ? systemBlueDark : systemBlueLight;
 export const systemIndigo =
   Appearance.getColorScheme() === 'dark' ? systemIndigoDark : systemIndigoLight;
 export const systemPurple =
   Appearance.getColorScheme() === 'dark' ? systemPurpleDark : systemPurpleLight;
-export const systemPink =
-  Appearance.getColorScheme() === 'dark' ? systemPinkDark : systemPinkLight;
+export const systemPink = Appearance.getColorScheme() === 'dark' ? systemPinkDark : systemPinkLight;
 export const systemBrown =
   Appearance.getColorScheme() === 'dark' ? systemBrownDark : systemBrownLight;
 
-export const systemMain =
-  Appearance.getColorScheme() === 'dark' ? black : white;
-export const systemMainText =
-  Appearance.getColorScheme() === 'dark' ? white : black;
+export const systemMain = Appearance.getColorScheme() === 'dark' ? black : white;
+export const systemMainText = Appearance.getColorScheme() === 'dark' ? white : black;
 
 export enum COLOR_SCHEMES {
   DARK = 'Dark',
@@ -145,9 +137,4 @@ export const jungle: ColorScheme = {
   },
 };
 
-export const AVAILABLE_COLOR_SCHEMES: ColorScheme[] = [
-  light,
-  dark,
-  jungle,
-  jet,
-];
+export const AVAILABLE_COLOR_SCHEMES: ColorScheme[] = [light, dark, jungle, jet];
