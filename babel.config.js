@@ -28,6 +28,7 @@ module.exports = {
           '@api': './src/api',
           '@types': './src/types',
           '@assets': './assets',
+          '@db': './src/db',
         },
       },
     ],

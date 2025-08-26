@@ -69,7 +69,7 @@ export function MangaTagsDropdown({includedTags, setIncludedTags, style}: Props)
     }
     const selected = includedTags.includes(item.id);
     const border: ViewStyle = {
-      borderBottomWidth: index < tags?.data.length - 1 ? 1 : 0,
+      borderBottomWidth: index < tags?.length - 1 ? 1 : 0,
       borderColor: colorScheme.colors.main,
     };
     let groupIndicatorColor: ViewStyle = {
@@ -138,7 +138,7 @@ export function MangaTagsDropdown({includedTags, setIncludedTags, style}: Props)
       (async () => {
         const data = await mangadexAPI<res_get_manga_tag, {}>('get', '/manga/tag', {}, []);
         if (data && data.result === 'ok') {
-          dispatch(setMangaTags(data));
+          dispatch(setMangaTags(data['data']));
         } else if (data && data.result === 'error') {
           dispatch(setError(data));
         }
@@ -168,7 +168,7 @@ export function MangaTagsDropdown({includedTags, setIncludedTags, style}: Props)
                   ? includedTags.length + ' tags selected'
                   : includedTags.map((tagString, index) => {
                       let labelString = '';
-                      tags.data?.forEach(tag => {
+                      tags?.forEach(tag => {
                         if (tagString === tag.id) {
                           labelString = tag.attributes.name.en;
                         }
@@ -190,10 +190,10 @@ export function MangaTagsDropdown({includedTags, setIncludedTags, style}: Props)
           <Animated.FlatList
             entering={FadeInDown}
             style={[styles.selectionDropdownCont]}
-            data={tags.data}
+            data={tags}
             renderItem={renderItem as ListRenderItem<res_get_manga_tag['data'][0]>}
             nestedScrollEnabled
-            initialNumToRender={tags.total}
+            initialNumToRender={tags.length}
           />
         )}
       </Fragment>

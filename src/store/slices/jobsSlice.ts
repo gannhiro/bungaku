@@ -368,7 +368,7 @@ export const cacheChapter = createAsyncThunk<
   'jobs/cacheChapter',
   async (
     {chapter, manga, isDataSaver, callback}: CacheChapterProps,
-    {fulfillWithValue, rejectWithValue, signal, dispatch},
+    {fulfillWithValue, rejectWithValue, signal},
   ) => {
     // TODO
     const cacheDirectory = `${FS.CachesDirectoryPath}/${manga.id}/${chapter.id}`;
@@ -418,7 +418,7 @@ export const cacheChapter = createAsyncThunk<
 
       await Promise.allSettled(pagePromises);
 
-      return fulfillWithValue({success: true});
+      return fulfillWithValue({success: true, jobId: ''});
     }
 
     if (signal?.aborted || data.result === 'aborted') {

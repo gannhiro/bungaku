@@ -2,9 +2,8 @@ import {APP_NAME, ColorScheme, PRETENDARD_JP} from '@constants';
 import {RootStackParamsList} from '@navigation';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {StackScreenProps} from '@react-navigation/stack';
-import {initializeMangaTags, setConfig, setLibraryList} from '@store';
+import {initializeMangaTags, initializeUserPreferences, setLibraryList} from '@store';
 import {textColor, useAppCore} from '@utils';
-import {Config} from 'config';
 import React, {useEffect, useState} from 'react';
 import {PermissionsAndroid, StyleSheet, View} from 'react-native';
 import FS from 'react-native-fs';
@@ -69,14 +68,7 @@ export function SplashScreen({navigation}: Props) {
 
       // get preferences
       setLoadingText('fetching settings');
-      const storedPreferences = await AsyncStorage.getItem('settings');
-      if (storedPreferences) {
-        const extractedStoredPreference: Config = JSON.parse(storedPreferences);
-        dispatch(setConfig(extractedStoredPreference));
-        console.log('setting preferences completed.');
-      } else {
-        await AsyncStorage.setItem('settings', JSON.stringify(preferences));
-      }
+      dispatch(initializeUserPreferences());
 
       // initialize library list
       setLoadingText('getting library');

@@ -12,7 +12,8 @@
       "@store": ["src/store/index"],
       "@api": ["src/api/index"],
       "@assets/*": ["assets/*"],
-      "@types": ["src/types"]
+      "@types": ["src/types"],
+      "@db": ["src/db/index"]
     },
     "moduleResolution": "node",
     "noEmit": true,

@@ -1,6 +1,6 @@
 import {Model} from '@nozbe/watermelondb';
 import {field, json, text} from '@nozbe/watermelondb/decorators';
-import {database} from '../../../index';
+import {database} from '@db';
 
 type LocalizedString = {[key: string]: string};
 
