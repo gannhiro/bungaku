@@ -19,7 +19,7 @@ import {ColorScheme, PRETENDARD_JP} from '@constants';
 import {setError} from '@store';
 import {textColor} from '@utils';
 import * as Progress from 'react-native-progress';
-import {useAppCore} from 'src/utils/hooks/useAppCore';
+import {useAppCore} from '@utils';
 
 const {width} = Dimensions.get('screen');
 

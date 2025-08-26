@@ -1,9 +1,8 @@
-import {mangadexAPI, res_get_manga_tag} from '@api';
 import {APP_NAME, ColorScheme, PRETENDARD_JP} from '@constants';
 import {RootStackParamsList} from '@navigation';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {StackScreenProps} from '@react-navigation/stack';
-import {RootState, setConfig, setError, setLibraryList, setMangaTags, useAppSelector} from '@store';
+import {initializeMangaTags, setConfig, setLibraryList} from '@store';
 import {textColor, useAppCore} from '@utils';
 import {Config} from 'config';
 import React, {useEffect, useState} from 'react';
@@ -16,13 +15,11 @@ type Props = StackScreenProps<RootStackParamsList, 'SplashScreen'>;
 
 export function SplashScreen({navigation}: Props) {
   const {dispatch, colorScheme, preferences} = useAppCore();
-  const {tags} = useAppSelector((state: RootState) => state.mangaTags);
   const styles = getStyles(colorScheme);
 
   const [loadingText, setLoadingText] = useState('loading');
   const [numDots, setNumDots] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [initialLoad, setInitialLoad] = useState(true);
 
   // dots effect
   useEffect(() => {
@@ -40,11 +37,6 @@ export function SplashScreen({navigation}: Props) {
   }, [loading, numDots]);
 
   useEffect(() => {
-    if (initialLoad) {
-      setInitialLoad(false);
-    } else {
-      return;
-    }
     (async () => {
       // check if installed for first time
       const firstTimeInstall = await AsyncStorage.getItem('first-time');
@@ -72,22 +64,8 @@ export function SplashScreen({navigation}: Props) {
       }
 
       // get tags
-      const storedTags = await AsyncStorage.getItem('tags');
-      if (!storedTags) {
-        setLoadingText('fetching tags');
-        const data = await mangadexAPI<res_get_manga_tag, {}>('get', '/manga/tag', {}, []);
-        if (data.result === 'ok') {
-          dispatch(setMangaTags(data));
-          await AsyncStorage.setItem('tags', JSON.stringify(data));
-        }
-        if (data.result === 'error') {
-          dispatch(setError(data));
-        }
-      } else {
-        setLoadingText('extracting tags');
-        const extractedTags: res_get_manga_tag = JSON.parse(storedTags);
-        dispatch(setMangaTags(extractedTags));
-      }
+      setLoadingText('fetching tags');
+      await dispatch(initializeMangaTags());
 
       // get preferences
       setLoadingText('fetching settings');
@@ -109,7 +87,7 @@ export function SplashScreen({navigation}: Props) {
       setLoadingText('welcome');
       setLoading(false);
     })();
-  }, [preferences, dispatch, initialLoad, loading, navigation, tags]);
+  }, [dispatch]);
 
   useEffect(() => {
     if (!loading) {

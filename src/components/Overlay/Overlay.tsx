@@ -1,9 +1,9 @@
 import React, {useEffect, useState} from 'react';
 import {Dimensions, Image, SafeAreaView, StatusBar, StyleSheet, Text} from 'react-native';
 import Animated, {SlideInDown, SlideInUp, SlideOutDown, SlideOutUp} from 'react-native-reanimated';
-import {ColorScheme, PRETENDARD_JP, systemRed, white} from '@constants';
-import {RootState, setError, useAppSelector} from '@store';
-import {useAppCore, useInternetConn} from '@utils';
+import {AVAILABLE_COLOR_SCHEMES, ColorScheme, PRETENDARD_JP, systemRed, white} from '@constants';
+import {RootState, setError, useAppDispatch, useAppSelector} from '@store';
+import {useInternetConn} from '@utils';
 
 type Props = {
   children: JSX.Element[];
@@ -12,7 +12,9 @@ type Props = {
 const {height} = Dimensions.get('window');
 
 export function Overlay({children}: Props) {
-  const {dispatch, colorScheme} = useAppCore<'HomeNavigator'>();
+  const dispatch = useAppDispatch();
+  const colorScheme =
+    AVAILABLE_COLOR_SCHEMES[useAppSelector(state => state.userPreferences.colorScheme)];
 
   const {error} = useAppSelector((state: RootState) => state.error);
   const styles = getStyles(colorScheme);

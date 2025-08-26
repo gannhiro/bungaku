@@ -12,6 +12,10 @@ import SQLiteAdapter from '@nozbe/watermelondb/adapters/sqlite';
 import schema from './src/db/schema';
 import migrations from './src/db/migration';
 
+import Manga from './src/db/models/manga';
+import Tag from './src/db/models/tag';
+import UserPreference from './src/db/models/userPreferences';
+
 const adapter = new SQLiteAdapter({
   schema,
   // (You might want to comment it out for development purposes -- see Migrations documentation)
@@ -19,16 +23,13 @@ const adapter = new SQLiteAdapter({
   jsi: true /* Platform.OS === 'ios' */,
   // (optional, but you should implement this method)
   onSetUpError: error => {
-    // Database failed to load -- offer the user to reload the app or log out
+    console.error(error);
   },
 });
 
-// Then, make a Watermelon database from it!
-const database = new Database({
+export const database = new Database({
   adapter,
-  modelClasses: [
-    // Post, // ⬅️ You'll add Models to Watermelon here
-  ],
+  modelClasses: [Manga, Tag, UserPreference],
 });
 
 AppRegistry.registerComponent(appName, () => App);

@@ -246,7 +246,7 @@ export function SearchScreen({}: Props) {
             <Dropdown
               items={
                 tags
-                  ? tags.data
+                  ? tags
                       .map(tag => {
                         return {
                           label: tag.attributes.name.en,

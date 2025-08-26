@@ -22,7 +22,8 @@
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "isolatedModules": true,
-    "strict": true
+    "strict": true,
+    "experimentalDecorators": true
   },
 
   "extends": "@tsconfig/react-native/tsconfig.json",
