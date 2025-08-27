@@ -54,6 +54,7 @@ function getStyles(colorScheme: ColorScheme) {
   return StyleSheet.create({
     container: {
       flex: 1,
+      backgroundColor: colorScheme.colors.main,
     },
     btnGroup: {
       marginBottom: 30,

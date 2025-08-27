@@ -1,22 +1,10 @@
 import {Button, Dropdown, GenericDropdownValues} from '@components';
-import {
-  ColorScheme,
-  ISO_LANGS,
-  LABELS,
-  Language,
-  OTOMANOPEE,
-  PRETENDARD_JP,
-} from '@constants';
+import {ColorScheme, ISO_LANGS, LABELS, Language, OTOMANOPEE, PRETENDARD_JP} from '@constants';
 import {RootStackParamsList} from '@navigation';
 import {BlurView} from '@react-native-community/blur';
 import {StackScreenProps} from '@react-navigation/stack';
-import {
-  RootState,
-  setInterfaceLanguage,
-  useAppDispatch,
-  useAppSelector,
-} from '@store';
-import {textColor} from '@utils';
+import {RootState, setInterfaceLanguageAsync, useAppDispatch, useAppSelector} from '@store';
+import {textColor, useAppCore} from '@utils';
 import React, {useEffect, useState} from 'react';
 import {Dimensions, StyleSheet, Text} from 'react-native';
 import Animated, {FadeIn, LinearTransition} from 'react-native-reanimated';
@@ -32,10 +20,8 @@ const languageItems: GenericDropdownValues = Object.keys(LABELS).map(label => {
 });
 
 export function LanguageModal({navigation}: Props) {
-  const dispatch = useAppDispatch();
-  const {colorScheme, language} = useAppSelector(
-    (state: RootState) => state.userPreferences,
-  );
+  const {dispatch, colorScheme, preferences} = useAppCore();
+  const {language} = preferences;
   const styles = getStyles(colorScheme);
 
   const [selectedLanguage, setSelectedLangugage] = useState<Language>(language);
@@ -45,16 +31,12 @@ export function LanguageModal({navigation}: Props) {
   }
 
   useEffect(() => {
-    dispatch(setInterfaceLanguage(selectedLanguage));
+    dispatch(setInterfaceLanguageAsync(selectedLanguage));
   }, [dispatch, selectedLanguage]);
 
   return (
     <Animated.View style={[styles.container]} entering={FadeIn}>
-      <BlurView
-        style={styles.blur}
-        blurType={colorScheme.type}
-        blurRadius={3}
-      />
+      <BlurView style={styles.blur} blurType={colorScheme.type} blurRadius={3} />
       <Animated.View layout={LinearTransition} style={styles.innerCont}>
         <Text style={styles.label}>Interface Language</Text>
         <Dropdown
@@ -62,11 +44,7 @@ export function LanguageModal({navigation}: Props) {
           selection={selectedLanguage}
           setSelection={setSelectedLangugage}
         />
-        <Button
-          title="Back"
-          onButtonPress={onBackBtnPress}
-          containerStyle={styles.backBtn}
-        />
+        <Button title="Back" onButtonPress={onBackBtnPress} containerStyle={styles.backBtn} />
       </Animated.View>
     </Animated.View>
   );

@@ -14,7 +14,7 @@ export type Config = {
 export const CONFIG: Config = {
   colorScheme: 'Dark',
   language: 'en',
-  preferSystemColor: true,
+  preferSystemColor: false,
   preferDataSaver: true,
   preferBGDownloadsDataSaver: false,
   allowPornography: false,

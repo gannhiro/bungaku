@@ -14,7 +14,6 @@ import React, {useEffect, useState} from 'react';
 import Animated, {
   LinearTransition,
   runOnJS,
-  runOnUI,
   useAnimatedStyle,
   useSharedValue,
   withSequence,
@@ -58,6 +57,7 @@ export function Button({
   const {colorScheme} = useAppCore();
 
   const styles = getStyles(colorScheme);
+
   const [progressBarWidth, setProgressBarWidth] = useState(0);
 
   const actualTextColor = labelColor ?? textColor(btnColor ?? colorScheme.colors.primary);
@@ -110,12 +110,10 @@ export function Button({
   }
 
   useEffect(() => {
-    runOnUI(() => {
-      'worklet';
-      buttonBg.value = btnColor ?? colorScheme.colors.primary;
-      btnLabelColor.value = actualTextColor;
-    });
-  }, [actualTextColor, btnColor, btnLabelColor, buttonBg, colorScheme, labelColor]);
+    const newTextColor = labelColor ?? textColor(btnColor ?? colorScheme.colors.primary);
+    buttonBg.value = btnColor ?? colorScheme.colors.primary;
+    btnLabelColor.value = newTextColor;
+  }, [colorScheme, btnColor, labelColor]);
 
   return (
     <GestureDetector gesture={tapGesture}>
@@ -143,7 +141,7 @@ export function Button({
   );
 }
 
-function getStyles(_colorScheme: ColorScheme) {
+function getStyles(colorScheme: ColorScheme) {
   return StyleSheet.create({
     container: {
       overflow: 'hidden',

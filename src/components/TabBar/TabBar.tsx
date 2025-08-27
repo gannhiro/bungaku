@@ -1,7 +1,7 @@
 import React from 'react';
 import {StyleSheet, Vibration, View} from 'react-native';
 import {MaterialTopTabBarProps} from '@react-navigation/material-top-tabs';
-import Animated, {useAnimatedStyle} from 'react-native-reanimated';
+import Animated, {useAnimatedStyle, withTiming} from 'react-native-reanimated';
 import {ColorScheme, PRETENDARD_JP} from '@constants';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import {textColor, useAppCore} from '@utils';
@@ -31,10 +31,13 @@ export function TabBar({state, navigation, descriptors}: MaterialTopTabBarProps)
 
         // eslint-disable-next-line react-hooks/rules-of-hooks
         const bgColorStyle = useAnimatedStyle(() => {
+          'worklet';
           return {
-            opacity: focused ? 1 : 0.4,
+            backgroundColor: withTiming(
+              focused ? colorScheme.colors.main : colorScheme.colors.secondary,
+            ),
           };
-        });
+        }, [focused, colorScheme.colors.main]);
 
         const tap = Gesture.Tap()
           .runOnJS(true)
@@ -106,11 +109,14 @@ function TabBarIcon({tabTitle}: TabBarIconProps) {
 
 function getStyles(colorScheme: ColorScheme) {
   return StyleSheet.create({
-    container: {flexDirection: 'row'},
+    container: {
+      flexDirection: 'row',
+    },
     pressable: {
       flex: 1,
     },
     tabContainer: {
+      paddingBottom: 25,
       flex: 1,
       alignItems: 'center',
       paddingVertical: 10,
@@ -118,7 +124,7 @@ function getStyles(colorScheme: ColorScheme) {
       borderColor: colorScheme.colors.primary,
     },
     tabContLabel: {
-      fontFamily: PRETENDARD_JP.LIGHT,
+      fontFamily: PRETENDARD_JP.REGULAR,
       color: textColor(colorScheme.colors.main),
       fontSize: 10,
     },

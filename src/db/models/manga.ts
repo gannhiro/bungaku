@@ -1,7 +1,8 @@
-import {Model} from '@nozbe/watermelondb';
+import {Model, Q} from '@nozbe/watermelondb';
 import {field, json, date, text} from '@nozbe/watermelondb/decorators';
 import {Language} from '@constants';
 import {ContentRating, MangaStatus, PublicationDemographic} from '@api';
+import {database} from '@db';
 
 type LocalizedString = {[key: string]: string};
 type AltTitle = {[key: string]: string};
@@ -52,4 +53,11 @@ export default class Manga extends Model {
 
   @date('created_at') createdAt!: Date;
   @date('updated_at') updatedAt!: Date;
+
+  static async getMangaById(mangaId: string): Promise<Manga | undefined> {
+    const mangaCollection = database.collections.get<Manga>('mangas');
+    const results = await mangaCollection.query(Q.where('manga_id', mangaId)).fetch();
+
+    return results[0];
+  }
 }

@@ -1,6 +1,5 @@
 import {updateManga} from '@store';
 import React, {useEffect} from 'react';
-import {LogBox} from 'react-native';
 import BackgroundFetch, {HeadlessEvent} from 'react-native-background-fetch';
 import FS from 'react-native-fs';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
@@ -9,8 +8,6 @@ import RootNavigation from './src/navigation/RootNavigation';
 import {store} from './src/store/store';
 
 export default function App() {
-  LogBox.ignoreAllLogs();
-
   useEffect(() => {
     (async () => {
       async function initBackgroundFetch() {

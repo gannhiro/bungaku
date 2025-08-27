@@ -1,5 +1,5 @@
 import {Model} from '@nozbe/watermelondb';
-import {action, field, text} from '@nozbe/watermelondb/decorators';
+import {field, text, writer} from '@nozbe/watermelondb/decorators';
 import {Language, ColorSchemeName} from '@constants';
 import {ReadingMode} from '@screens';
 import {database} from '@db';
@@ -16,63 +16,68 @@ export default class UserPreference extends Model {
   @field('prefer_system_color') preferSystemColor!: boolean;
   @text('reading_mode') readingMode!: ReadingMode;
 
-  static async get(): Promise<UserPreference | undefined> {
-    const preferencesCollection = database.collections.get<UserPreference>('user_preferences');
+  static async getInstance(): Promise<UserPreference | undefined> {
+    const preferencesCollection = database.collections.get<UserPreference>(this.table);
 
     try {
-      const preferences = await preferencesCollection.find('user_preferences');
+      const preferences = await preferencesCollection.find('user_preferences_record');
       return preferences;
     } catch (error) {
-      console.log('No user preferences found. Creating default settings.');
       return undefined;
     }
   }
 
-  // @action async setColorSchemeName(newColorSchemeName: ColorSchemeName) {
-  //   await this.update(preference => {
-  //     preference.colorSchemeName = newColorSchemeName;
-  //   });
-  // }
+  @writer async setColorSchemeName(newColorSchemeName: ColorSchemeName) {
+    await this.update(preference => {
+      preference.colorSchemeName = newColorSchemeName;
+    });
+  }
 
-  // @action async setLanguage(newLanguage: Language) {
-  //   await this.update(preference => {
-  //     preference.language = newLanguage;
-  //   });
-  // }
+  @writer async setLanguage(newLanguage: Language) {
+    await this.update(preference => {
+      preference.language = newLanguage;
+    });
+  }
 
-  // @action async setReadingMode(newReadingMode: ReadingMode) {
-  //   await this.update(preference => {
-  //     preference.readingMode = newReadingMode;
-  //   });
-  // }
+  @writer async setReadingMode(newReadingMode: ReadingMode) {
+    await this.update(preference => {
+      preference.readingMode = newReadingMode;
+    });
+  }
 
-  // @action async setPreferDataSaver(enabled: boolean) {
-  //   await this.update(preference => {
-  //     preference.preferDataSaver = enabled;
-  //   });
-  // }
+  @writer async setPreferDataSaver(enabled: boolean) {
+    await this.update(preference => {
+      preference.preferDataSaver = enabled;
+    });
+  }
 
-  // @action async setPreferBGDownloadsDataSaver(enabled: boolean) {
-  //   await this.update(preference => {
-  //     preference.preferBGDownloadsDataSaver = enabled;
-  //   });
-  // }
+  @writer async setPreferBGDownloadsDataSaver(enabled: boolean) {
+    await this.update(preference => {
+      preference.preferBGDownloadsDataSaver = enabled;
+    });
+  }
 
-  // @action async setPreferSystemColor(enabled: boolean) {
-  //   await this.update(preference => {
-  //     preference.preferSystemColor = enabled;
-  //   });
-  // }
+  @writer async setPreferSystemColor(enabled: boolean) {
+    await this.update(preference => {
+      preference.preferSystemColor = enabled;
+    });
+  }
 
-  // @action async setAllowPornography(enabled: boolean) {
-  //   await this.update(preference => {
-  //     preference.allowPornography = enabled;
-  //   });
-  // }
+  @writer async setAllowPornography(enabled: boolean) {
+    await this.update(preference => {
+      preference.allowPornography = enabled;
+    });
+  }
 
-  // @action async updatePreferences(updates: Config) {
-  //   await this.update(preference => {
-  //     Object.assign(preference, updates);
-  //   });
-  // }
+  @writer async updatePreferences(updates: Config) {
+    await this.update(preference => {
+      preference.allowPornography = updates.allowPornography;
+      preference.colorSchemeName = updates.colorScheme;
+      preference.language = updates.language;
+      preference.preferDataSaver = updates.preferDataSaver;
+      preference.preferBGDownloadsDataSaver = updates.preferBGDownloadsDataSaver;
+      preference.preferSystemColor = updates.preferSystemColor;
+      preference.readingMode = updates.readingMode;
+    });
+  }
 }

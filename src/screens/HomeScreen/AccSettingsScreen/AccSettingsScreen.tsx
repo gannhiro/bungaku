@@ -1,6 +1,7 @@
 import {
   APP_BUILD,
   APP_NAME,
+  AVAILABLE_COLOR_SCHEMES,
   ColorScheme,
   OTOMANOPEE,
   PRETENDARD_JP,
@@ -10,10 +11,11 @@ import {
   TOP_OVERLAY_HEIGHT,
   useLabels,
 } from '@constants';
+import {database} from '@db';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {setDataSaver, setPornographyVis} from '@store';
+import {setDataSaverAsync, setPornographyVisAsync} from '@store';
 import {textColor, useAppCore} from '@utils';
-import React, {Fragment} from 'react';
+import React, {Fragment, JSX} from 'react';
 import {
   Alert,
   Image,
@@ -114,12 +116,8 @@ export function AccSettingsScreen() {
           }}
           thumbColor={colorScheme.colors.secondary}
           value={preferDataSaver}
-          onValueChange={async value => {
-            dispatch(setDataSaver(value));
-            await AsyncStorage.setItem(
-              'settings',
-              JSON.stringify({...preferences, preferDataSaver: value}),
-            );
+          onValueChange={value => {
+            dispatch(setDataSaverAsync(value));
           }}
         />
       ),
@@ -163,7 +161,7 @@ export function AccSettingsScreen() {
                     isPreferred: true,
                     text: 'Cancel',
                     onPress: () => {
-                      dispatch(setPornographyVis(false));
+                      dispatch(setPornographyVisAsync(false));
                       AsyncStorage.setItem(
                         'settings',
                         JSON.stringify({
@@ -176,7 +174,7 @@ export function AccSettingsScreen() {
                   {
                     text: 'OK',
                     onPress: () => {
-                      dispatch(setPornographyVis(true));
+                      dispatch(setPornographyVisAsync(true));
                       AsyncStorage.setItem(
                         'settings',
                         JSON.stringify({
@@ -192,7 +190,7 @@ export function AccSettingsScreen() {
           }}
           value={allowPornography}
           onValueChange={async value => {
-            dispatch(setPornographyVis(value));
+            dispatch(setPornographyVisAsync(value));
             await AsyncStorage.setItem(
               'settings',
               JSON.stringify({...preferences, allowPornography: value}),
@@ -236,6 +234,18 @@ export function AccSettingsScreen() {
       label: 'Clear AsyncStorage',
       onPress: async () => {
         await AsyncStorage.clear();
+      },
+    },
+    {
+      label: 'Clear db queue',
+      onPress: async () => {
+        database._workQueue._abortPendingWork();
+      },
+    },
+    {
+      label: ' db qsueue',
+      onPress: async () => {
+        console.log(database._workQueue._queue);
       },
     },
     {
@@ -345,6 +355,7 @@ function getStyles(colorScheme: ColorScheme) {
       flex: 1,
       alignItems: 'stretch',
       justifyContent: 'center',
+      backgroundColor: colorScheme.colors.main,
     },
     scrollview: {
       flex: 1,

@@ -9,7 +9,7 @@ import {AppAsyncThunkConfig} from '../types';
 
 const initialState: {tags: res_get_manga_tag['data'] | null} = {tags: null};
 
-export const initializeMangaTags = createAsyncThunk<undefined, undefined, AppAsyncThunkConfig>(
+export const initializeMangaTags = createAsyncThunk<void, void, AppAsyncThunkConfig>(
   'tags',
   async (_, {dispatch, fulfillWithValue, rejectWithValue}) => {
     const localTags = await Tag.getAllTags();
@@ -21,23 +21,28 @@ export const initializeMangaTags = createAsyncThunk<undefined, undefined, AppAsy
         return rejectWithValue({title: 'Failed fetching tags', description: apiTags.result});
       }
 
-      const tagsCollection = database.collections.get<Tag>('tags');
-      const batchActions = apiTags.data.map(tagData => {
-        return tagsCollection.prepareCreate(tag => {
-          tag._raw.id = tagData.id;
-          tag.tagId = tagData.id;
-          tag.group = tagData.attributes.group;
-          tag.version = tagData.attributes.version;
-          tag.name = tagData.attributes.name;
+      try {
+        const tagsCollection = database.collections.get<Tag>('tags');
+        const batchActions = apiTags.data.map(tagData => {
+          return tagsCollection.prepareCreate(tag => {
+            tag._raw.id = tagData.id;
+            tag.tagId = tagData.id;
+            tag.group = tagData.attributes.group;
+            tag.version = tagData.attributes.version;
+            tag.name = tagData.attributes.name;
+          });
         });
-      });
 
-      await database.write(async () => {
-        await database.batch(...batchActions);
-      });
+        await database.write(async () => {
+          return await database.batch(...batchActions);
+        });
 
-      dispatch(setMangaTags(apiTags['data']));
-      return fulfillWithValue(undefined);
+        dispatch(setMangaTags(apiTags['data']));
+        return fulfillWithValue(undefined);
+      } catch (error) {
+        console.log(error);
+        return rejectWithValue({title: 'Database Error', description: 'Failed saving tags'});
+      }
     }
 
     const transformedTags = transformTags(localTags);
@@ -62,9 +67,9 @@ export const mangaTagsSlice = createSlice({
       console.log('successfully fetched tags');
     });
     builder.addCase(initializeMangaTags.rejected, (_, action) => {
-      console.error('failed fetching tags');
-      console.error(`${action.payload?.title}`);
-      console.error(`${action.payload?.title}`);
+      // console.error('failed fetching tags');
+      // console.error(`${action.payload?.title}`);
+      // console.error(`${action.payload?.title}`);
     });
   },
 });

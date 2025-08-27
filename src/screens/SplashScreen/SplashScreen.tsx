@@ -68,7 +68,7 @@ export function SplashScreen({navigation}: Props) {
 
       // get preferences
       setLoadingText('fetching settings');
-      dispatch(initializeUserPreferences());
+      await dispatch(initializeUserPreferences());
 
       // initialize library list
       setLoadingText('getting library');

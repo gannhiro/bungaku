@@ -5,8 +5,8 @@ import {BlurView} from '@react-native-community/blur';
 import {StackScreenProps} from '@react-navigation/stack';
 import {
   RootState,
-  setColorScheme,
-  setPreferSystemColor,
+  setColorSchemeAsync,
+  setPreferSystemColorAsync,
   useAppDispatch,
   useAppSelector,
 } from '@store';
@@ -21,9 +21,7 @@ type Props = StackScreenProps<RootStackParamsList, 'ThemeModal'>;
 
 export function ThemeModal({navigation}: Props) {
   const dispatch = useAppDispatch();
-  const {colorScheme, preferSystemColor} = useAppSelector(
-    (state: RootState) => state.userPreferences,
-  );
+  const {colorScheme} = useAppSelector((state: RootState) => state.userPreferences);
   const styles = getStyles(AVAILABLE_COLOR_SCHEMES[colorScheme]);
 
   const [locColorScheme, setLocColorScheme] = useState<ColorSchemeName>(colorScheme);
@@ -40,20 +38,20 @@ export function ThemeModal({navigation}: Props) {
   }
 
   useEffect(() => {
-    if (preferSystemColor) {
-      dispatch(setPreferSystemColor(false));
-      return;
-    }
-
-    dispatch(setColorScheme(locColorScheme));
-  }, [dispatch, locColorScheme, preferSystemColor]);
+    dispatch(setColorSchemeAsync(locColorScheme));
+  }, [dispatch, locColorScheme]);
 
   return (
     <View style={[styles.container]}>
       <BlurView style={styles.blur} blurType={AVAILABLE_COLOR_SCHEMES[colorScheme].type} />
       <Animated.View style={styles.innerCont} layout={LinearTransition}>
         <Text style={styles.label}>Theme</Text>
-        <Dropdown items={choices} selection={locColorScheme} setSelection={setLocColorScheme} />
+        <Dropdown
+          items={choices}
+          selection={locColorScheme}
+          setSelection={setLocColorScheme}
+          atLeastOne
+        />
         <Button title="Back" onButtonPress={onBackBtnPress} containerStyle={styles.backBtn} />
       </Animated.View>
     </View>

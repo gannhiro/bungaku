@@ -1,6 +1,5 @@
 import {res_get_manga_tag} from '@api';
 import Tag from '../db/models/tag'; // Adjust the import path to your Tag model
-import {Model} from '@nozbe/watermelondb';
 
 export interface TagDBReady {
   id: string; // This will be used for the record's primary key

@@ -11,14 +11,10 @@ const initialState: Config = CONFIG;
 export const setColorSchemeAsync = createAsyncThunk<void, ColorSchemeName, AppAsyncThunkConfig>(
   'userPreferences/setColorSchemeAsync',
   async (colorScheme, {dispatch}) => {
-    await database.write(async () => {
-      const userPreferences = await UserPreference.get();
-      if (userPreferences) {
-        await userPreferences.update(pref => {
-          pref.colorSchemeName = colorScheme;
-        });
-      }
-    });
+    const userPreferences = await UserPreference.getInstance();
+    if (userPreferences) {
+      await userPreferences.setColorSchemeName(colorScheme);
+    }
     dispatch(setColorScheme(colorScheme));
   },
 );
@@ -26,14 +22,10 @@ export const setColorSchemeAsync = createAsyncThunk<void, ColorSchemeName, AppAs
 export const setPornographyVisAsync = createAsyncThunk<void, boolean, AppAsyncThunkConfig>(
   'userPreferences/setPornographyVisAsync',
   async (allowPornography, {dispatch}) => {
-    await database.write(async () => {
-      const userPreferences = await UserPreference.get();
-      if (userPreferences) {
-        await userPreferences.update(pref => {
-          pref.allowPornography = allowPornography;
-        });
-      }
-    });
+    const userPreferences = await UserPreference.getInstance();
+    if (userPreferences) {
+      await userPreferences.setAllowPornography(allowPornography);
+    }
     dispatch(setPornographyVis(allowPornography));
   },
 );
@@ -41,14 +33,10 @@ export const setPornographyVisAsync = createAsyncThunk<void, boolean, AppAsyncTh
 export const setReadingModeAsync = createAsyncThunk<void, READING_MODES, AppAsyncThunkConfig>(
   'userPreferences/setReadingModeAsync',
   async (readingMode, {dispatch}) => {
-    await database.write(async () => {
-      const userPreferences = await UserPreference.get();
-      if (userPreferences) {
-        await userPreferences.update(pref => {
-          pref.readingMode = readingMode;
-        });
-      }
-    });
+    const userPreferences = await UserPreference.getInstance();
+    if (userPreferences) {
+      await userPreferences.setReadingMode(readingMode);
+    }
     dispatch(setReadingMode(readingMode));
   },
 );
@@ -56,14 +44,10 @@ export const setReadingModeAsync = createAsyncThunk<void, READING_MODES, AppAsyn
 export const setPreferSystemColorAsync = createAsyncThunk<void, boolean, AppAsyncThunkConfig>(
   'userPreferences/setPreferSystemColorAsync',
   async (preferSystemColor, {dispatch}) => {
-    await database.write(async () => {
-      const userPreferences = await UserPreference.get();
-      if (userPreferences) {
-        await userPreferences.update(pref => {
-          pref.preferSystemColor = preferSystemColor;
-        });
-      }
-    });
+    const userPreferences = await UserPreference.getInstance();
+    if (userPreferences) {
+      await userPreferences.setPreferSystemColor(preferSystemColor);
+    }
     dispatch(setPreferSystemColor(preferSystemColor));
   },
 );
@@ -71,14 +55,10 @@ export const setPreferSystemColorAsync = createAsyncThunk<void, boolean, AppAsyn
 export const setDataSaverAsync = createAsyncThunk<void, boolean, AppAsyncThunkConfig>(
   'userPreferences/setDataSaverAsync',
   async (preferDataSaver, {dispatch}) => {
-    await database.write(async () => {
-      const userPreferences = await UserPreference.get();
-      if (userPreferences) {
-        await userPreferences.update(pref => {
-          pref.preferDataSaver = preferDataSaver;
-        });
-      }
-    });
+    const userPreferences = await UserPreference.getInstance();
+    if (userPreferences) {
+      await userPreferences.setPreferDataSaver(preferDataSaver);
+    }
     dispatch(setDataSaver(preferDataSaver));
   },
 );
@@ -86,57 +66,61 @@ export const setDataSaverAsync = createAsyncThunk<void, boolean, AppAsyncThunkCo
 export const setInterfaceLanguageAsync = createAsyncThunk<void, Language, AppAsyncThunkConfig>(
   'userPreferences/setInterfaceLanguageAsync',
   async (language, {dispatch}) => {
-    await database.write(async () => {
-      const userPreferences = await UserPreference.get();
-      if (userPreferences) {
-        await userPreferences.update(pref => {
-          pref.language = language;
-        });
-      }
-    });
+    const userPreferences = await UserPreference.getInstance();
+    if (userPreferences) {
+      await userPreferences.setLanguage(language);
+    }
     dispatch(setInterfaceLanguage(language));
   },
 );
 
-export const initializeUserPreferences = createAsyncThunk<
-  undefined,
-  undefined,
-  AppAsyncThunkConfig
->('userPreferences/init', async (_, {dispatch, fulfillWithValue}) => {
-  const userPreferences = await UserPreference.get();
+export const initializeUserPreferences = createAsyncThunk<void, void, AppAsyncThunkConfig>(
+  'userPreferences/init',
+  async (_, {dispatch, fulfillWithValue}) => {
+    const userPreferences = await UserPreference.getInstance();
 
-  if (!userPreferences) {
-    database.write(async () => {
-      const preferencesCollection = database.collections.get<UserPreference>('user_preferences');
-      await preferencesCollection.create(preference => {
-        preference._raw.id = 'user_preferences';
-        preference.colorSchemeName = CONFIG.colorScheme;
-        preference.language = CONFIG.language;
-        preference.allowPornography = CONFIG.allowPornography;
-        preference.preferDataSaver = CONFIG.preferDataSaver;
-        preference.preferBGDownloadsDataSaver = CONFIG.preferBGDownloadsDataSaver;
-        preference.preferSystemColor = CONFIG.preferSystemColor;
-        preference.readingMode = CONFIG.readingMode;
-      });
-    });
-    dispatch(setConfig(CONFIG));
+    if (!userPreferences) {
+      console.log('No user preferences found. Creating default settings.');
+
+      try {
+        const preferencesCollection = database.get<UserPreference>(UserPreference.table);
+
+        await database.write(async () => {
+          return await preferencesCollection.create(preference => {
+            preference._raw.id = 'user_preferences_record';
+            preference.colorSchemeName = CONFIG.colorScheme;
+            preference.language = CONFIG.language;
+            preference.allowPornography = CONFIG.allowPornography;
+            preference.preferDataSaver = CONFIG.preferDataSaver;
+            preference.preferBGDownloadsDataSaver = CONFIG.preferBGDownloadsDataSaver;
+            preference.preferSystemColor = CONFIG.preferSystemColor;
+            preference.readingMode = CONFIG.readingMode;
+          });
+        });
+
+        dispatch(setConfig(CONFIG));
+        return fulfillWithValue(undefined);
+      } catch (error) {
+        console.log(error);
+        return;
+      }
+    }
+
+    dispatch(
+      setConfig({
+        language: userPreferences.language,
+        colorScheme: userPreferences.colorSchemeName,
+        allowPornography: userPreferences.allowPornography,
+        preferDataSaver: userPreferences.preferDataSaver,
+        preferBGDownloadsDataSaver: userPreferences.preferBGDownloadsDataSaver,
+        preferSystemColor: userPreferences.preferSystemColor,
+        readingMode: userPreferences.readingMode,
+      }),
+    );
+
     return fulfillWithValue(undefined);
-  }
-
-  dispatch(
-    setConfig({
-      language: userPreferences.language,
-      colorScheme: userPreferences.colorSchemeName,
-      allowPornography: userPreferences.allowPornography,
-      preferDataSaver: userPreferences.preferDataSaver,
-      preferBGDownloadsDataSaver: userPreferences.preferBGDownloadsDataSaver,
-      preferSystemColor: userPreferences.preferSystemColor,
-      readingMode: userPreferences.readingMode,
-    }),
-  );
-
-  return fulfillWithValue(undefined);
-});
+  },
+);
 
 export const userPreferencesSlice = createSlice({
   name: 'userPreferences',
