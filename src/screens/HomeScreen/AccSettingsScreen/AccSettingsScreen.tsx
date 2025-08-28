@@ -1,7 +1,6 @@
 import {
   APP_BUILD,
   APP_NAME,
-  AVAILABLE_COLOR_SCHEMES,
   ColorScheme,
   OTOMANOPEE,
   PRETENDARD_JP,
@@ -12,8 +11,11 @@ import {
   useLabels,
 } from '@constants';
 import {database} from '@db';
+import {RootStackParamsList} from '@navigation';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {setDataSaverAsync, setPornographyVisAsync} from '@store';
+import {useNavigation} from '@react-navigation/native';
+import {StackNavigationProp} from '@react-navigation/stack';
 import {textColor, useAppCore} from '@utils';
 import React, {Fragment, JSX} from 'react';
 import {
@@ -49,7 +51,8 @@ export type Settings = {
 type SettingsType = 'page' | 'switch';
 
 export function AccSettingsScreen() {
-  const {dispatch, navigation, colorScheme, preferences} = useAppCore<'HomeNavigator'>();
+  const {dispatch, colorScheme, preferences} = useAppCore();
+  const navigation = useNavigation<StackNavigationProp<RootStackParamsList, 'HomeNavigator'>>();
   const {preferDataSaver, allowPornography} = preferences;
   const labels = useLabels().homeScreen.accountTab;
 

@@ -1,7 +1,6 @@
 import {res_get_cover_$, res_get_manga} from '@api';
 import {PRETENDARD_JP, systemLightGray3, systemPurple, systemRed, white} from '@constants';
-import {RootState, useAppSelector} from '@store';
-import {textColor, useAppCore, useInternetConn} from '@utils';
+import {textColor, useAppCore} from '@utils';
 import React, {memo, useEffect, useState} from 'react';
 import {Dimensions, StyleSheet, Text, Vibration, View} from 'react-native';
 import FastImage from 'react-native-fast-image';
@@ -20,6 +19,9 @@ import {FlagIcon} from '..';
 import {MangaListRenderItemContRatIcon} from './MangaListRenderItemContRatIcon';
 import {MangaListRenderItemStatIcon} from './MangaListRenderItemStatIcon';
 import {Manga} from '@db';
+import {useNavigation} from '@react-navigation/native';
+import {StackNavigationProp} from '@react-navigation/stack';
+import {RootStackParamsList} from '@navigation';
 
 interface Props {
   manga: res_get_manga['data'][0];
@@ -30,8 +32,9 @@ interface Props {
 const {width} = Dimensions.get('window');
 
 export const MangaListRenderItem = memo(({manga}: Props) => {
-  const {colorScheme, intError, navigation} = useAppCore<'HomeNavigator'>();
-  const {language} = useAppSelector((state: RootState) => state.userPreferences);
+  const {colorScheme, preferences} = useAppCore();
+  const navigation = useNavigation<StackNavigationProp<RootStackParamsList, 'HomeNavigator'>>();
+  const {language} = preferences;
 
   const [isInLibrary, setIsInLibrary] = useState(false);
   const [loadingCover, setLoadingCover] = useState(true);

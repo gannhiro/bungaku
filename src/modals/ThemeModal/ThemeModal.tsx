@@ -1,16 +1,10 @@
 import {Button, Dropdown, GenericDropdownValues} from '@components';
 import {AVAILABLE_COLOR_SCHEMES, ColorSchemeName, ColorScheme, PRETENDARD_JP} from '@constants';
+import {UserPreference} from '@db';
 import {RootStackParamsList} from '@navigation';
 import {BlurView} from '@react-native-community/blur';
 import {StackScreenProps} from '@react-navigation/stack';
-import {
-  RootState,
-  setColorSchemeAsync,
-  setPreferSystemColorAsync,
-  useAppDispatch,
-  useAppSelector,
-} from '@store';
-import {textColor} from '@utils';
+import {textColor, useAppCore} from '@utils';
 import React, {useEffect, useState} from 'react';
 import {Dimensions, StyleSheet, Text, View} from 'react-native';
 import Animated, {LinearTransition} from 'react-native-reanimated';
@@ -20,11 +14,11 @@ const {width} = Dimensions.get('screen');
 type Props = StackScreenProps<RootStackParamsList, 'ThemeModal'>;
 
 export function ThemeModal({navigation}: Props) {
-  const dispatch = useAppDispatch();
-  const {colorScheme} = useAppSelector((state: RootState) => state.userPreferences);
-  const styles = getStyles(AVAILABLE_COLOR_SCHEMES[colorScheme]);
+  const {dispatch, colorScheme, preferences} = useAppCore();
+  const {colorScheme: colorSchemeName} = preferences;
+  const styles = getStyles(colorScheme);
 
-  const [locColorScheme, setLocColorScheme] = useState<ColorSchemeName>(colorScheme);
+  const [locColorScheme, setLocColorScheme] = useState<ColorSchemeName>(colorSchemeName);
 
   const choices: GenericDropdownValues = Object.keys(AVAILABLE_COLOR_SCHEMES).map(scheme => {
     return {
@@ -38,12 +32,12 @@ export function ThemeModal({navigation}: Props) {
   }
 
   useEffect(() => {
-    dispatch(setColorSchemeAsync(locColorScheme));
+    UserPreference.setColorSchemeName(locColorScheme);
   }, [dispatch, locColorScheme]);
 
   return (
     <View style={[styles.container]}>
-      <BlurView style={styles.blur} blurType={AVAILABLE_COLOR_SCHEMES[colorScheme].type} />
+      <BlurView style={styles.blur} blurType={colorScheme.type} />
       <Animated.View style={styles.innerCont} layout={LinearTransition}>
         <Text style={styles.label}>Theme</Text>
         <Dropdown

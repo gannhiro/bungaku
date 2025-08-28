@@ -4,17 +4,14 @@ import type {AppAsyncThunkConfig, RootState} from '@store';
 import {CONFIG, Config} from '../../../config';
 import {ColorSchemeName, Language} from '@constants';
 import {READING_MODES} from '@screens';
-import {database, UserPreference} from '@db';
+import {UserPreference} from '@db';
 
 const initialState: Config = CONFIG;
 
 export const setColorSchemeAsync = createAsyncThunk<void, ColorSchemeName, AppAsyncThunkConfig>(
   'userPreferences/setColorSchemeAsync',
   async (colorScheme, {dispatch}) => {
-    const userPreferences = await UserPreference.getInstance();
-    if (userPreferences) {
-      await userPreferences.setColorSchemeName(colorScheme);
-    }
+    await UserPreference.setColorSchemeName(colorScheme);
     dispatch(setColorScheme(colorScheme));
   },
 );
@@ -22,10 +19,7 @@ export const setColorSchemeAsync = createAsyncThunk<void, ColorSchemeName, AppAs
 export const setPornographyVisAsync = createAsyncThunk<void, boolean, AppAsyncThunkConfig>(
   'userPreferences/setPornographyVisAsync',
   async (allowPornography, {dispatch}) => {
-    const userPreferences = await UserPreference.getInstance();
-    if (userPreferences) {
-      await userPreferences.setAllowPornography(allowPornography);
-    }
+    await UserPreference.setAllowPornography(allowPornography);
     dispatch(setPornographyVis(allowPornography));
   },
 );
@@ -33,32 +27,15 @@ export const setPornographyVisAsync = createAsyncThunk<void, boolean, AppAsyncTh
 export const setReadingModeAsync = createAsyncThunk<void, READING_MODES, AppAsyncThunkConfig>(
   'userPreferences/setReadingModeAsync',
   async (readingMode, {dispatch}) => {
-    const userPreferences = await UserPreference.getInstance();
-    if (userPreferences) {
-      await userPreferences.setReadingMode(readingMode);
-    }
+    await UserPreference.setReadingMode(readingMode);
     dispatch(setReadingMode(readingMode));
-  },
-);
-
-export const setPreferSystemColorAsync = createAsyncThunk<void, boolean, AppAsyncThunkConfig>(
-  'userPreferences/setPreferSystemColorAsync',
-  async (preferSystemColor, {dispatch}) => {
-    const userPreferences = await UserPreference.getInstance();
-    if (userPreferences) {
-      await userPreferences.setPreferSystemColor(preferSystemColor);
-    }
-    dispatch(setPreferSystemColor(preferSystemColor));
   },
 );
 
 export const setDataSaverAsync = createAsyncThunk<void, boolean, AppAsyncThunkConfig>(
   'userPreferences/setDataSaverAsync',
   async (preferDataSaver, {dispatch}) => {
-    const userPreferences = await UserPreference.getInstance();
-    if (userPreferences) {
-      await userPreferences.setPreferDataSaver(preferDataSaver);
-    }
+    await UserPreference.setPreferDataSaver(preferDataSaver);
     dispatch(setDataSaver(preferDataSaver));
   },
 );
@@ -80,40 +57,18 @@ export const initializeUserPreferences = createAsyncThunk<void, void, AppAsyncTh
     const userPreferences = await UserPreference.getInstance();
 
     if (!userPreferences) {
-      console.log('No user preferences found. Creating default settings.');
-
-      try {
-        const preferencesCollection = database.get<UserPreference>(UserPreference.table);
-
-        await database.write(async () => {
-          return await preferencesCollection.create(preference => {
-            preference._raw.id = 'user_preferences_record';
-            preference.colorSchemeName = CONFIG.colorScheme;
-            preference.language = CONFIG.language;
-            preference.allowPornography = CONFIG.allowPornography;
-            preference.preferDataSaver = CONFIG.preferDataSaver;
-            preference.preferBGDownloadsDataSaver = CONFIG.preferBGDownloadsDataSaver;
-            preference.preferSystemColor = CONFIG.preferSystemColor;
-            preference.readingMode = CONFIG.readingMode;
-          });
-        });
-
-        dispatch(setConfig(CONFIG));
-        return fulfillWithValue(undefined);
-      } catch (error) {
-        console.log(error);
-        return;
-      }
+      await UserPreference.initialize();
+      dispatch(setConfig(CONFIG));
+      return fulfillWithValue(undefined);
     }
 
     dispatch(
       setConfig({
         language: userPreferences.language,
-        colorScheme: userPreferences.colorSchemeName,
+        colorSchemeName: userPreferences.colorSchemeName,
         allowPornography: userPreferences.allowPornography,
         preferDataSaver: userPreferences.preferDataSaver,
         preferBGDownloadsDataSaver: userPreferences.preferBGDownloadsDataSaver,
-        preferSystemColor: userPreferences.preferSystemColor,
         readingMode: userPreferences.readingMode,
       }),
     );
@@ -127,16 +82,13 @@ export const userPreferencesSlice = createSlice({
   initialState: initialState,
   reducers: {
     setColorScheme: (state, action: PayloadAction<ColorSchemeName>) => {
-      state.colorScheme = action.payload;
+      state.colorSchemeName = action.payload;
     },
     setPornographyVis: (state, action: PayloadAction<boolean>) => {
       state.allowPornography = action.payload;
     },
     setReadingMode: (state, action: PayloadAction<READING_MODES>) => {
       state.readingMode = action.payload;
-    },
-    setPreferSystemColor: (state, action: PayloadAction<boolean>) => {
-      state.preferSystemColor = action.payload;
     },
     setDataSaver: (state, action: PayloadAction<boolean>) => {
       state.preferDataSaver = action.payload;
@@ -145,19 +97,12 @@ export const userPreferencesSlice = createSlice({
       state.language = action.payload;
     },
     setConfig: (state, action: PayloadAction<Config>) => {
-      const {
-        colorScheme,
-        language,
-        allowPornography,
-        preferDataSaver,
-        preferSystemColor,
-        readingMode,
-      } = action.payload;
-      state.colorScheme = colorScheme;
+      const {colorSchemeName, language, allowPornography, preferDataSaver, readingMode} =
+        action.payload;
+      state.colorSchemeName = colorSchemeName;
       state.language = language;
       state.allowPornography = allowPornography;
       state.preferDataSaver = preferDataSaver;
-      state.preferSystemColor = preferSystemColor;
       state.readingMode = readingMode;
     },
   },
@@ -167,7 +112,6 @@ const {
   setConfig,
   setColorScheme,
   setReadingMode,
-  setPreferSystemColor,
   setDataSaver,
   setPornographyVis,
   setInterfaceLanguage,

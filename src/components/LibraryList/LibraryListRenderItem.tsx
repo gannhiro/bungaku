@@ -1,16 +1,12 @@
 import {res_get_manga} from '@api';
 import {ColorScheme, OTOMANOPEE, PRETENDARD_JP, systemRed, white} from '@constants';
 import {Manga} from '@db';
-import {
-  libraryList,
-  removeLibraryUpdateNotifs,
-  RootState,
-  useAppDispatch,
-  useAppSelector,
-} from '@store';
-import {MangaDetails} from '@types';
+import {RootStackParamsList} from '@navigation';
+import {useNavigation} from '@react-navigation/native';
+import {StackNavigationProp} from '@react-navigation/stack';
+import {RootState, useAppSelector} from '@store';
 import {textColor, useAppCore} from '@utils';
-import React, {useEffect, useState} from 'react';
+import React from 'react';
 import {Dimensions, Image, StyleSheet, Text, Vibration, View} from 'react-native';
 import FS from 'react-native-fs';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
@@ -29,7 +25,9 @@ type Props = {
 };
 
 export function LibraryListRenderItem({manga}: Props) {
-  const {colorScheme, preferences, navigation} = useAppCore<'HomeNavigator'>();
+  const {colorScheme, preferences} = useAppCore();
+  const navigation = useNavigation<StackNavigationProp<RootStackParamsList, 'HomeNavigator'>>();
+
   const {language} = preferences;
   const {updatedMangaList} = useAppSelector((state: RootState) => state.libraryUpdates);
 

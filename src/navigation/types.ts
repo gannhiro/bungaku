@@ -1,13 +1,6 @@
-import {
-  gen_error,
-  res_get_group,
-  res_get_manga,
-  res_get_manga_$_feed,
-  res_get_statistics_manga,
-  res_get_user_$,
-} from '@api';
+import {gen_error, res_get_group, res_get_manga_$_feed, res_get_user_$} from '@api';
 import {Language} from '@constants';
-import {Manga, MangaStatistic} from '@db';
+import {Chapter, Manga, MangaStatistic} from '@db';
 import {ReadingMode} from '@screens';
 
 export type RootStackParamsList = {
@@ -20,8 +13,8 @@ export type RootStackParamsList = {
     mangaId: string;
   };
   ReadChapterScreen: {
-    manga: res_get_manga['data'][0];
-    chapters: res_get_manga_$_feed['data'];
+    manga: Manga;
+    chapters: Chapter[];
     initialChapterIndex: number;
     originalLanguage: Language;
     scanlator?: res_get_group['data'][0];

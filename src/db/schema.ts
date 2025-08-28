@@ -11,7 +11,6 @@ export default appSchema({
         {name: 'allow_pornography', type: 'boolean'},
         {name: 'prefer_data_saver', type: 'boolean'},
         {name: 'prefer_bg_downloads_data_saver', type: 'boolean'},
-        {name: 'prefer_system_color', type: 'boolean'},
         {name: 'reading_mode', type: 'string'},
       ],
     }),

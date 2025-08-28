@@ -1,6 +1,6 @@
 import {ColorScheme} from '@constants';
 import {BlurView} from '@react-native-community/blur';
-import {useFocusEffect} from '@react-navigation/native';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {useAppCore} from '@utils';
 import React, {Dispatch, Fragment, ReactNode, SetStateAction, useEffect, useState} from 'react';
 import {BackHandler, Dimensions, Keyboard, StyleSheet, View, ViewStyle} from 'react-native';
@@ -38,7 +38,8 @@ export function BottomSheet({
   children,
   style,
 }: Props) {
-  const {colorScheme, navigation} = useAppCore();
+  const {colorScheme} = useAppCore();
+  const navigation = useNavigation();
 
   const styles = getStyles(colorScheme);
 

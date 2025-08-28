@@ -11,11 +11,9 @@ import {
   systemPurple,
   systemRed,
 } from '@constants';
-import {database} from '@db';
 import {RootStackParamsList} from '@navigation';
 import {BlurView} from '@react-native-community/blur';
 import {StackScreenProps} from '@react-navigation/stack';
-import {updateDownloadedMangaSettings} from '@store';
 import {getDateTodayAtMidnight, textColor, useAppCore} from '@utils';
 import React, {useEffect, useState} from 'react';
 import {Dimensions, Keyboard, StyleSheet, Switch, Text, View} from 'react-native';
@@ -35,8 +33,8 @@ const {width, height} = Dimensions.get('screen');
 type Props = StackScreenProps<RootStackParamsList, 'AddToLibraryModal'>;
 
 export function AddToLibraryModal({route, navigation}: Props) {
-  const {manga, statistics} = route.params;
-  const {colorScheme, dispatch} = useAppCore();
+  const {manga} = route.params;
+  const {colorScheme} = useAppCore();
   const styles = getStyles(colorScheme);
 
   const [isInLibrary, setIsInLibrary] = useState(false);

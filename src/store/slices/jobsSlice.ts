@@ -8,7 +8,7 @@ import {
 import notifee, {AndroidBadgeIconType, AndroidImportance} from '@notifee/react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {createAsyncThunk, createSlice, PayloadAction} from '@reduxjs/toolkit';
-import {DownloadedChapterDetails, MangaDetails, UpdatedMangaNotifications} from '@types';
+import {DownloadedChapterDetails, UpdatedMangaNotifications} from '@types';
 import {getDateTodayAtMidnight} from '@utils';
 import {ToastAndroid} from 'react-native';
 import FS from 'react-native-fs';
@@ -57,17 +57,6 @@ type CacheChapterProps = {
 };
 
 // MARK: Thunks
-
-export const updateDownloadedMangaSettings = createAsyncThunk<
-  'success',
-  MangaDetails,
-  AppAsyncThunkConfig
->('jobs/updateDownloadedMangaSettings', async (mangaDetails, {fulfillWithValue}) => {
-  // TODO
-  ToastAndroid.show('Updated Settings', 500);
-
-  return fulfillWithValue('success');
-});
 
 export const updateManga = createAsyncThunk<string, string, AppAsyncThunkConfig>(
   'jobs/updateManga',

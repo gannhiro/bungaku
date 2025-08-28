@@ -8,6 +8,9 @@ import {
 } from '@api';
 import {Chip} from '@components';
 import {ColorScheme, PRETENDARD_JP} from '@constants';
+import {RootStackParamsList} from '@navigation';
+import {useNavigation} from '@react-navigation/native';
+import {StackNavigationProp} from '@react-navigation/stack';
 import {textColor, useAppCore} from '@utils';
 import React, {useEffect, useState} from 'react';
 import {Dimensions, Image, StyleSheet, Text, Vibration, View} from 'react-native';
@@ -24,7 +27,8 @@ interface Props {
 const {width} = Dimensions.get('window');
 
 export function HSJumboListRenderItem({manga, index, currentPage, setCurrCoverSrc}: Props) {
-  const {colorScheme, navigation} = useAppCore<'HomeNavigator'>();
+  const {colorScheme} = useAppCore();
+  const navigation = useNavigation<StackNavigationProp<RootStackParamsList, 'HomeNavigator'>>();
 
   const styles = getStyles(colorScheme);
   const [mangaCoverSrc, setMangaCoverSrc] = useState<string>();
@@ -41,7 +45,7 @@ export function HSJumboListRenderItem({manga, index, currentPage, setCurrCoverSr
 
   function goToChapters() {
     navigation.navigate('MangaChaptersScreen', {
-      manga: manga,
+      mangaId: manga.id,
     });
     Vibration.vibrate([0, 50], false);
   }

@@ -1,8 +1,9 @@
-import {RootState, useAppSelector} from '@store';
 import {Language} from './languages';
+import {useAppCore} from '@utils';
 
 export function useLabels() {
-  const language = useAppSelector((state: RootState) => state.userPreferences.language);
+  const {preferences} = useAppCore();
+  const language = preferences.language;
 
   return LABELS[language];
 }

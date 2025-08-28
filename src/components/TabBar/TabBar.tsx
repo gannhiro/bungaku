@@ -72,7 +72,7 @@ type TabBarIconProps = {
 };
 
 function TabBarIcon({tabTitle}: TabBarIconProps) {
-  const {colorScheme} = useAppCore<'HomeNavigator'>();
+  const {colorScheme} = useAppCore();
 
   const styles = getStyles(colorScheme);
 

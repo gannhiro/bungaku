@@ -3,7 +3,7 @@ import {field, text, writer} from '@nozbe/watermelondb/decorators';
 import {Language, ColorSchemeName} from '@constants';
 import {ReadingMode} from '@screens';
 import {database} from '@db';
-import {Config} from 'config';
+import {CONFIG, Config} from '../../../config';
 
 export default class UserPreference extends Model {
   static table = 'user_preferences';
@@ -24,6 +24,69 @@ export default class UserPreference extends Model {
       return preferences;
     } catch (error) {
       return undefined;
+    }
+  }
+
+  static async initialize() {
+    await database.write(async () => {
+      await database.collections.get<UserPreference>(this.table).create(preference => {
+        preference._raw.id = 'user_preferences_record';
+        preference.allowPornography = CONFIG.allowPornography;
+        preference.colorSchemeName = CONFIG.colorSchemeName;
+        preference.language = CONFIG.language;
+        preference.preferDataSaver = CONFIG.preferDataSaver;
+        preference.preferBGDownloadsDataSaver = CONFIG.preferBGDownloadsDataSaver;
+        preference.readingMode = CONFIG.readingMode;
+      });
+    });
+  }
+
+  static async setColorSchemeName(newColorSchemeName: ColorSchemeName) {
+    const instance = await this.getInstance();
+    if (instance) {
+      await instance.setColorSchemeName(newColorSchemeName);
+    }
+  }
+
+  static async setLanguage(newLanguage: Language) {
+    const instance = await this.getInstance();
+    if (instance) {
+      await instance.setLanguage(newLanguage);
+    }
+  }
+
+  static async setReadingMode(newReadingMode: ReadingMode) {
+    const instance = await this.getInstance();
+    if (instance) {
+      await instance.setReadingMode(newReadingMode);
+    }
+  }
+
+  static async setPreferDataSaver(enabled: boolean) {
+    const instance = await this.getInstance();
+    if (instance) {
+      await instance.setPreferDataSaver(enabled);
+    }
+  }
+
+  static async setPreferBGDownloadsDataSaver(enabled: boolean) {
+    const instance = await this.getInstance();
+    if (instance) {
+      await instance.setPreferBGDownloadsDataSaver(enabled);
+    }
+  }
+
+  static async setAllowPornography(enabled: boolean) {
+    const instance = await this.getInstance();
+    if (instance) {
+      await instance.setAllowPornography(enabled);
+    }
+  }
+
+  static async updatePreferences(updates: Config) {
+    const instance = await this.getInstance();
+    if (instance) {
+      await instance.updatePreferences(updates);
     }
   }
 
@@ -57,12 +120,6 @@ export default class UserPreference extends Model {
     });
   }
 
-  @writer async setPreferSystemColor(enabled: boolean) {
-    await this.update(preference => {
-      preference.preferSystemColor = enabled;
-    });
-  }
-
   @writer async setAllowPornography(enabled: boolean) {
     await this.update(preference => {
       preference.allowPornography = enabled;
@@ -72,11 +129,10 @@ export default class UserPreference extends Model {
   @writer async updatePreferences(updates: Config) {
     await this.update(preference => {
       preference.allowPornography = updates.allowPornography;
-      preference.colorSchemeName = updates.colorScheme;
+      preference.colorSchemeName = updates.colorSchemeName;
       preference.language = updates.language;
       preference.preferDataSaver = updates.preferDataSaver;
       preference.preferBGDownloadsDataSaver = updates.preferBGDownloadsDataSaver;
-      preference.preferSystemColor = updates.preferSystemColor;
       preference.readingMode = updates.readingMode;
     });
   }

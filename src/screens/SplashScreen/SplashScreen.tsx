@@ -1,8 +1,9 @@
+import {mangadexAPI, res_get_manga_tag} from '@api';
 import {APP_NAME, ColorScheme, PRETENDARD_JP} from '@constants';
+import {database, Tag, UserPreference} from '@db';
 import {RootStackParamsList} from '@navigation';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {StackScreenProps} from '@react-navigation/stack';
-import {initializeMangaTags, initializeUserPreferences} from '@store';
 import {textColor, useAppCore} from '@utils';
 import React, {useEffect, useState} from 'react';
 import {PermissionsAndroid, StyleSheet, View} from 'react-native';
@@ -12,8 +13,39 @@ import Animated, {FadeIn} from 'react-native-reanimated';
 
 type Props = StackScreenProps<RootStackParamsList, 'SplashScreen'>;
 
+async function initializeMangaTags() {
+  const localTags = await Tag.getAllTags();
+
+  if (localTags.length === 0) {
+    const apiTags = await mangadexAPI<res_get_manga_tag, {}>('get', '/manga/tag', {}, []);
+
+    if (apiTags.result !== 'ok') {
+      return;
+    }
+
+    try {
+      const tagsCollection = database.collections.get<Tag>('tags');
+      const batchActions = apiTags.data.map(tagData => {
+        return tagsCollection.prepareCreate(tag => {
+          tag._raw.id = tagData.id;
+          tag.tagId = tagData.id;
+          tag.group = tagData.attributes.group;
+          tag.version = tagData.attributes.version;
+          tag.name = tagData.attributes.name;
+        });
+      });
+
+      await database.write(async () => {
+        return await database.batch(...batchActions);
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  }
+}
+
 export function SplashScreen({navigation}: Props) {
-  const {dispatch, colorScheme, preferences} = useAppCore();
+  const {dispatch, colorScheme} = useAppCore();
   const styles = getStyles(colorScheme);
 
   const [loadingText, setLoadingText] = useState('loading');
@@ -54,10 +86,7 @@ export function SplashScreen({navigation}: Props) {
       }
 
       setLoadingText('fetching tags');
-      await dispatch(initializeMangaTags());
-
-      setLoadingText('fetching settings');
-      await dispatch(initializeUserPreferences());
+      await initializeMangaTags();
 
       setLoadingText('welcome');
       setLoading(false);

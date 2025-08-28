@@ -10,6 +10,7 @@ import {LibraryListRenderItem} from '../LibraryList/LibraryListRenderItem';
 const {width} = Dimensions.get('window');
 
 export function LibraryUpdates() {
+  return;
   const {dispatch, colorScheme, navigation} = useAppCore<'HomeNavigator'>();
   const {updatedMangaList} = useAppSelector((state: RootState) => state.libraryUpdates);
   const styles = getStyles(colorScheme);

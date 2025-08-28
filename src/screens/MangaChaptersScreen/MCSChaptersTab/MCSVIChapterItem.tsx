@@ -28,6 +28,9 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import {useMangaChaptersScreenContext} from '../useMangaChaptersScreenContext';
+import {useNavigation} from '@react-navigation/native';
+import {StackNavigationProp} from '@react-navigation/stack';
+import {RootStackParamsList} from '@navigation';
 
 const {width, height} = Dimensions.get('screen');
 
@@ -47,7 +50,9 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
     setSelectedChapters,
   } = useMangaChaptersScreenContext();
 
-  const {dispatch, colorScheme, navigation} = useAppCore();
+  const {dispatch, colorScheme} = useAppCore();
+  const navigation =
+    useNavigation<StackNavigationProp<RootStackParamsList, 'MangaChaptersScreen'>>();
   const styles = getStyles(colorScheme);
 
   const potentialJobId = `${manga?.id}-${chapter.id}`;
@@ -221,7 +226,7 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
     navigation.navigate('ReadChapterScreen', {
       manga,
       chapters: finalChapters,
-      originalLanguage: manga.attributes.originalLanguage,
+      originalLanguage: manga.originalLanguage,
       initialChapterIndex: initialIndex,
     });
   }
