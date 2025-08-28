@@ -1,8 +1,13 @@
+import {res_get_manga} from '@api';
 import {ColorScheme, OTOMANOPEE, PRETENDARD_JP, systemRed, white} from '@constants';
-import {RootStackParamsList} from '@navigation';
-import {useNavigation} from '@react-navigation/native';
-import {StackNavigationProp} from '@react-navigation/stack';
-import {removeLibraryUpdateNotifs, RootState, useAppDispatch, useAppSelector} from '@store';
+import {Manga} from '@db';
+import {
+  libraryList,
+  removeLibraryUpdateNotifs,
+  RootState,
+  useAppDispatch,
+  useAppSelector,
+} from '@store';
 import {MangaDetails} from '@types';
 import {textColor, useAppCore} from '@utils';
 import React, {useEffect, useState} from 'react';
@@ -20,20 +25,22 @@ import Animated, {
 const {width} = Dimensions.get('screen');
 
 type Props = {
-  mangaId: string;
-  index: number;
+  manga: Manga;
 };
 
-export function LibraryListRenderItem({mangaId}: Props) {
-  const {dispatch, colorScheme, preferences, navigation} = useAppCore<'HomeNavigator'>();
+export function LibraryListRenderItem({manga}: Props) {
+  const {colorScheme, preferences, navigation} = useAppCore<'HomeNavigator'>();
   const {language} = preferences;
   const {updatedMangaList} = useAppSelector((state: RootState) => state.libraryUpdates);
 
   const styles = getStyles(colorScheme);
-  const badgeCount = updatedMangaList.find(val => val.mangaId === mangaId)?.newChapterCount ?? 0;
-  const coverPath = `file://${FS.DocumentDirectoryPath}/manga/${mangaId}/cover.png`;
-
-  const [mangaTitle, setMangaTitle] = useState('');
+  const badgeCount = updatedMangaList.find(val => val.mangaId === manga.id)?.newChapterCount ?? 0;
+  const coverPath = `file://${FS.DocumentDirectoryPath}/manga/${manga.id}/cover.png`;
+  const title =
+    manga.title[language] ??
+    manga.altTitles.find(keyValue => keyValue[language])?.[language] ??
+    manga.title.en ??
+    'no title';
 
   const scale = useSharedValue(1);
   const contAnimStyle = useAnimatedStyle(() => {
@@ -53,35 +60,13 @@ export function LibraryListRenderItem({mangaId}: Props) {
     Gesture.LongPress().onEnd(() => {}),
   );
 
-  async function goToChapters() {
+  function goToChapters() {
     Vibration.vibrate([0, 50], false);
 
-    dispatch(removeLibraryUpdateNotifs({mangaId: mangaId}));
-
-    const mangaDetails = await FS.readFile(
-      `${FS.DocumentDirectoryPath}/manga/${mangaId}/manga-details.json`,
-    );
-    const parsedMangaDetails: MangaDetails = JSON.parse(mangaDetails);
-
     navigation.navigate('MangaChaptersScreen', {
-      manga: parsedMangaDetails.manga,
+      mangaId: manga.mangaId,
     });
   }
-
-  useEffect(() => {
-    (async () => {
-      const mangaDetails = await FS.readFile(
-        `${FS.DocumentDirectoryPath}/manga/${mangaId}/manga-details.json`,
-      );
-      const {manga}: MangaDetails = JSON.parse(mangaDetails);
-
-      const title =
-        manga.attributes.title[language] ??
-        manga.attributes.altTitles.find(keyValue => keyValue[language])?.[language] ??
-        manga.attributes.title.en;
-      setMangaTitle(title);
-    })();
-  }, [mangaId, language]);
 
   return (
     <GestureDetector gesture={gestures}>
@@ -90,7 +75,7 @@ export function LibraryListRenderItem({mangaId}: Props) {
           <Image source={{uri: coverPath}} style={styles.coverImage} />
           <View style={styles.detailsCont}>
             <Text style={styles.titleLabel} numberOfLines={2}>
-              {mangaTitle}
+              {title}
             </Text>
           </View>
         </Animated.View>

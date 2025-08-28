@@ -1,30 +1,36 @@
 import {ColorScheme} from '@constants';
-import {RootState, useAppSelector} from '@store';
 import React from 'react';
 import {ListRenderItemInfo, StyleSheet, Text, View} from 'react-native';
+import withObservables from '@nozbe/with-observables';
 import Animated from 'react-native-reanimated';
 import {LibraryListRenderItem} from './LibraryListRenderItem';
 import {useAppCore} from '@utils';
+import {database, Manga} from '@db';
+import {Q} from '@nozbe/watermelondb';
 
-export function LibraryList() {
+type Props = {
+  mangas: Manga[];
+};
+
+export function LibraryList({mangas}: Props) {
   const {colorScheme} = useAppCore();
 
-  const {libraryList} = useAppSelector((state: RootState) => state.libraryList);
   const styles = getStyles(colorScheme);
 
-  function renderItem({item, index}: ListRenderItemInfo<string>) {
-    return <LibraryListRenderItem mangaId={item} index={index} />;
+  function renderItem({item}: ListRenderItemInfo<Manga>) {
+    return <LibraryListRenderItem manga={item} />;
   }
 
   return (
     <View style={styles.container}>
-      {libraryList.length > 0 ? (
+      {mangas.length > 0 ? (
         <Animated.FlatList
-          data={libraryList}
+          data={mangas}
           renderItem={renderItem}
           numColumns={3}
           contentContainerStyle={styles.listContent}
           style={styles.list}
+          keyExtractor={item => item._raw.id}
         />
       ) : (
         <Text>No mangas in your library!</Text>
@@ -32,6 +38,15 @@ export function LibraryList() {
     </View>
   );
 }
+
+const enhance = withObservables([], () => ({
+  mangas: database.collections
+    .get<Manga>('mangas')
+    .query(Q.where('stay_updated', Q.notEq(null)))
+    .observe(),
+}));
+
+export const EnhancedLibraryList = enhance(LibraryList);
 
 function getStyles(_colorScheme: ColorScheme) {
   return StyleSheet.create({

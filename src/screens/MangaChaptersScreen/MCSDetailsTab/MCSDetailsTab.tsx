@@ -51,7 +51,7 @@ export function MCSDetailsTab({}: Props) {
           </View>
           <Text style={styles.label}>Descriptions</Text>
           <View style={styles.titlesGroup}>
-            {Object.keys(manga?.attributes.description ?? {}).map(lang => {
+            {Object.keys(manga?.description ?? {}).map(lang => {
               return (
                 <TouchableOpacity style={styles.titleChip} key={lang}>
                   <FlagIcon language={lang as Language} style={styles.flag} />

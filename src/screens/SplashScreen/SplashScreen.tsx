@@ -2,7 +2,7 @@ import {APP_NAME, ColorScheme, PRETENDARD_JP} from '@constants';
 import {RootStackParamsList} from '@navigation';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {StackScreenProps} from '@react-navigation/stack';
-import {initializeMangaTags, initializeUserPreferences, setLibraryList} from '@store';
+import {initializeMangaTags, initializeUserPreferences} from '@store';
 import {textColor, useAppCore} from '@utils';
 import React, {useEffect, useState} from 'react';
 import {PermissionsAndroid, StyleSheet, View} from 'react-native';
@@ -37,44 +37,27 @@ export function SplashScreen({navigation}: Props) {
 
   useEffect(() => {
     (async () => {
-      // check if installed for first time
       const firstTimeInstall = await AsyncStorage.getItem('first-time');
       if (!firstTimeInstall) {
         console.log('first time installation.');
         setLoadingText('first time installation');
         await AsyncStorage.setItem('first-time', 'true');
 
-        // create directories and files
         await FS.mkdir(`${FS.DocumentDirectoryPath}/manga`);
 
-        // get notifcations permission
-        const notifPermResult = await PermissionsAndroid.request(
-          'android.permission.POST_NOTIFICATIONS',
-          {
-            title: 'bungaku Notifications',
-            message: 'Let bungaku send you update notifications for your Library?',
-            buttonPositive: 'Yes',
-            buttonNegative: 'No',
-          },
-        );
-        console.log(notifPermResult);
-      } else if (firstTimeInstall === 'true') {
-        console.log('not first time installation.');
+        await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS, {
+          title: 'bungaku Notifications',
+          message: 'Let bungaku send you update notifications for your Library?',
+          buttonPositive: 'Yes',
+          buttonNegative: 'No',
+        });
       }
 
-      // get tags
       setLoadingText('fetching tags');
       await dispatch(initializeMangaTags());
 
-      // get preferences
       setLoadingText('fetching settings');
       await dispatch(initializeUserPreferences());
-
-      // initialize library list
-      setLoadingText('getting library');
-      const libraryDirList = await FS.readDir(`${FS.DocumentDirectoryPath}/manga/`);
-      const libraryList = libraryDirList.map(dir => dir.name);
-      dispatch(setLibraryList(libraryList));
 
       setLoadingText('welcome');
       setLoading(false);

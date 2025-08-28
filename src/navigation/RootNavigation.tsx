@@ -20,7 +20,7 @@ import {
 } from '@screens';
 import {
   RootState,
-  setColorScheme,
+  setColorSchemeAsync,
   setLibraryUpdatesOnLaunch,
   useAppDispatch,
   useAppSelector,
@@ -92,10 +92,10 @@ export default function RootNavigation() {
     (async () => {
       if (preferSystemColor) {
         if (systemColorScheme === 'dark') {
-          dispatch(setColorScheme('Dark'));
+          dispatch(setColorSchemeAsync('Dark'));
           setTheme(themeConverter(Dark));
         } else {
-          dispatch(setColorScheme('Light'));
+          dispatch(setColorSchemeAsync('Light'));
           setTheme(themeConverter(Light));
         }
         return;
@@ -112,7 +112,7 @@ export default function RootNavigation() {
             chosenColorScheme.type === 'light',
             true,
           );
-          dispatch(setColorScheme(scheme));
+          dispatch(setColorSchemeAsync(scheme));
           setTheme(themeConverter(chosenColorScheme));
         }
       });

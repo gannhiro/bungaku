@@ -19,6 +19,7 @@ import Animated, {
 import {FlagIcon} from '..';
 import {MangaListRenderItemContRatIcon} from './MangaListRenderItemContRatIcon';
 import {MangaListRenderItemStatIcon} from './MangaListRenderItemStatIcon';
+import {Manga} from '@db';
 
 interface Props {
   manga: res_get_manga['data'][0];
@@ -30,30 +31,29 @@ const {width} = Dimensions.get('window');
 
 export const MangaListRenderItem = memo(({manga}: Props) => {
   const {colorScheme, intError, navigation} = useAppCore<'HomeNavigator'>();
-
-  const {libraryList} = useAppSelector((state: RootState) => state.libraryList);
   const {language} = useAppSelector((state: RootState) => state.userPreferences);
+
+  const [isInLibrary, setIsInLibrary] = useState(false);
   const [loadingCover, setLoadingCover] = useState(true);
   const [coverRetries, setCoverRetries] = useState(0);
   const [coverError, setCoverError] = useState(false);
 
   const mangaTitle =
-    manga.attributes.title[language] ??
-    manga.attributes.altTitles.find(altTitle => altTitle[language])?.[language] ??
-    manga.attributes.title.en ??
+    manga.attributes.title?.[language] ??
+    manga.attributes.altTitles?.find(altTitle => altTitle[language])?.[language] ??
+    manga.attributes.title?.en ??
     'NO TITLE!';
   const coverItem = manga.relationships.find(rs => rs.type === 'cover_art') as
     | res_get_cover_$['data']
     | undefined;
   const url = `https://uploads.mangadex.org/covers/${manga.id}/${coverItem?.attributes.fileName}`;
-  const inLibrary = libraryList.findIndex(id => id === manga.id);
 
   const itemScale = useSharedValue(1);
   const contAnimStyle = useAnimatedStyle(() => {
     return {
       transform: [{scale: itemScale.value}],
       borderWidth: 1,
-      borderColor: withSpring(inLibrary !== -1 ? systemPurple : colorScheme.colors.primary),
+      borderColor: withSpring(isInLibrary ? systemPurple : colorScheme.colors.primary),
     };
   });
 
@@ -68,7 +68,7 @@ export const MangaListRenderItem = memo(({manga}: Props) => {
 
   function goToChapters() {
     navigation.navigate('MangaChaptersScreen', {
-      manga: manga,
+      mangaId: manga.id,
     });
   }
 
@@ -91,11 +91,11 @@ export const MangaListRenderItem = memo(({manga}: Props) => {
   }
 
   useEffect(() => {
-    if (!intError) {
-      setCoverError(false);
-      setCoverRetries(0);
-    }
-  }, [intError]);
+    (async () => {
+      const [_, isDownloaded] = await Manga.doesMangaExistById(manga.id);
+      setIsInLibrary(isDownloaded);
+    })();
+  }, []);
 
   return (
     <GestureDetector gesture={onPressItem}>
@@ -134,7 +134,7 @@ export const MangaListRenderItem = memo(({manga}: Props) => {
 const styles = StyleSheet.create({
   container: {
     width: (width - 30) / 2,
-    height: (width / 3) * 2,
+    height: (width / 4) * 2,
 
     borderRadius: 15,
     overflow: 'hidden',

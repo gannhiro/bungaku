@@ -7,6 +7,7 @@ import {
   res_get_user_$,
 } from '@api';
 import {Language} from '@constants';
+import {Manga, MangaStatistic} from '@db';
 import {ReadingMode} from '@screens';
 
 export type RootStackParamsList = {
@@ -15,15 +16,9 @@ export type RootStackParamsList = {
   HomeNavigator: undefined;
   TestScreen: undefined;
   LoginScreen: undefined;
-  MangaChaptersScreen:
-    | {
-        manga: res_get_manga['data'][0];
-        mangaId?: never;
-      }
-    | {
-        manga?: never;
-        mangaId: string;
-      };
+  MangaChaptersScreen: {
+    mangaId: string;
+  };
   ReadChapterScreen: {
     manga: res_get_manga['data'][0];
     chapters: res_get_manga_$_feed['data'];
@@ -36,8 +31,8 @@ export type RootStackParamsList = {
   CreditsScreen: undefined;
   ThemeModal: undefined;
   AddToLibraryModal: {
-    manga: res_get_manga['data'][0];
-    statistics?: res_get_statistics_manga;
+    manga: Manga;
+    statistics?: MangaStatistic;
   };
   LanguageModal: undefined;
 };

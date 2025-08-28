@@ -2,7 +2,7 @@ import {ColorScheme, PRETENDARD_JP, TOP_OVERLAY_HEIGHT} from '@constants';
 import {textColor, useAppCore} from '@utils';
 import React from 'react';
 import {StyleSheet, Text, View} from 'react-native';
-import {LibraryList} from '@components';
+import {EnhancedLibraryList} from '@components';
 
 export function LibraryScreen() {
   const {colorScheme} = useAppCore();
@@ -12,7 +12,7 @@ export function LibraryScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.libraryLabel}>Library</Text>
-      <LibraryList />
+      <EnhancedLibraryList />
     </View>
   );
 }
@@ -23,6 +23,7 @@ function getStyles(colorScheme: ColorScheme) {
       paddingTop: TOP_OVERLAY_HEIGHT,
       alignItems: 'center',
       flex: 1,
+      backgroundColor: colorScheme.colors.main,
     },
     libraryLabel: {
       fontFamily: PRETENDARD_JP.LIGHT,

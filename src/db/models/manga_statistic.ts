@@ -28,8 +28,8 @@ export default class MangaStatistic extends Model {
   }
 
   static async createFromApiResult(
-    stats: res_get_statistics_manga['statistics'][string],
     mangaId: string,
+    stats: res_get_statistics_manga['statistics'][string],
   ) {
     await database.write(async () => {
       await database.get<MangaStatistic>('manga_statistics').create(dbStat => {

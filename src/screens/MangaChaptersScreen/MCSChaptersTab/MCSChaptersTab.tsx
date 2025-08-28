@@ -13,7 +13,7 @@ import {MaterialTopTabScreenProps} from '@react-navigation/material-top-tabs';
 import {FlashList, ListRenderItemInfo} from '@shopify/flash-list';
 import {RootState, useAppSelector} from '@store';
 import {textColor, useAppCore} from '@utils';
-import React, {useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {
   Dimensions,
   ScrollView,
@@ -57,14 +57,13 @@ export function MCSChaptersTab({}: Props) {
   } = useMangaChaptersScreenContext();
 
   const {colorScheme} = useAppCore();
-  const {libraryList} = useAppSelector((state: RootState) => state.libraryList);
 
   const styles = getStyles(colorScheme);
 
   const listRef = useRef<FlashList<res_get_manga_$_feed['data'][0]>>(null);
 
   const availableLanguages: GenericDropdownValues =
-    manga?.attributes.availableTranslatedLanguages.map(lang => {
+    manga?.availableTranslatedLanguages.map(lang => {
       return {
         value: lang,
         label: lang ? ISO_LANGS[lang as keyof typeof ISO_LANGS].name : 'NULL',
@@ -74,9 +73,9 @@ export function MCSChaptersTab({}: Props) {
       };
     }) ?? [];
 
-  const inLibrary = libraryList.includes(manga?.id ?? '');
   const author = manga?.relationships.find(rs => rs.type === 'author') as res_get_author_$['data'];
 
+  const [isInLibrary, setIsInLibrary] = useState(false);
   const [languages, setLanguages] = useState<string[]>([]);
   const [showBottomSheet, setShowBottomSheet] = useState<boolean>(false);
 
@@ -142,6 +141,13 @@ export function MCSChaptersTab({}: Props) {
     }
   }
 
+  useEffect(() => {
+    (async () => {
+      const inLibrary = (await manga?.isDownloaded()) ?? false;
+      setIsInLibrary(inLibrary);
+    })();
+  }, []);
+
   return (
     <View style={[styles.container]}>
       <Animated.View
@@ -149,9 +155,7 @@ export function MCSChaptersTab({}: Props) {
         entering={topContEnterLayoutAnim}
         exiting={topContExitLayoutAnim}>
         <Animated.Text style={[styles.mangaTitle]} entering={FadeIn} numberOfLines={5}>
-          {manga?.attributes.title.en
-            ? manga.attributes.title.en
-            : Object.values(manga?.attributes.title ?? {})[0] ?? 'No Title'}
+          {manga?.title.en ? manga.title.en : Object.values(manga?.title ?? {})[0] ?? 'No Title'}
         </Animated.Text>
         <Text style={[styles.mangaAuthor]} numberOfLines={2}>
           {author?.attributes?.name ? `by ${author.attributes.name ?? ''}` : 'No Author'}
@@ -162,11 +166,10 @@ export function MCSChaptersTab({}: Props) {
           contentContainerStyle={{alignItems: 'center'}}>
           <BigIconButton
             icon={
-              inLibrary
+              isInLibrary
                 ? require('@assets/icons/book.png')
                 : require('@assets/icons/book-outline.png')
             }
-            // loading={addingLibLoad}
             onPressButton={onAddToLibPress}
           />
           <BigIconButton
@@ -174,11 +177,11 @@ export function MCSChaptersTab({}: Props) {
             onPressButton={onPressShare}
           />
           <MangaListRenderItemContRatIcon
-            contentRating={manga?.attributes.contentRating ?? 'safe'}
+            contentRating={manga?.contentRating ?? 'safe'}
             style={styles.pressableIcons}
           />
           <MangaListRenderItemStatIcon
-            status={manga?.attributes.status ?? 'ongoing'}
+            status={manga?.status ?? 'ongoing'}
             style={styles.pressableIcons}
           />
         </ScrollView>
@@ -224,7 +227,7 @@ export function MCSChaptersTab({}: Props) {
         setShowBottomSheet={setShowBottomSheet}
         style={styles.bottomSheet}>
         <ScrollView contentContainerStyle={styles.bottomSheetScrollView}>
-          {inLibrary && (
+          {isInLibrary && (
             <Animated.View style={styles.bottomSheetGroupRow} layout={LinearTransition}>
               <Text style={styles.bottomSheetLabel}>Downloaded Chapters Only</Text>
               <Switch

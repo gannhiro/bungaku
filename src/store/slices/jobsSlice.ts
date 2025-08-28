@@ -63,11 +63,7 @@ export const updateDownloadedMangaSettings = createAsyncThunk<
   MangaDetails,
   AppAsyncThunkConfig
 >('jobs/updateDownloadedMangaSettings', async (mangaDetails, {fulfillWithValue}) => {
-  await FS.writeFile(
-    `${FS.DocumentDirectoryPath}/manga/${mangaDetails.manga.id}/manga-details.json`,
-    JSON.stringify(mangaDetails),
-  );
-
+  // TODO
   ToastAndroid.show('Updated Settings', 500);
 
   return fulfillWithValue('success');

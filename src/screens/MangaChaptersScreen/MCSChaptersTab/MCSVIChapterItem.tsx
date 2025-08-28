@@ -48,7 +48,6 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
   } = useMangaChaptersScreenContext();
 
   const {dispatch, colorScheme, navigation} = useAppCore();
-  const {libraryList} = useAppSelector((state: RootState) => state.libraryList);
   const styles = getStyles(colorScheme);
 
   const potentialJobId = `${manga?.id}-${chapter.id}`;
@@ -58,10 +57,10 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
   );
   const isJobPending = jobStatus === 'pending' || jobStatus === 'queued';
 
+  const [mangaInLibrary, setMangaInLibrary] = useState(false);
   const [downloadable, setDownloadable] = useState(false);
   const [isDownloaded, setIsDownloaded] = useState(false);
 
-  const inLibrary = libraryList.includes(manga?.id ?? '');
   const isSelected = selectedChapters.includes(chapter.id);
   const scanlator = chapter?.relationships.find(rs => rs.type === 'scanlation_group') as
     | res_get_group_$['data']
@@ -153,7 +152,7 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
       return;
     }
 
-    if (inLibrary) {
+    if (mangaInLibrary) {
       dispatch(
         queueDownloadChapter({
           chapter,
@@ -259,23 +258,15 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
 
   useEffect(() => {
     (async () => {
-      const isDL = await FS.exists(
-        `${FS.DocumentDirectoryPath}/manga/${manga?.id}/${chapter.attributes.translatedLanguage}/${chapter.id}`,
-      );
-      const isCD = await FS.exists(`${FS.CachesDirectoryPath}/${manga?.id}/${chapter.id}`);
+      const isDownloaded = false;
+      setIsDownloaded(isDownloaded);
 
-      setIsDownloaded(isDL);
-
-      chapterPressableBorderColor.value = isDL
-        ? systemGreen
-        : isCD
-        ? systemOrange
-        : colorScheme.colors.primary;
+      chapterPressableBorderColor.value = isDownloaded ? systemGreen : colorScheme.colors.primary;
 
       const isChapterDownloadable = !chapter.attributes.externalUrl;
       setDownloadable(isChapterDownloadable);
     })();
-  }, [chapter, manga, libraryList, chapterPressableBorderColor, colorScheme, jobStatus]);
+  }, [chapter, manga, chapterPressableBorderColor, colorScheme, jobStatus]);
 
   return (
     <GestureDetector gesture={gestures}>

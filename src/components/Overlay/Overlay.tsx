@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {JSX, useEffect, useState} from 'react';
 import {Dimensions, Image, SafeAreaView, StatusBar, StyleSheet, Text} from 'react-native';
 import Animated, {SlideInDown, SlideInUp, SlideOutDown, SlideOutUp} from 'react-native-reanimated';
 import {AVAILABLE_COLOR_SCHEMES, ColorScheme, PRETENDARD_JP, systemRed, white} from '@constants';

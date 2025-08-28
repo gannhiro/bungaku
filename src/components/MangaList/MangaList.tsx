@@ -20,6 +20,7 @@ import {setError} from '@store';
 import {textColor} from '@utils';
 import * as Progress from 'react-native-progress';
 import {useAppCore} from '@utils';
+import {Manga} from '@db';
 
 const {width} = Dimensions.get('screen');
 
@@ -71,6 +72,7 @@ export function MangaList({params, horizontal, style, contentViewStyle, onScroll
 
     if (data && data.result === 'ok') {
       const tempMangas = [...mangas, ...data.data];
+      await Manga.createFromApiBulk(data.data);
       setOffset(offset + params.limit);
       setMangas(tempMangas);
     } else if (data && data.result === 'error') {
@@ -104,7 +106,8 @@ export function MangaList({params, horizontal, style, contentViewStyle, onScroll
     );
 
     if (data.result === 'ok') {
-      setMangas(data?.data);
+      await Manga.createFromApiBulk(data.data);
+      setMangas(data.data);
       setTotal(data.total);
       flatlistRef.current?.scrollToOffset({animated: true, offset: 0});
       setLoading(false);
@@ -151,6 +154,7 @@ export function MangaList({params, horizontal, style, contentViewStyle, onScroll
       }
 
       if (data.result === 'ok') {
+        await Manga.createFromApiBulk(data.data);
         setMangas(data.data);
         setTotal(data.total);
         flatlistRef.current?.scrollToOffset({animated: true, offset: 0});

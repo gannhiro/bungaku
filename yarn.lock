@@ -1631,6 +1631,13 @@
     rxjs "^7.8.1"
     sql-escape-string "^1.1.0"
 
+"@nozbe/with-observables@^1.6.0":
+  version "1.6.0"
+  resolved "https://registry.yarnpkg.com/@nozbe/with-observables/-/with-observables-1.6.0.tgz#498bcabcf0106f8adc135fd1ed7a77e5c95ad7a0"
+  integrity sha512-X/qGRBrmXLBVP3pqGQKD461UNx4sKfNoKWe4dlM/Gvtd12BOmv+nYOxw8PXiUr28yXxVYi03LpwDBd+JFo1Adg==
+  dependencies:
+    hoist-non-react-statics "^3.3.2"
+
 "@react-native-async-storage/async-storage@^1.23.1":
   version "1.24.0"
   resolved "https://registry.yarnpkg.com/@react-native-async-storage/async-storage/-/async-storage-1.24.0.tgz#888efbc62a26f7d9464b32f4d3027b7f2771999b"
@@ -1996,11 +2003,6 @@
     "@react-native/metro-babel-transformer" "0.81.0"
     metro-config "^0.83.1"
     metro-runtime "^0.83.1"
-
-"@react-native/new-app-screen@0.81.0":
-  version "0.81.0"
-  resolved "https://registry.yarnpkg.com/@react-native/new-app-screen/-/new-app-screen-0.81.0.tgz#c6a37b060677f0c4efde511a2072060e44e17553"
-  integrity sha512-740IMMoWm4b9RTSE6e+R9QmxKmId5cINbJxe0+bp7S8UkR6/9qbi5KFw5XM4rIWMLPKf5KwH7/BuCeEys7GoBg==
 
 "@react-native/normalize-color@^2.0.0":
   version "2.1.0"

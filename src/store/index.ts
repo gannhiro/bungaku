@@ -4,7 +4,6 @@ export * from './slices/mangaTagsSlice';
 export * from './slices/userSlice';
 export * from './slices/userPreferencesSlice';
 export * from './slices/errorSlice';
-export * from './slices/libraryListSlice';
 export * from './slices/libraryUpdates';
 export * from './slices/jobsSlice';
 export * from './types';

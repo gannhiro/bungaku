@@ -19,7 +19,6 @@ import {setError} from '@store';
 import {transformChapters, transformMangaStatistics, useAppCore} from '@utils';
 import React, {useEffect, useRef, useState} from 'react';
 import {Dimensions, Image, StyleSheet, View} from 'react-native';
-import FS from 'react-native-fs';
 import LinearGradient from 'react-native-linear-gradient';
 import Animated, {FadeIn} from 'react-native-reanimated';
 import {MCSChaptersTab} from './MCSChaptersTab/MCSChaptersTab';
@@ -28,7 +27,7 @@ import {
   iMangaChaptersScreenContext,
   MangaChaptersScreenContext,
 } from './useMangaChaptersScreenContext';
-import {Chapter, database, Manga, MangaStatistic} from '@db';
+import {Chapter, Manga, MangaStatistic} from '@db';
 
 const {width, height} = Dimensions.get('screen');
 
@@ -60,7 +59,7 @@ export function MangaChaptersScreen({route, navigation}: Props) {
   const [selectedChapters, setSelectedChapters] = useState<string[]>([]);
   const [order, setOrder] = useState<Ordering>('desc');
   const [showDownloadedChapters, setShowDownloadedChapters] = useState(false);
-  const [localManga, setLocalManga] = useState<res_get_manga['data'][0] | undefined>(undefined);
+  const [localManga, setLocalManga] = useState<Manga>();
 
   const abortController = useRef<AbortController | null>(null);
 
@@ -73,7 +72,7 @@ export function MangaChaptersScreen({route, navigation}: Props) {
       }`
     : null;
   const languageList: GenericDropdownValues =
-    localManga?.attributes.availableTranslatedLanguages.map(lang => {
+    localManga?.availableTranslatedLanguages.map(lang => {
       if (lang) {
         return {
           value: lang,
@@ -121,9 +120,10 @@ export function MangaChaptersScreen({route, navigation}: Props) {
 
   useEffect(() => {
     async function fetchManga() {
-      if (route.params.manga) {
-        setLocalManga(route.params.manga);
-        return;
+      const dbManga = await Manga.getMangaById(route.params.mangaId);
+
+      if (dbManga) {
+        setLocalManga(dbManga);
       }
 
       const data = await mangadexAPI<res_get_manga_$, get_manga_$>(
@@ -133,11 +133,14 @@ export function MangaChaptersScreen({route, navigation}: Props) {
         [route.params.mangaId],
       );
 
-      if (data.result === 'ok') setLocalManga(data.data);
+      if (data.result === 'ok') {
+        await dbManga?.updateFromApi(data['data']);
+        setLocalManga(dbManga);
+      }
     }
 
     fetchManga();
-  }, [route.params.manga, route.params.mangaId]);
+  }, []);
 
   useEffect(() => {
     const downloadedChapters: res_get_manga_$_feed['data'] = [];
@@ -276,8 +279,8 @@ export function MangaChaptersScreen({route, navigation}: Props) {
 
           if (dbReadyStats[0])
             await MangaStatistic.createFromApiResult(
-              statisticsData.statistics[localManga.id],
               localManga.id,
+              statisticsData.statistics[localManga.id],
             );
         }
       }

@@ -1,3 +1,4 @@
+import {res_get_cover_$} from '@api';
 import {Button, Dropdown, GenericDropdownValues} from '@components';
 import {
   ColorScheme,
@@ -10,20 +11,14 @@ import {
   systemPurple,
   systemRed,
 } from '@constants';
+import {database} from '@db';
 import {RootStackParamsList} from '@navigation';
 import {BlurView} from '@react-native-community/blur';
 import {StackScreenProps} from '@react-navigation/stack';
-import {
-  addOrRemoveMangaFromLibrary,
-  RootState,
-  updateDownloadedMangaSettings,
-  useAppDispatch,
-  useAppSelector,
-} from '@store';
-import {MangaDetails} from '@types';
-import {getDateTodayAtMidnight, textColor} from '@utils';
+import {updateDownloadedMangaSettings} from '@store';
+import {getDateTodayAtMidnight, textColor, useAppCore} from '@utils';
 import React, {useEffect, useState} from 'react';
-import {Dimensions, Keyboard, StyleSheet, Switch, Text, TextInput, View} from 'react-native';
+import {Dimensions, Keyboard, StyleSheet, Switch, Text, View} from 'react-native';
 import FS from 'react-native-fs';
 import Animated, {
   FadeIn,
@@ -41,12 +36,10 @@ type Props = StackScreenProps<RootStackParamsList, 'AddToLibraryModal'>;
 
 export function AddToLibraryModal({route, navigation}: Props) {
   const {manga, statistics} = route.params;
-  const dispatch = useAppDispatch();
-  const {colorScheme} = useAppSelector((state: RootState) => state.userPreferences);
-  const {libraryList} = useAppSelector((state: RootState) => state.libraryList);
-  const inLibrary = libraryList.includes(manga.id);
+  const {colorScheme, dispatch} = useAppCore();
   const styles = getStyles(colorScheme);
 
+  const [isInLibrary, setIsInLibrary] = useState(false);
   const [dateError, setDateError] = useState(false);
   const [isDataSaver, setIsDataSaver] = useState(false);
   const [stayUpdatedLoc, setStayUpdatedLoc] = useState(true);
@@ -64,18 +57,16 @@ export function AddToLibraryModal({route, navigation}: Props) {
       : new Date().getUTCDate().toString(),
   );
   const [targetLanguages, setTargetLanguages] = useState<Language[]>([
-    manga.attributes.availableTranslatedLanguages[0] as Language,
+    manga.availableTranslatedLanguages[0] as Language,
   ]);
 
-  const availableLangs: GenericDropdownValues = manga.attributes.availableTranslatedLanguages.map(
-    lang => {
-      return {
-        value: lang,
-        label: ISO_LANGS[lang as Language].name,
-        subLabel: `${ISO_LANGS[lang as Language].name} | ${lang}`,
-      };
-    },
-  );
+  const availableLangs: GenericDropdownValues = manga.availableTranslatedLanguages.map(lang => {
+    return {
+      value: lang,
+      label: ISO_LANGS[lang as Language].name,
+      subLabel: `${ISO_LANGS[lang as Language].name} | ${lang}`,
+    };
+  });
 
   const dateTextInputBorderColor = useSharedValue(colorScheme.colors.secondary);
   const dateTextInputStyle = useAnimatedStyle(() => {
@@ -134,53 +125,64 @@ export function AddToLibraryModal({route, navigation}: Props) {
 
   async function onAddToLibPress() {
     Keyboard.dismiss();
-    const mangaDetails: MangaDetails = {
-      manga,
-      statistics,
+
+    const directory = `${FS.DocumentDirectoryPath}/manga/${manga.id}`;
+
+    if (!(await FS.exists(directory))) {
+      await FS.mkdir(directory);
+    }
+
+    const coverItem = manga.relationships.find(rs => rs.type === 'cover_art') as
+      | res_get_cover_$['data']
+      | undefined;
+    const coverUrl = `https://uploads.mangadex.org/covers/${manga.id}/${coverItem?.attributes.fileName}`;
+
+    const {promise} = FS.downloadFile({
+      fromUrl: coverUrl,
+      toFile: `${directory}/cover.png`,
+    });
+
+    await promise;
+
+    await manga.updateLibrarySettings({
       dateAdded: getDateTodayAtMidnight(),
       stayUpdated: stayUpdatedLoc,
       stayUpdatedLanguages: targetLanguages,
       isDataSaver,
-    };
-
-    dispatch(addOrRemoveMangaFromLibrary(mangaDetails));
+    });
   }
 
-  function onUpdateSettingsPress() {
-    const mangaDetails: MangaDetails = {
-      manga,
-      statistics,
+  async function onRemoveFromLibPress() {
+    Keyboard.dismiss();
+
+    const directory = `${FS.DocumentDirectoryPath}/manga/${manga.id}`;
+    await FS.unlink(directory);
+
+    await manga.removeFromLibrary();
+  }
+
+  async function onUpdateSettingsPress() {
+    Keyboard.dismiss();
+    await manga.updateLibrarySettings({
       dateAdded: getDateTodayAtMidnight(),
       stayUpdated: stayUpdatedLoc,
       stayUpdatedLanguages: targetLanguages,
       isDataSaver,
-    };
-
-    dispatch(updateDownloadedMangaSettings(mangaDetails));
+    });
   }
 
   useEffect(() => {
     (async () => {
-      let extractedDetails = '';
-      try {
-        extractedDetails = await FS.readFile(
-          `${FS.DocumentDirectoryPath}/manga/${manga.id}/manga-details.json`,
-        );
-      } catch (e) {
-        console.log('manga-details.json does not exist');
-        return;
-      }
+      setIsInLibrary(await manga.isDownloaded());
+    })();
+  }, []);
 
-      const {
-        stayUpdated,
-        stayUpdatedLanguages,
-        isDataSaver: parsedIsDataSaver,
-      }: MangaDetails = JSON.parse(extractedDetails);
-
+  useEffect(() => {
+    (async () => {
       const date = new Date();
 
-      setStayUpdatedLoc(stayUpdated);
-      setIsDataSaver(parsedIsDataSaver);
+      setStayUpdatedLoc(manga.stayUpdated ?? false);
+      setIsDataSaver(manga.isDataSaver ?? false);
       setStayUpdatedDyLoc(
         date.getUTCDate() < 10 ? `0${date.getUTCDate()}` : date.getUTCDate().toString(),
       );
@@ -190,7 +192,7 @@ export function AddToLibraryModal({route, navigation}: Props) {
           : (date.getUTCMonth() + 1).toString(),
       );
       setStayUpdatedYrLoc(date.getUTCFullYear().toString());
-      setTargetLanguages(stayUpdatedLanguages);
+      setTargetLanguages(manga.stayUpdatedLanguages ?? []);
     })();
   }, [manga]);
 
@@ -198,7 +200,7 @@ export function AddToLibraryModal({route, navigation}: Props) {
     let localDateError = false;
 
     if (!stayUpdatedYrLoc || parseInt(stayUpdatedYrLoc, 10) < 1900) {
-      console.log('year error' + new Date(manga.attributes.createdAt).getUTCFullYear());
+      console.log('year error' + new Date(manga.createdAt).getUTCFullYear());
       setDateError(true);
       localDateError = true;
     }
@@ -244,7 +246,7 @@ export function AddToLibraryModal({route, navigation}: Props) {
       <BlurView style={styles.blur} blurType={colorScheme.type} blurRadius={3} />
       <Animated.View entering={FadeIn} layout={LinearTransition} style={styles.innerCont}>
         <Text style={styles.addToLibLabel}>Adding To Library</Text>
-        <Text style={styles.mangaTitleLabel}>{manga.attributes.title.en}</Text>
+        <Text style={styles.mangaTitleLabel}>{manga.title.en}</Text>
         <View style={styles.groupRow}>
           <Text style={styles.groupRowLabel}>Stay Updated?</Text>
           <Switch value={stayUpdatedLoc} onValueChange={onStayUpdatedSwitchChange} />
@@ -278,13 +280,13 @@ export function AddToLibraryModal({route, navigation}: Props) {
             imageReq={require('@assets/icons/chevron-left.png')}
             shouldTintImage={true}
           />
-          {inLibrary ? (
+          {isInLibrary ? (
             <Button
               title="Remove"
               containerStyle={styles.navButtonAdd}
               btnColor={systemPurple}
               imageReq={require('@assets/icons/book-remove.png')}
-              onButtonPress={onAddToLibPress}
+              onButtonPress={onRemoveFromLibPress}
             />
           ) : (
             <Button
@@ -297,7 +299,7 @@ export function AddToLibraryModal({route, navigation}: Props) {
             />
           )}
         </Animated.View>
-        {inLibrary && (
+        {isInLibrary && (
           <Animated.View
             style={styles.group}
             entering={FadeInLeft.delay(200)}

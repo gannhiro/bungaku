@@ -1,14 +1,11 @@
-import {
-  res_get_manga,
-  res_get_statistics_manga,
-  res_get_manga_$_feed,
-} from '@api';
+import {res_get_manga, res_get_statistics_manga, res_get_manga_$_feed} from '@api';
 import {GenericDropdownValues} from '@components';
 import {Language} from '@constants';
+import {Manga} from '@db';
 import {Dispatch, SetStateAction, createContext, useContext} from 'react';
 
 export interface iMangaChaptersScreenContext {
-  manga?: res_get_manga['data'][0];
+  manga?: Manga;
   statistics?: res_get_statistics_manga | null;
   chapters: res_get_manga_$_feed['data'];
   onAddToLibPress: () => Promise<void>;
@@ -33,9 +30,9 @@ export interface iMangaChaptersScreenContext {
   orderItems: GenericDropdownValues;
 }
 
-export const MangaChaptersScreenContext = createContext<
-  iMangaChaptersScreenContext | undefined
->(undefined);
+export const MangaChaptersScreenContext = createContext<iMangaChaptersScreenContext | undefined>(
+  undefined,
+);
 
 export function useMangaChaptersScreenContext(): iMangaChaptersScreenContext {
   const context = useContext(MangaChaptersScreenContext);

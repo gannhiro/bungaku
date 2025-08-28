@@ -40,6 +40,11 @@ export default appSchema({
         {name: 'relationships_obj', type: 'string'},
         {name: 'created_at', type: 'number'},
         {name: 'updated_at', type: 'number'},
+
+        {name: 'date_added', type: 'number', isOptional: true},
+        {name: 'is_data_saver', type: 'boolean', isOptional: true},
+        {name: 'stay_updated', type: 'boolean', isOptional: true},
+        {name: 'stay_updated_languages_obj', type: 'string', isOptional: true},
       ],
     }),
     tableSchema({
