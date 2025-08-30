@@ -80,7 +80,7 @@ export function SplashScreen({navigation}: Props) {
     if (!loading) {
       setTimeout(() => {
         navigation.replace('HomeNavigator');
-      }, 2500);
+      }, 1000);
     }
   }, [loading, navigation]);
 
