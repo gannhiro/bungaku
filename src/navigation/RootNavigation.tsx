@@ -18,7 +18,7 @@ import {
   TestScreen,
 } from '@screens';
 import {themeConverter, useAppCore} from '@utils';
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {StatusBar} from 'react-native';
 import changeNavigationBarColor from 'react-native-navigation-bar-color';
 import {RootStackParamsList} from './types';
@@ -58,7 +58,7 @@ const linking: LinkingOptions<RootStackParamsList> = {
 };
 
 export default function RootNavigation() {
-  const {dispatch} = useAppCore();
+  const {dispatch, colorScheme} = useAppCore();
 
   const [ready, setReady] = useState(false);
 
@@ -75,6 +75,10 @@ export default function RootNavigation() {
     // TODO: lib updates
   }
 
+  const getTheme = useCallback(() => {
+    return themeConverter(colorScheme);
+  }, []);
+
   useEffect(() => {
     (async () => {
       await dispatch(initializeUserPreferences());
@@ -87,7 +91,11 @@ export default function RootNavigation() {
   return (
     <Overlay>
       <StatusBar translucent={true} backgroundColor={'#00000000'} />
-      <NavigationContainer onReady={navOnReady} onStateChange={onNavStateChange} linking={linking}>
+      <NavigationContainer
+        onReady={navOnReady}
+        onStateChange={onNavStateChange}
+        linking={linking}
+        theme={getTheme()}>
         <Stack.Navigator screenOptions={stackNavOption} initialRouteName="SplashScreen">
           <Stack.Screen name="KitchenSinkScreen" component={KitchenSinkScreen} />
           <Stack.Screen name="SplashScreen" component={SplashScreen} />

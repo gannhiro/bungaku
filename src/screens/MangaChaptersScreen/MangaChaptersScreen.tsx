@@ -5,7 +5,6 @@ import {
   mangadexAPI,
   Ordering,
   res_get_cover_$,
-  res_get_manga,
   res_get_manga_$,
   res_get_manga_$_feed,
   res_get_statistics_manga,
@@ -16,7 +15,7 @@ import {RootStackParamsList} from '@navigation';
 import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
 import {StackScreenProps} from '@react-navigation/stack';
 import {setError} from '@store';
-import {transformChapters, transformMangaStatistics, useAppCore} from '@utils';
+import {useAppCore} from '@utils';
 import React, {useEffect, useRef, useState} from 'react';
 import {Dimensions, Image, StyleSheet, View} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
@@ -51,8 +50,8 @@ export function MangaChaptersScreen({route, navigation}: Props) {
 
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [loadingText, setLoadingText] = useState('loading');
-  const [statistics, setStatistics] = useState<res_get_statistics_manga | null>();
-  const [chapters, setChapters] = useState<res_get_manga_$_feed['data']>([]);
+  const [statistics, setStatistics] = useState<MangaStatistic>();
+  const [chapters, setChapters] = useState<Chapter[]>([]);
   const [loading, setLoading] = useState(true);
   const [languages, setLanguages] = useState<Array<Language>>([]);
   const [selectMode, setSelectMode] = useState(false);
@@ -152,9 +151,7 @@ export function MangaChaptersScreen({route, navigation}: Props) {
 
       if (chaptersFromDb.length === 0) return;
 
-      downloadedChapters.push(...transformChapters(chaptersFromDb));
-
-      setChapters(downloadedChapters);
+      setChapters(chaptersFromDb);
     }
 
     async function fetchChapters() {
@@ -203,13 +200,9 @@ export function MangaChaptersScreen({route, navigation}: Props) {
             total = chapterData.total;
           }
 
-          const newChapters = chapterData.data.filter(
-            remoteChapter => !downloadedChapterIds.has(remoteChapter.id),
-          );
+          await Chapter.upsertFromApiBulk(localManga.mangaId, chapterData.data);
 
-          if (newChapters.length > 0) {
-            setChapters(prevChapters => [...prevChapters, ...newChapters]);
-          }
+          setChapters(await Chapter.getChaptersForManga(localManga.id));
 
           if (offset + limit < chapterData.total) {
             offset += limit;
@@ -239,12 +232,10 @@ export function MangaChaptersScreen({route, navigation}: Props) {
         return;
       }
 
-      const mangaFromDb = await Manga.getMangaById(localManga.id);
       const statsFromDb = await MangaStatistic.getStatisticForManga(localManga.id);
 
       if (statsFromDb) {
-        const localStats = transformMangaStatistics([statsFromDb]);
-        setStatistics(localStats);
+        setStatistics(statsFromDb);
       }
 
       let newAbortController = new AbortController();
@@ -268,21 +259,12 @@ export function MangaChaptersScreen({route, navigation}: Props) {
       );
 
       if (statisticsData?.result === 'ok') {
-        setStatistics(statisticsData);
+        const newStat = await MangaStatistic.upsertFromApiResult(
+          localManga.id,
+          statisticsData['statistics'][localManga.id],
+        );
 
-        if (mangaFromDb) {
-          if (statsFromDb) {
-            await statsFromDb.updateStatistics(statisticsData.statistics[localManga.id]);
-            return;
-          }
-          const dbReadyStats = transformMangaStatistics(statisticsData);
-
-          if (dbReadyStats[0])
-            await MangaStatistic.createFromApiResult(
-              localManga.id,
-              statisticsData.statistics[localManga.id],
-            );
-        }
+        setStatistics(newStat);
       }
     }
 

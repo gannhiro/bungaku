@@ -11,7 +11,7 @@ export default class Tag extends Model {
   @text('group') group!: 'theme' | 'genre' | 'format';
   @field('version') version!: number;
 
-  @json('name_obj', raw => raw || {}) name!: LocalizedString;
+  @json('name_obj', raw => raw ?? {}) name!: LocalizedString;
 
   static async getAllTags(): Promise<Tag[]> {
     const tagsCollection = database.collections.get<Tag>('tags');

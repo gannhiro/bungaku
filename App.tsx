@@ -1,11 +1,11 @@
-import {updateManga} from '@store';
+import {checkForMangaUpdates} from '@store';
 import React, {useEffect} from 'react';
 import BackgroundFetch, {HeadlessEvent} from 'react-native-background-fetch';
-import FS from 'react-native-fs';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {Provider} from 'react-redux';
 import RootNavigation from './src/navigation/RootNavigation';
 import {store} from './src/store/store';
+import {Manga} from '@db';
 
 export default function App() {
   useEffect(() => {
@@ -53,35 +53,10 @@ export default function App() {
 }
 
 export async function backgroundWork(event: HeadlessEvent) {
-  let date = new Date();
-  console.log(
-    `BGFETCH: MANGA UPDATES START - ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`,
-  );
+  const mangaIds = await Manga.getAllMangaIds();
+  const promises = mangaIds.map(mangaId => store.dispatch(checkForMangaUpdates(mangaId)));
 
-  const mangaList: string[] = await FS.readdir(`${FS.DocumentDirectoryPath}/manga/`);
-
-  if (mangaList.length === 0) {
-    date = new Date();
-    console.log(
-      `BGFETCH: NO MANGAS TO UPDATE - ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`,
-    );
-
-    return;
-  }
-
-  const promises = mangaList.map(mangaId => {
-    return store.dispatch(updateManga(mangaId));
-  });
-
-  const settledMangaUpdates = await Promise.allSettled(promises);
-  date = new Date();
-  console.log(`BGFETCH END: ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`);
-
-  settledMangaUpdates.forEach(mangaUpdate =>
-    mangaUpdate.status === 'fulfilled'
-      ? console.log(`MANGA ${mangaUpdate.value.meta.arg}: SUCCESS`)
-      : console.log('FAILED'),
-  );
+  await Promise.all(promises);
 
   BackgroundFetch.finish(event.taskId);
 }

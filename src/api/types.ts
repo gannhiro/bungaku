@@ -157,9 +157,7 @@ export type res_get_manga = {
       latestUploadedChapter: string;
     };
     relationships: Array<
-      | res_get_cover_$['data']
-      | res_get_author_$['data']
-      | res_get_group_$['data']
+      res_get_cover_$['data'] | res_get_author_$['data'] | res_get_group_$['data']
     >;
   }[];
   limit: number;
@@ -168,8 +166,8 @@ export type res_get_manga = {
 };
 
 export type get_manga_$ = {
-  includes: Array<'manga' | 'cover_art' | 'author' | 'artist' | 'tag'>
-}
+  includes: Array<'manga' | 'cover_art' | 'author' | 'artist' | 'tag'>;
+};
 
 export type res_get_manga_$ = {
   result: 'ok';
@@ -218,12 +216,10 @@ export type res_get_manga_$ = {
       latestUploadedChapter: string;
     };
     relationships: Array<
-      | res_get_cover_$['data']
-      | res_get_author_$['data']
-      | res_get_group_$['data']
+      res_get_cover_$['data'] | res_get_author_$['data'] | res_get_group_$['data']
     >;
-  }
-}
+  };
+};
 
 export type get_cover = {
   limit: number;
@@ -635,9 +631,7 @@ export type res_get_user_me = {
 export type get_user_follows_manga = {
   limit: number;
   offset: number;
-  includes: Array<
-    'manga' | 'cover_art' | 'author' | 'artist' | 'tag' | 'creator'
-  >;
+  includes: Array<'manga' | 'cover_art' | 'author' | 'artist' | 'tag' | 'creator'>;
 };
 
 export type get_manga_status = {

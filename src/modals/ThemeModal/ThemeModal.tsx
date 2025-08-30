@@ -4,6 +4,7 @@ import {UserPreference} from '@db';
 import {RootStackParamsList} from '@navigation';
 import {BlurView} from '@react-native-community/blur';
 import {StackScreenProps} from '@react-navigation/stack';
+import {setColorSchemeAsync} from '@store';
 import {textColor, useAppCore} from '@utils';
 import React, {useEffect, useState} from 'react';
 import {Dimensions, StyleSheet, Text, View} from 'react-native';
@@ -15,7 +16,7 @@ type Props = StackScreenProps<RootStackParamsList, 'ThemeModal'>;
 
 export function ThemeModal({navigation}: Props) {
   const {dispatch, colorScheme, preferences} = useAppCore();
-  const {colorScheme: colorSchemeName} = preferences;
+  const {colorSchemeName} = preferences;
   const styles = getStyles(colorScheme);
 
   const [locColorScheme, setLocColorScheme] = useState<ColorSchemeName>(colorSchemeName);
@@ -32,8 +33,8 @@ export function ThemeModal({navigation}: Props) {
   }
 
   useEffect(() => {
-    UserPreference.setColorSchemeName(locColorScheme);
-  }, [dispatch, locColorScheme]);
+    dispatch(setColorSchemeAsync(locColorScheme));
+  }, [locColorScheme]);
 
   return (
     <View style={[styles.container]}>

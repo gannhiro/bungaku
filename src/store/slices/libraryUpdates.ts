@@ -4,45 +4,82 @@ import {createAsyncThunk, createSlice, PayloadAction} from '@reduxjs/toolkit';
 import {UpdatedMangaNotifications} from '@types';
 import type {RootState} from '../store';
 
-const initialState: {updatedMangaList: UpdatedMangaNotifications[]} = {
-  updatedMangaList: [],
+export const UPDATE_PREFIX = 'BUNGAKU_UPDATE_';
+
+const initialState: {updatedMangaList: UpdatedMangaNotifications} = {
+  updatedMangaList: {},
 };
 
-type RemoveLibraryUpdateProps = {
+type UpdateLibraryUpdateProps = {
   mangaId: string;
+  updateInfo: UpdatedMangaNotifications[string];
 };
 
-export const removeLibraryUpdateNotifs = createAsyncThunk<
-  void,
-  RemoveLibraryUpdateProps,
-  {state: RootState}
->('libraryUpdates/removeLibraryUpdateNotifs', async ({mangaId}, {getState, dispatch}) => {
-  const updatedMangaList = getState().libraryUpdates.updatedMangaList;
-  const finalList = updatedMangaList.filter(update => {
-    const shouldRemoveId = update.mangaId === mangaId;
+export const initializeLibraryUpdates = createAsyncThunk<void, void, {}>(
+  'libraryUpdates/initialize',
+  async (_, {dispatch}) => {
+    try {
+      const allKeys = await AsyncStorage.getAllKeys();
+      const updateKeys = allKeys.filter(key => key.startsWith(UPDATE_PREFIX));
+      const finalUpdates: UpdatedMangaNotifications = {};
 
-    if (shouldRemoveId) {
-      console.log(`removing ${update.mangaId} with notifId: ${update.notificationId}`);
-      notifee.cancelDisplayedNotification(update.notificationId);
+      if (updateKeys.length > 0) {
+        const allUpdatePairs = await AsyncStorage.multiGet(updateKeys);
+
+        for (const [key, value] of allUpdatePairs) {
+          if (key && value) {
+            const mangaId = key.substring(UPDATE_PREFIX.length);
+            finalUpdates[mangaId] = JSON.parse(value);
+          }
+        }
+      }
+
+      dispatch(setLibraryUpdates(finalUpdates));
+    } catch (error) {
+      console.error('Failed to initialize library updates:', error);
     }
+  },
+);
 
-    return !shouldRemoveId;
-  });
+export const addLibraryUpdate = createAsyncThunk<void, UpdateLibraryUpdateProps, {}>(
+  'libraryUpdates/addLibraryUpdate',
+  async ({mangaId, updateInfo}, {dispatch}) => {
+    await AsyncStorage.setItem(`${UPDATE_PREFIX}${mangaId}`, JSON.stringify(updateInfo));
+    dispatch(setOrUpdateMangaUpdate({mangaId, updateInfo}));
+  },
+);
 
-  await AsyncStorage.setItem('library-updates', JSON.stringify(finalList));
-  dispatch(setLibraryUpdatesOnLaunch(finalList));
-});
+export const removeLibraryUpdateNotifs = createAsyncThunk<void, string, {state: RootState}>(
+  'libraryUpdates/removeLibraryUpdateNotifs',
+  async (mangaId, {getState, dispatch}) => {
+    const currentUpdates = getState().libraryUpdates.updatedMangaList;
+
+    if (currentUpdates[mangaId]) {
+      notifee.cancelDisplayedNotification(currentUpdates[mangaId].notificationId);
+      await AsyncStorage.removeItem(`${UPDATE_PREFIX}${mangaId}`);
+      dispatch(removeMangaUpdate(mangaId));
+    }
+  },
+);
 
 export const libraryUpdatesSlice = createSlice({
   name: 'libraryUpdates',
   initialState: initialState,
   reducers: {
-    setLibraryUpdatesOnLaunch: (state, action: PayloadAction<UpdatedMangaNotifications[]>) => {
+    setLibraryUpdates: (state, action: PayloadAction<UpdatedMangaNotifications>) => {
       state.updatedMangaList = action.payload;
+    },
+    setOrUpdateMangaUpdate: (state, action: PayloadAction<UpdateLibraryUpdateProps>) => {
+      const {mangaId, updateInfo} = action.payload;
+      state.updatedMangaList[mangaId] = updateInfo;
+    },
+    removeMangaUpdate: (state, action: PayloadAction<string>) => {
+      delete state.updatedMangaList[action.payload];
     },
   },
 });
 
-export const {setLibraryUpdatesOnLaunch} = libraryUpdatesSlice.actions;
+export const {setLibraryUpdates, setOrUpdateMangaUpdate, removeMangaUpdate} =
+  libraryUpdatesSlice.actions;
 export const libraryUpdates = (state: RootState) => state.libraryList;
 export default libraryUpdatesSlice.reducer;

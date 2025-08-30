@@ -133,6 +133,7 @@ export function SearchScreen({}: Props) {
         title: '',
       });
       setResetting(false);
+      setContentRating([]);
       return;
     }
 

@@ -1,25 +1,30 @@
 import {ColorScheme} from '@constants';
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {ListRenderItemInfo, StyleSheet, Text, View} from 'react-native';
-import withObservables from '@nozbe/with-observables';
 import Animated from 'react-native-reanimated';
 import {LibraryListRenderItem} from './LibraryListRenderItem';
 import {useAppCore} from '@utils';
-import {database, Manga} from '@db';
-import {Q} from '@nozbe/watermelondb';
+import {Manga} from '@db';
+import {RootState, useAppSelector} from '@store';
 
-type Props = {
-  mangas: Manga[];
-};
-
-export function LibraryList({mangas}: Props) {
+export function LibraryList() {
+  const {libraryList} = useAppSelector((state: RootState) => state.libraryList);
   const {colorScheme} = useAppCore();
 
   const styles = getStyles(colorScheme);
 
+  const [mangas, setMangas] = useState<Manga[]>([]);
+
   function renderItem({item}: ListRenderItemInfo<Manga>) {
     return <LibraryListRenderItem manga={item} />;
   }
+
+  useEffect(() => {
+    (async () => {
+      const mangas = await Manga.getMangaBulk(libraryList);
+      setMangas(mangas);
+    })();
+  }, [libraryList]);
 
   return (
     <View style={styles.container}>
@@ -38,15 +43,6 @@ export function LibraryList({mangas}: Props) {
     </View>
   );
 }
-
-const enhance = withObservables([], () => ({
-  mangas: database.collections
-    .get<Manga>('mangas')
-    .query(Q.where('stay_updated', Q.notEq(null)))
-    .observe(),
-}));
-
-export const EnhancedLibraryList = enhance(LibraryList);
 
 function getStyles(_colorScheme: ColorScheme) {
   return StyleSheet.create({

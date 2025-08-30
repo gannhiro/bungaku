@@ -74,11 +74,8 @@ export function ReadChapterScreen({route, navigation}: Props) {
     [],
   );
 
-  const potentialJobId = `${manga.id}-${chapters[currentChapter].id}`;
-  const jobStatus = useAppSelector((state: RootState) => state.jobs.jobs[potentialJobId]);
-  const isJobPending = jobStatus?.status === 'pending';
   const cacheDirectory = `${FS.CachesDirectoryPath}/${manga.id}/${chapters[currentChapter].id}`;
-  const downloadsDirectory = `${FS.DocumentDirectoryPath}/manga/${manga.id}/${chapters[currentChapter].attributes.translatedLanguage}/${chapters[currentChapter].id}`;
+  const downloadedChapDirectory = `${FS.DocumentDirectoryPath}/manga/${manga.id}/${chapters[currentChapter].translatedLanguage}/${chapters[currentChapter].id}`;
 
   const scanlator = chapters[currentChapter].relationships.find(
     rs => rs.type === 'scanlation_group',
@@ -94,7 +91,6 @@ export function ReadChapterScreen({route, navigation}: Props) {
     .enabled(locReadingMode === READING_MODES.HORIZONTAL)
     .direction(Directions.UP)
     .onEnd(() => {
-      console.log('swiped up!');
       runOnJS(setShowSettingsSheet)(!showSettingsSheet);
     });
 
@@ -103,14 +99,12 @@ export function ReadChapterScreen({route, navigation}: Props) {
     .runOnJS(true)
     .direction(Directions.LEFT)
     .onEnd(() => {
-      console.log('swiped to the left!');
       setShowSettingsSheet(!showSettingsSheet);
     });
 
   const listTap = Gesture.Tap()
     .runOnJS(true)
     .onEnd(() => {
-      console.log('tap');
       const endReached = currentPage + 1 === chapterPages?.chapter.dataSaver.length;
       setShowBottomOverlay(!showBottomOverlay);
       if (showSettingsSheet) {
@@ -128,7 +122,6 @@ export function ReadChapterScreen({route, navigation}: Props) {
   const nextBtnTap = Gesture.Tap()
     .runOnJS(true)
     .onEnd(() => {
-      console.log('tapped next btn');
       Vibration.vibrate([0, 50], false);
       setCurrentChapter(currentChapter + 1);
     });
@@ -136,7 +129,6 @@ export function ReadChapterScreen({route, navigation}: Props) {
   const prevBtnTap = Gesture.Tap()
     .runOnJS(true)
     .onEnd(() => {
-      console.log('tapped previous btn');
       Vibration.vibrate([0, 50], false);
       setCurrentChapter(currentChapter - 1);
     });
@@ -216,18 +208,13 @@ export function ReadChapterScreen({route, navigation}: Props) {
       await FastImage.clearMemoryCache();
       await FastImage.clearDiskCache();
 
-      const isDownloaded = await FS.exists(
-        `${FS.DocumentDirectoryPath}/manga/${manga.id}/${chapters[currentChapter].attributes.translatedLanguage}/${chapters[currentChapter].id}/chapter.json`,
-      );
-
-      if (!isJobPending && isDownloaded) {
+      const isDownloaded = await FS.exists(downloadedChapDirectory);
+      if (isDownloaded) {
         console.log('chapter is downloaded');
-        const chapterDetails = await FS.readFile(`${downloadsDirectory}/chapter.json`);
-        const parsedDetails: DownloadedChapterDetails = JSON.parse(chapterDetails);
 
-        const finalPageObjects = parsedDetails.pageFileNames.map(item => {
+        const finalPageObjects = chapters[currentChapter].fileNames.map(fileName => {
           return {
-            path: `file://${downloadsDirectory}/${item}`,
+            path: `file://${downloadedChapDirectory}/${fileName}`,
           };
         });
 
@@ -238,20 +225,22 @@ export function ReadChapterScreen({route, navigation}: Props) {
 
       const isCached = await FS.exists(cacheDirectory);
       if (isCached) {
-        console.log('chapter is cached');
-        const chapterDetails: DownloadedChapterDetails = JSON.parse(
-          await FS.readFile(`${cacheDirectory}/chapter.json`),
-        );
+        try {
+          const fileNames = chapters[currentChapter].fileNames;
+          console.log('chapter is cached', fileNames);
 
-        const finalPageObjects = chapterDetails.pageFileNames.map(item => {
-          return {
-            path: `file://${cacheDirectory}/${item}`,
-          };
-        });
+          const finalPageObjects = fileNames.map(item => {
+            return {
+              path: `file://${cacheDirectory}/${item}`,
+            };
+          });
 
-        setPages(finalPageObjects);
-        setLoading(false);
-        return;
+          setPages(finalPageObjects);
+          setLoading(false);
+          return;
+        } catch (error) {
+          console.error(error);
+        }
       }
 
       function cacheChapterCallback(
@@ -287,7 +276,7 @@ export function ReadChapterScreen({route, navigation}: Props) {
     manga,
     locReadingMode,
     cacheDirectory,
-    downloadsDirectory,
+    downloadedChapDirectory,
   ]);
 
   useFocusEffect(() => {
@@ -339,13 +328,13 @@ export function ReadChapterScreen({route, navigation}: Props) {
 
         <Animated.View style={[styles.chapterOverlay, chapterOverlayStyle]}>
           <Animated.Text style={styles.chapterOverlayTitleLabel}>
-            {chapters[currentChapter].attributes.title
-              ? chapters[currentChapter].attributes.title
-              : 'Chapter ' + chapters[currentChapter].attributes.chapter}
+            {chapters[currentChapter].title
+              ? chapters[currentChapter].title
+              : 'Chapter ' + chapters[currentChapter].chapterNumber}
           </Animated.Text>
-          {chapters[currentChapter].attributes.title && (
+          {chapters[currentChapter].title && (
             <Animated.Text style={styles.chapterOverlayChapLabel}>
-              Chapter {chapters[currentChapter].attributes.chapter}
+              Chapter {chapters[currentChapter].chapterNumber}
             </Animated.Text>
           )}
         </Animated.View>

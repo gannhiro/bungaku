@@ -40,13 +40,9 @@ export function MCSDetailsTab({}: Props) {
         <ScrollView>
           <Text style={styles.label}>Statistics</Text>
           <View style={styles.groupRow}>
-            <Text style={styles.statLabel}>
-              {numberShorten(statistics?.statistics[manga?.id ?? ''].follows ?? 0)} Follows
-            </Text>
+            <Text style={styles.statLabel}>{numberShorten(statistics?.follows ?? 0)} Follows</Text>
             <Image source={require('@assets/icons/book.png')} style={styles.bookIcon} />
-            <Text style={styles.statLabel}>
-              {statistics?.statistics[manga?.id ?? ''].rating.bayesian.toFixed(2)}{' '}
-            </Text>
+            <Text style={styles.statLabel}>{statistics?.ratingBayesian?.toFixed(2)} </Text>
             <Image source={require('@assets/icons/star.png')} style={styles.starIcon} />
           </View>
           <Text style={styles.label}>Descriptions</Text>

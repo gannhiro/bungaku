@@ -4,14 +4,11 @@ import {Dispatch, SetStateAction, createContext, useContext} from 'react';
 import {ReadingMode} from './ReadChapterScreen';
 import {RootStackParamsList} from '@navigation';
 import {StackNavigationProp} from '@react-navigation/stack';
+import {Chapter} from '@db';
 
 export interface iReadChapterScreenContext {
-  navigation: StackNavigationProp<
-    RootStackParamsList,
-    'ReadChapterScreen',
-    undefined
-  >;
-  chapters: res_get_manga_$_feed['data'];
+  navigation: StackNavigationProp<RootStackParamsList, 'ReadChapterScreen', undefined>;
+  chapters: Chapter[];
   currentChapter: number;
   setCurrentChapter: Dispatch<SetStateAction<number>>;
   scanlator?: res_get_group_$['data'];
@@ -24,9 +21,9 @@ export interface iReadChapterScreenContext {
   onDataSaverSwitchChange: (value: boolean) => void;
 }
 
-export const ReadChapterScreenContext = createContext<
-  iReadChapterScreenContext | undefined
->(undefined);
+export const ReadChapterScreenContext = createContext<iReadChapterScreenContext | undefined>(
+  undefined,
+);
 
 export function useReadChapterScreenContext(): iReadChapterScreenContext {
   const context = useContext(ReadChapterScreenContext);

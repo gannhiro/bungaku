@@ -22,6 +22,7 @@ import {Manga} from '@db';
 import {useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
 import {RootStackParamsList} from '@navigation';
+import {RootState, useAppSelector} from '@store';
 
 interface Props {
   manga: res_get_manga['data'][0];
@@ -34,22 +35,25 @@ const {width} = Dimensions.get('window');
 export const MangaListRenderItem = memo(({manga}: Props) => {
   const {colorScheme, preferences} = useAppCore();
   const navigation = useNavigation<StackNavigationProp<RootStackParamsList, 'HomeNavigator'>>();
+  const isInLibrary = useAppSelector((state: RootState) => state.libraryList).libraryList.includes(
+    manga.id,
+  );
   const {language} = preferences;
 
-  const [isInLibrary, setIsInLibrary] = useState(false);
   const [loadingCover, setLoadingCover] = useState(true);
   const [coverRetries, setCoverRetries] = useState(0);
   const [coverError, setCoverError] = useState(false);
 
-  const mangaTitle =
+  const title =
     manga.attributes.title?.[language] ??
     manga.attributes.altTitles?.find(altTitle => altTitle[language])?.[language] ??
-    manga.attributes.title?.en ??
-    'NO TITLE!';
+    Object.values(manga?.attributes.title ?? {})[0] ??
+    manga.attributes.title?.en;
+
   const coverItem = manga.relationships.find(rs => rs.type === 'cover_art') as
     | res_get_cover_$['data']
     | undefined;
-  const url = `https://uploads.mangadex.org/covers/${manga.id}/${coverItem?.attributes.fileName}`;
+  const coverUrl = `https://uploads.mangadex.org/covers/${manga.id}/${coverItem?.attributes.fileName}`;
 
   const itemScale = useSharedValue(1);
   const contAnimStyle = useAnimatedStyle(() => {
@@ -93,23 +97,16 @@ export const MangaListRenderItem = memo(({manga}: Props) => {
     }
   }
 
-  useEffect(() => {
-    (async () => {
-      const [_, isDownloaded] = await Manga.doesMangaExistById(manga.id);
-      setIsInLibrary(isDownloaded);
-    })();
-  }, []);
-
   return (
     <GestureDetector gesture={onPressItem}>
       <Animated.View style={[styles.container, contAnimStyle]} entering={FadeIn}>
         <FastImage
-          source={{uri: `${url}.256.jpg`}}
+          source={{uri: `${coverUrl}.256.jpg`}}
           style={styles.coverImage}
           onLoadEnd={coverOnLoadEnd}
           onError={coverOnError}
           onLoadStart={coverOnLoadStart}
-          key={'cover: ' + url + ' - ' + coverRetries}
+          key={'cover: ' + coverUrl + ' - ' + coverRetries}
         />
         <View style={styles.overlay}>
           <View style={styles.overlayDetails}>
@@ -119,7 +116,7 @@ export const MangaListRenderItem = memo(({manga}: Props) => {
               <FlagIcon language={manga.attributes.originalLanguage} style={styles.flagIcon} />
             </View>
             <Text style={styles.overlayDetailsTitle} numberOfLines={2}>
-              {mangaTitle}
+              {title}
             </Text>
           </View>
         </View>

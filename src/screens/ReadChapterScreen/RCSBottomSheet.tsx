@@ -40,13 +40,11 @@ export function RCSBottomSheet({showBottomSheet, setShowBottomSheet}: Props) {
         showsVerticalScrollIndicator={false}
         bounces={false}>
         <Text style={styles.settingsSheetHeader}>
-          {chapters[currentChapter].attributes.title
-            ? chapters[currentChapter].attributes.title
-            : 'No Chapter Title'}
+          {chapters[currentChapter].title ? chapters[currentChapter].title : 'No Chapter Title'}
         </Text>
         <View style={styles.settingsSheetGroup}>
           <Text style={styles.settingsSheetSmall}>
-            Chapter {chapters[currentChapter].attributes.chapter}
+            Chapter {chapters[currentChapter].chapterNumber}
           </Text>
           <Text style={styles.settingsSheetSmall}>{chapters[currentChapter].id}</Text>
           <Text style={styles.settingsSheetSmall}>
@@ -74,7 +72,7 @@ export function RCSBottomSheet({showBottomSheet, setShowBottomSheet}: Props) {
           <Dropdown
             items={chapters.map((chapter, index) => {
               return {
-                label: 'Chapter ' + chapter.attributes.chapter,
+                label: 'Chapter ' + chapter.chapterNumber,
                 subLabel:
                   (
                     chapter.relationships.find(rs => {

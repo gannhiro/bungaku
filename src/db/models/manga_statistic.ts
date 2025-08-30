@@ -27,15 +27,22 @@ export default class MangaStatistic extends Model {
     return stats;
   }
 
-  static async createFromApiResult(
+  static async upsertFromApiResult(
     mangaId: string,
     stats: res_get_statistics_manga['statistics'][string],
-  ) {
+  ): Promise<MangaStatistic> {
+    const existingStat = await this.getStatisticForManga(mangaId);
+
+    if (existingStat) {
+      await existingStat.updateStatistics(stats);
+      return existingStat;
+    }
+
+    let newRecord: MangaStatistic | undefined;
     await database.write(async () => {
-      await database.get<MangaStatistic>('manga_statistics').create(dbStat => {
+      newRecord = await database.get<MangaStatistic>('manga_statistics').create(dbStat => {
         dbStat._raw.id = `stat_${mangaId}`;
         dbStat.mangaId = mangaId;
-
         dbStat.follows = stats.follows;
         dbStat.ratingAverage = stats.rating.average;
         dbStat.ratingBayesian = stats.rating.bayesian;
@@ -43,6 +50,7 @@ export default class MangaStatistic extends Model {
         dbStat.commentsRepliesCount = stats.comments?.repliesCount;
       });
     });
+    return newRecord!;
   }
 
   @writer async updateStatistics(newStats: res_get_statistics_manga['statistics'][string]) {

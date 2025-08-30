@@ -15,7 +15,7 @@ export function useAppCore() {
       preferences: preferences,
       colorScheme: AVAILABLE_COLOR_SCHEMES[preferences.colorSchemeName],
     };
-  }, []);
+  }, [intError, preferences]);
 
   return value;
 }

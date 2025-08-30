@@ -1,20 +1,14 @@
-import {
-  get_manga_$_feed,
-  mangadexAPI,
-  res_at_home_$,
-  res_get_manga,
-  res_get_manga_$_feed,
-} from '@api';
-import notifee, {AndroidBadgeIconType, AndroidImportance} from '@notifee/react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import {get_manga_$_feed, mangadexAPI, res_at_home_$, res_get_manga_$_feed} from '@api';
+import notifee, {AndroidBadgeIconType} from '@notifee/react-native';
 import {createAsyncThunk, createSlice, PayloadAction} from '@reduxjs/toolkit';
-import {DownloadedChapterDetails, UpdatedMangaNotifications} from '@types';
-import {getDateTodayAtMidnight} from '@utils';
-import {ToastAndroid} from 'react-native';
+import {getTimestampHoursAgo} from '@utils';
 import FS from 'react-native-fs';
 import type {RootState} from '../store';
 import {setError} from './errorSlice';
 import {AppAsyncThunkConfig} from '../types';
+import {Chapter, Manga, UserPreference} from '@db';
+import {setOrUpdateMangaUpdate} from './libraryUpdates';
+import {Language} from '@constants';
 
 const MAX_CONCURRENT_DOWNLOADS = 1;
 const initialState: {
@@ -32,23 +26,30 @@ const initialState: {
 export type JobStatus = {
   status: 'pending' | 'succeeded' | 'failed' | 'queued';
   jobType: 'downloadChapter' | 'cacheChapter';
-  chapter?: res_get_manga_$_feed['data'][0];
-  manga?: res_get_manga['data'][0];
+  chapter?: QueueDownloadChapter['chapter'];
+  manga?: QueueDownloadChapter['manga'];
   progress?: number;
   error?: string;
 };
 
 type QueueDownloadChapter = {
-  chapter: res_get_manga_$_feed['data'][0];
-  manga: res_get_manga['data'][0];
+  chapter: {
+    id: string;
+    title: string;
+    translatedLanguage: Language;
+    chapterNumber: number | null;
+  };
+  manga: {
+    id: string;
+    title: string;
+  };
   isDataSaver: boolean;
-  isAnUpdate?: boolean;
   jobId: string;
 };
 
 type CacheChapterProps = {
-  chapter: res_get_manga_$_feed['data'][0];
-  manga: res_get_manga['data'][0];
+  chapter: Chapter;
+  manga: Manga;
   isDataSaver: boolean;
   callback: (
     tempPages: {pagePromise?: Promise<FS.DownloadResult>; path: string}[],
@@ -58,172 +59,125 @@ type CacheChapterProps = {
 
 // MARK: Thunks
 
-export const updateManga = createAsyncThunk<string, string, AppAsyncThunkConfig>(
-  'jobs/updateManga',
-  async (mangaId, {rejectWithValue, fulfillWithValue, dispatch}) => {
-    let mangaDetails: MangaDetails | null = JSON.parse(
-      await FS.readFile(`${FS.DocumentDirectoryPath}/manga/${mangaId}/manga-details.json`),
-    );
-
-    if (!mangaDetails || !mangaDetails.stayUpdated) {
+export const checkForMangaUpdates = createAsyncThunk<string, string, AppAsyncThunkConfig>(
+  'jobs/checkForMangaUpdates',
+  async (mangaId, {getState, rejectWithValue, fulfillWithValue, dispatch}) => {
+    const manga = await Manga.getMangaById(mangaId);
+    if (!manga || !manga.stayUpdated) {
       return rejectWithValue({
-        title: `${mangaId} details not found or should not stay updated.`,
+        title: `Manga ${mangaId} not found or not marked for updates.`,
         description: '',
       });
     }
 
-    const {manga, stayUpdatedLanguages} = mangaDetails;
-    const chapters: res_get_manga_$_feed['data'] = [];
+    const preferences = await UserPreference.getInstance();
+    const language = preferences?.language ?? 'en';
+
+    const apiChapters: res_get_manga_$_feed['data'] = [];
     const limit = 500;
     let offset = 0;
-    let totalChapters = 0;
     while (true) {
       const chapterData = await mangadexAPI<res_get_manga_$_feed, get_manga_$_feed>(
         'get',
         '/manga/$/feed',
         {
-          limit: limit,
-          offset: offset,
+          limit,
+          offset,
           order: {volume: 'asc', chapter: 'asc'},
-          includes: ['scanlation_group', 'user'],
-          updatedAtSince: getDateTodayAtMidnight(),
-          translatedLanguage: stayUpdatedLanguages,
+          updatedAtSince: getTimestampHoursAgo(48), // Safety buffer
+          translatedLanguage: manga.stayUpdatedLanguages as string[],
           includeEmptyPages: 0,
           includeFuturePublishAt: 0,
         },
-        [mangaId],
+        [manga.id],
       );
 
       if (chapterData.result === 'ok') {
-        chapters.push(...chapterData.data);
-        totalChapters = chapterData.total;
-        if (offset + limit < totalChapters) {
+        apiChapters.push(...chapterData.data);
+        if (offset + limit < chapterData.total) {
           offset += limit;
         } else {
           break;
         }
-      } else if (chapterData.result === 'error') {
-        console.error(`API error fetching chapters for ${mangaId}:`, chapterData.errors);
-        break;
       } else {
-        console.warn(`Unexpected API result for ${mangaId}:`, chapterData.result);
-        break;
+        return rejectWithValue({
+          title: 'API Error',
+          description: `Failed to fetch chapters for ${manga.id}`,
+        });
       }
     }
 
-    if (chapters.length === 0) {
-      return rejectWithValue({
-        title: `${mangaId} - No new chapters`,
-        description: `${mangaId} - No new chapters found since at this time ${getDateTodayAtMidnight()}.`,
-      });
+    if (apiChapters.length === 0) {
+      return fulfillWithValue(`No recent API chapters found for ${manga.id}.`);
     }
 
-    let allChapterIds: string[] = [];
-    for (const lang of stayUpdatedLanguages) {
-      const langPath = `${FS.DocumentDirectoryPath}/manga/${mangaId}/${lang}`;
-
-      if (await FS.exists(langPath)) {
-        const chaptersDirList = await FS.readDir(langPath);
-        allChapterIds.push(...chaptersDirList.map(dir => dir.name));
-      }
-    }
-
-    let downloadableChapters = chapters.filter(
-      chapter =>
-        !(
-          allChapterIds.includes(chapter.id) ||
-          chapter.attributes.pages === 0 ||
-          chapter.attributes.externalUrl
-        ),
+    const existingChapterIds = (await Chapter.getChaptersForManga(manga.id)).map(c => c.chapterId);
+    const newChapters = apiChapters.filter(
+      apiChapter =>
+        !existingChapterIds.includes(apiChapter.id) &&
+        !apiChapter.attributes.externalUrl &&
+        apiChapter.attributes.pages > 0,
     );
 
-    if (downloadableChapters.length === 0) {
-      return rejectWithValue({
-        title: `MANGA: ${mangaId} - All new chapters already downloaded or invalid`,
-        description: '',
-      });
+    if (newChapters.length === 0) {
+      return fulfillWithValue(`No genuinely new chapters found for ${manga.id}.`);
     }
 
-    downloadableChapters.forEach(chapter => {
-      dispatch(
-        queueDownloadChapter({
-          chapter: chapter,
-          isAnUpdate: true,
-          isDataSaver: false,
-          manga: manga,
-        }),
-      );
-    });
+    await Chapter.upsertFromApiBulk(manga.id, newChapters);
 
-    const channelId = await notifee.createChannel({
-      id: `${mangaId}.updates-channel`,
-      name: `${manga.attributes.title.en ?? mangaId}`,
-      vibration: false,
-      importance: AndroidImportance.DEFAULT,
-    });
+    const title =
+      manga.title?.[language] ??
+      manga.altTitles?.find(altTitle => altTitle[language])?.[language] ??
+      Object.values(manga?.title ?? {})[0] ??
+      manga.title?.en ??
+      manga.id;
 
     const notificationId = await notifee.displayNotification({
-      id: `${mangaId}.updates-notif`,
-      title: `${manga.attributes.title.en ?? mangaId} has new chapters.`,
-      body: `${downloadableChapters.length} new chapters found and queued for download.`,
+      id: `${manga.id}.updates-notif`,
+      title: `${title} has new chapters.`,
+      body: `${newChapters.length} new chapter(s) available.`,
+      data: {
+        mangaId: manga.id,
+      },
       android: {
-        channelId: channelId,
+        channelId: 'library-updates',
         badgeIconType: AndroidBadgeIconType.SMALL,
+        pressAction: {
+          id: 'default',
+          launchActivity: 'default',
+        },
       },
     });
 
-    const previousChaptersTracker: UpdatedMangaNotifications[] = JSON.parse(
-      (await AsyncStorage.getItem('library-updates')) ?? '[]',
-    );
-    const mangaIdIndex = previousChaptersTracker.findIndex(val => val.mangaId === mangaId);
-
-    if (mangaIdIndex === -1) {
-      previousChaptersTracker.push({
-        mangaId,
-        newChapterCount: downloadableChapters.length,
-        notificationId,
-      });
-    } else {
-      const oldCount = previousChaptersTracker[mangaIdIndex].newChapterCount;
-      previousChaptersTracker[mangaIdIndex].newChapterCount =
-        oldCount + downloadableChapters.length;
+    const currentUpdates = getState().libraryUpdates.updatedMangaList;
+    const existingEntry = currentUpdates[manga.id];
+    let finalChapterCount = newChapters.length;
+    if (existingEntry) {
+      finalChapterCount += existingEntry.newChapterCount;
     }
 
-    await AsyncStorage.setItem('library-updates', JSON.stringify(previousChaptersTracker));
+    dispatch(
+      setOrUpdateMangaUpdate({
+        mangaId: manga.id,
+        updateInfo: {newChapterCount: finalChapterCount, notificationId},
+      }),
+    );
 
     return fulfillWithValue(
-      `MANGA: ${mangaId} - ${downloadableChapters.length} chapters enqueued for update.`,
+      `MANGA: ${manga.id} - Found and processed ${newChapters.length} new chapters.`,
     );
   },
 );
 
 export const processDownloadQueue = createAsyncThunk<'success' | void, void, AppAsyncThunkConfig>(
   'jobs/processDownloadQueue',
-  async (_, {getState, dispatch, fulfillWithValue, rejectWithValue}) => {
+  async (_, {getState, dispatch}) => {
     const state = getState().jobs;
     const {activeDownloadsCount, downloadQueue} = state;
 
     if (activeDownloadsCount < MAX_CONCURRENT_DOWNLOADS && downloadQueue.length > 0) {
       const nextJob = downloadQueue[0];
-      const {jobId, manga, chapter, isAnUpdate} = nextJob;
-
-      const chapterDirectory = `${FS.DocumentDirectoryPath}/manga/${manga.id}/${chapter.attributes.translatedLanguage}/${chapter.id}`;
-      const chapterIsDownloaded = await FS.exists(chapterDirectory);
-
-      if (chapterIsDownloaded && isAnUpdate) {
-        return fulfillWithValue('success');
-      }
-
-      if (chapterIsDownloaded && !isAnUpdate) {
-        await FS.unlink(chapterDirectory);
-        dispatch(clearJob({jobId}));
-        return rejectWithValue({
-          title: 'Chapter already downloaded',
-          description: `${jobId}`,
-        });
-      }
-
-      dispatch(downloadChapter(nextJob));
+      await dispatch(downloadChapter(nextJob));
     }
   },
 );
@@ -235,7 +189,7 @@ export const downloadChapter = createAsyncThunk<
 >(
   'jobs/downloadChapter',
   async (
-    {chapter, manga, isDataSaver, isAnUpdate = false, jobId},
+    {chapter, manga, isDataSaver, jobId},
     {fulfillWithValue, rejectWithValue, signal, dispatch},
   ) => {
     dispatch(
@@ -251,37 +205,44 @@ export const downloadChapter = createAsyncThunk<
       }),
     );
 
-    const chapterDirectory = `${FS.DocumentDirectoryPath}/manga/${manga.id}/${chapter.attributes.translatedLanguage}/${chapter.id}`;
-    const cacheDirectory = `${FS.CachesDirectoryPath}/${manga.id}/${chapter.id}`;
-    const chapterIsCached = await FS.exists(cacheDirectory);
+    const chapterDownloadDirectory = `${FS.DocumentDirectoryPath}/manga/${manga.id}/${chapter.translatedLanguage}/${chapter.id}`;
+    const chapterCachedDirectory = `${FS.CachesDirectoryPath}/${manga.id}/${chapter.id}`;
+    const chapterIsCached = await FS.exists(chapterCachedDirectory);
 
     if (chapterIsCached) {
-      await FS.moveFile(cacheDirectory, chapterDirectory);
+      const dbChapter = await Chapter.getChapterById(chapter.id);
+
+      if (!(await FS.exists(chapterDownloadDirectory))) {
+        await FS.mkdir(chapterDownloadDirectory);
+      }
+
+      await FS.moveFile(chapterCachedDirectory, chapterDownloadDirectory);
+      await dbChapter?.updateForDownload(isDataSaver, true);
+
+      dispatch(clearJob({jobId}));
+
       return fulfillWithValue({result: 'success', jobId});
     }
 
-    const chapterIsDownloaded = await FS.exists(chapterDirectory);
+    const chapterIsDownloaded = await FS.exists(chapterDownloadDirectory);
 
-    if (chapterIsDownloaded && isAnUpdate) {
-      return fulfillWithValue({result: 'exists', jobId});
-    }
+    if (chapterIsDownloaded) {
+      const dbChapter = await Chapter.getChapterById(chapter.id);
 
-    if (chapterIsDownloaded && !isAnUpdate) {
-      await FS.unlink(chapterDirectory);
-      return rejectWithValue({
-        reason: 'Chapter already downloaded',
-        jobId,
-      });
+      await FS.unlink(chapterDownloadDirectory);
+      await dbChapter?.clearDownloadedData();
+
+      dispatch(clearJob({jobId}));
+
+      return fulfillWithValue({result: 'success', jobId});
     }
 
     const langFolderExists = await FS.exists(
-      `${FS.DocumentDirectoryPath}/manga/${manga.id}/${chapter.attributes.translatedLanguage}`,
+      `${FS.DocumentDirectoryPath}/manga/${manga.id}/${chapter.translatedLanguage}`,
     );
 
     if (!langFolderExists) {
-      await FS.mkdir(
-        `${FS.DocumentDirectoryPath}/manga/${manga.id}/${chapter.attributes.translatedLanguage}`,
-      );
+      await FS.mkdir(`${FS.DocumentDirectoryPath}/manga/${manga.id}/${chapter.translatedLanguage}`);
     }
 
     const chapterData = await mangadexAPI<res_at_home_$, {}>(
@@ -315,15 +276,7 @@ export const downloadChapter = createAsyncThunk<
     const pageList = isDataSaver ? chapterData.chapter.dataSaver : chapterData.chapter.data;
     const baseUrlSegment = isDataSaver ? 'data-saver' : 'data';
 
-    const chapterDetails: DownloadedChapterDetails = {
-      chapter,
-      pageFileNames: pageList,
-      isDataSaver: isDataSaver,
-    };
-
-    await FS.mkdir(chapterDirectory);
-
-    await FS.writeFile(`${chapterDirectory}/chapter.json`, JSON.stringify(chapterDetails));
+    await FS.mkdir(chapterDownloadDirectory);
 
     let downloadedCount = 0;
     const totalPages = pageList.length;
@@ -331,7 +284,7 @@ export const downloadChapter = createAsyncThunk<
     for (const page of pageList) {
       const {promise} = FS.downloadFile({
         fromUrl: `${chapterData.baseUrl}/${baseUrlSegment}/${chapterData.chapter.hash}/${page}`,
-        toFile: `${chapterDirectory}/${page}`,
+        toFile: `${chapterDownloadDirectory}/${page}`,
       });
 
       await promise;
@@ -340,6 +293,9 @@ export const downloadChapter = createAsyncThunk<
       const currentProgress = downloadedCount / totalPages;
       dispatch(updateJobProgress({jobId, progress: currentProgress}));
     }
+
+    const dbChapter = await Chapter.getChapterById(chapter.id);
+    await dbChapter?.updateForDownload(isDataSaver, true, pageList);
 
     return fulfillWithValue({result: 'success', jobId});
   },
@@ -355,8 +311,8 @@ export const cacheChapter = createAsyncThunk<
     {chapter, manga, isDataSaver, callback}: CacheChapterProps,
     {fulfillWithValue, rejectWithValue, signal},
   ) => {
-    // TODO
-    const cacheDirectory = `${FS.CachesDirectoryPath}/${manga.id}/${chapter.id}`;
+    const cachedChapterDirectory = `${FS.CachesDirectoryPath}/${manga.id}/${chapter.id}`;
+
     const data = await mangadexAPI<res_at_home_$, {}>(
       'get',
       '/at-home/server/$',
@@ -367,31 +323,27 @@ export const cacheChapter = createAsyncThunk<
     );
 
     if (data.result === 'ok') {
-      await FS.mkdir(cacheDirectory);
+      if (!(await FS.exists(cachedChapterDirectory))) await FS.mkdir(cachedChapterDirectory);
 
       const downloadedChapters = isDataSaver ? data.chapter.dataSaver : data.chapter.data;
       const baseUrlSegment = isDataSaver ? 'data-saver' : 'data';
 
-      const chapterDetails: DownloadedChapterDetails = {
-        chapter: chapter,
-        pageFileNames: downloadedChapters,
-        isDataSaver,
-      };
-
-      await FS.writeFile(`${cacheDirectory}/chapter.json`, JSON.stringify(chapterDetails));
+      await chapter.updateForDownload(isDataSaver, false, downloadedChapters);
 
       const pagePromises: Promise<FS.DownloadResult>[] = downloadedChapters.map(pageId => {
         const pageUrl = `${data.baseUrl}/${baseUrlSegment}/${data.chapter.hash}/${pageId}`;
-        const localPath = `${cacheDirectory}/${pageId}`;
-
+        const localPath = `${cachedChapterDirectory}/${pageId}`;
         const {promise} = FS.downloadFile({
           fromUrl: pageUrl,
           toFile: localPath,
         });
+
         return promise;
       });
 
-      const filePaths = downloadedChapters.map(pageId => `file://${cacheDirectory}/${pageId}`);
+      const filePaths = downloadedChapters.map(
+        pageId => `file://${cachedChapterDirectory}/${pageId}`,
+      );
 
       callback(
         pagePromises.map((promise, index) => ({

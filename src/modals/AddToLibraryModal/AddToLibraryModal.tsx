@@ -14,19 +14,12 @@ import {
 import {RootStackParamsList} from '@navigation';
 import {BlurView} from '@react-native-community/blur';
 import {StackScreenProps} from '@react-navigation/stack';
-import {getDateTodayAtMidnight, textColor, useAppCore} from '@utils';
+import {RootState, useAppSelector} from '@store';
+import {textColor, useAppCore} from '@utils';
 import React, {useEffect, useState} from 'react';
-import {Dimensions, Keyboard, StyleSheet, Switch, Text, View} from 'react-native';
+import {Dimensions, Keyboard, StyleSheet, Switch, Text, ToastAndroid, View} from 'react-native';
 import FS from 'react-native-fs';
-import Animated, {
-  FadeIn,
-  FadeInLeft,
-  FadeOut,
-  LinearTransition,
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-} from 'react-native-reanimated';
+import Animated, {FadeIn, FadeInLeft, FadeOut, LinearTransition} from 'react-native-reanimated';
 
 const {width, height} = Dimensions.get('screen');
 
@@ -35,27 +28,16 @@ type Props = StackScreenProps<RootStackParamsList, 'AddToLibraryModal'>;
 export function AddToLibraryModal({route, navigation}: Props) {
   const {manga} = route.params;
   const {colorScheme} = useAppCore();
+  const isInLibrary = useAppSelector((state: RootState) => state.libraryList).libraryList.includes(
+    manga.id,
+  );
   const styles = getStyles(colorScheme);
 
-  const [isInLibrary, setIsInLibrary] = useState(false);
-  const [dateError, setDateError] = useState(false);
+  const [loading, setIsLoading] = useState(false);
   const [isDataSaver, setIsDataSaver] = useState(false);
   const [stayUpdatedLoc, setStayUpdatedLoc] = useState(true);
-  const [stayUpdatedYrLoc, setStayUpdatedYrLoc] = useState<string>(
-    new Date().getUTCFullYear().toString(),
-  );
-  const [stayUpdatedMoLoc, setStayUpdatedMoLoc] = useState<string>(
-    new Date().getUTCMonth() + 1 < 10
-      ? `0${new Date().getUTCMonth() + 1}`
-      : (new Date().getUTCMonth() + 1).toString(),
-  );
-  const [stayUpdatedDyLoc, setStayUpdatedDyLoc] = useState<string>(
-    new Date().getUTCDate() < 10
-      ? `0${new Date().getUTCDate()}`
-      : new Date().getUTCDate().toString(),
-  );
-  const [targetLanguages, setTargetLanguages] = useState<Language[]>([
-    manga.availableTranslatedLanguages[0] as Language,
+  const [targetLanguages, setTargetLanguages] = useState<((Language | string) | null)[]>([
+    manga.availableTranslatedLanguages[0],
   ]);
 
   const availableLangs: GenericDropdownValues = manga.availableTranslatedLanguages.map(lang => {
@@ -66,51 +48,8 @@ export function AddToLibraryModal({route, navigation}: Props) {
     };
   });
 
-  const dateTextInputBorderColor = useSharedValue(colorScheme.colors.secondary);
-  const dateTextInputStyle = useAnimatedStyle(() => {
-    return {
-      borderColor: dateTextInputBorderColor.value,
-    };
-  });
-
   function onCancelBtnPress() {
     navigation.goBack();
-  }
-
-  function onYearChange(text: string) {
-    if (!text || isNaN(parseInt(text, 10))) {
-      setStayUpdatedYrLoc('');
-      return;
-    }
-    setStayUpdatedYrLoc(text);
-  }
-
-  function onMonthChange(text: string) {
-    if (!text || isNaN(parseInt(text, 10))) {
-      setStayUpdatedMoLoc('');
-      return;
-    }
-    setStayUpdatedMoLoc(text);
-  }
-
-  function onMonthBlur() {
-    if (parseInt(stayUpdatedMoLoc, 10) < 10) {
-      setStayUpdatedMoLoc(`0${parseInt(stayUpdatedMoLoc, 10)}`);
-    }
-  }
-
-  function onDayChange(text: string) {
-    if (!text || isNaN(parseInt(text, 10))) {
-      setStayUpdatedDyLoc('');
-      return;
-    }
-    setStayUpdatedDyLoc(text);
-  }
-
-  function onDayBlur() {
-    if (parseInt(stayUpdatedDyLoc, 10) < 10) {
-      setStayUpdatedDyLoc(`0${parseInt(stayUpdatedDyLoc, 10)}`);
-    }
   }
 
   async function onStayUpdatedSwitchChange(value: boolean) {
@@ -123,7 +62,7 @@ export function AddToLibraryModal({route, navigation}: Props) {
 
   async function onAddToLibPress() {
     Keyboard.dismiss();
-
+    setIsLoading(true);
     const directory = `${FS.DocumentDirectoryPath}/manga/${manga.id}`;
 
     if (!(await FS.exists(directory))) {
@@ -143,11 +82,14 @@ export function AddToLibraryModal({route, navigation}: Props) {
     await promise;
 
     await manga.updateLibrarySettings({
-      dateAdded: getDateTodayAtMidnight(),
+      dateAdded: new Date().toISOString(),
       stayUpdated: stayUpdatedLoc,
-      stayUpdatedLanguages: targetLanguages,
+      stayUpdatedLanguages: targetLanguages as (Language | null)[],
       isDataSaver,
     });
+
+    setIsLoading(false);
+    ToastAndroid.show('Added to Library.', ToastAndroid.SHORT);
   }
 
   async function onRemoveFromLibPress() {
@@ -157,87 +99,32 @@ export function AddToLibraryModal({route, navigation}: Props) {
     await FS.unlink(directory);
 
     await manga.removeFromLibrary();
+    ToastAndroid.show('Removed from Library.', ToastAndroid.SHORT);
   }
 
   async function onUpdateSettingsPress() {
     Keyboard.dismiss();
     await manga.updateLibrarySettings({
-      dateAdded: getDateTodayAtMidnight(),
+      dateAdded: new Date().toISOString(),
       stayUpdated: stayUpdatedLoc,
-      stayUpdatedLanguages: targetLanguages,
+      stayUpdatedLanguages: targetLanguages as (Language | null)[],
       isDataSaver,
     });
+    ToastAndroid.show('Updated Settings.', ToastAndroid.SHORT);
   }
 
   useEffect(() => {
     (async () => {
-      setIsInLibrary(await manga.isDownloaded());
-    })();
-  }, []);
-
-  useEffect(() => {
-    (async () => {
-      const date = new Date();
-
       setStayUpdatedLoc(manga.stayUpdated ?? false);
       setIsDataSaver(manga.isDataSaver ?? false);
-      setStayUpdatedDyLoc(
-        date.getUTCDate() < 10 ? `0${date.getUTCDate()}` : date.getUTCDate().toString(),
+
+      setTargetLanguages(
+        manga.stayUpdatedLanguages.length > 0
+          ? manga.stayUpdatedLanguages
+          : [manga.availableTranslatedLanguages[0]],
       );
-      setStayUpdatedMoLoc(
-        date.getUTCMonth() + 1 < 10
-          ? `0${date.getUTCMonth() + 1}`
-          : (date.getUTCMonth() + 1).toString(),
-      );
-      setStayUpdatedYrLoc(date.getUTCFullYear().toString());
-      setTargetLanguages(manga.stayUpdatedLanguages ?? []);
     })();
   }, [manga]);
-
-  useEffect(() => {
-    let localDateError = false;
-
-    if (!stayUpdatedYrLoc || parseInt(stayUpdatedYrLoc, 10) < 1900) {
-      console.log('year error' + new Date(manga.createdAt).getUTCFullYear());
-      setDateError(true);
-      localDateError = true;
-    }
-
-    if (
-      !stayUpdatedMoLoc ||
-      parseInt(stayUpdatedMoLoc, 10) > 12 ||
-      parseInt(stayUpdatedMoLoc, 10) <= 0
-    ) {
-      console.log('month error');
-      setDateError(true);
-      localDateError = true;
-    }
-
-    if (
-      !stayUpdatedDyLoc ||
-      parseInt(stayUpdatedDyLoc, 10) > 31 ||
-      parseInt(stayUpdatedDyLoc, 10) <= 0
-    ) {
-      console.log('day error');
-      setDateError(true);
-      localDateError = true;
-    }
-
-    if (localDateError) {
-      dateTextInputBorderColor.value = withTiming(systemRed);
-      return;
-    }
-
-    dateTextInputBorderColor.value = withTiming(colorScheme.colors.primary);
-    setDateError(false);
-  }, [
-    colorScheme,
-    dateTextInputBorderColor,
-    manga,
-    stayUpdatedDyLoc,
-    stayUpdatedMoLoc,
-    stayUpdatedYrLoc,
-  ]);
 
   return (
     <Animated.View style={[styles.container]}>
@@ -266,6 +153,7 @@ export function AddToLibraryModal({route, navigation}: Props) {
               items={availableLangs}
               selection={targetLanguages}
               setSelection={setTargetLanguages}
+              atLeastOne
             />
           </View>
         </Animated.View>
@@ -277,6 +165,7 @@ export function AddToLibraryModal({route, navigation}: Props) {
             onButtonPress={onCancelBtnPress}
             imageReq={require('@assets/icons/chevron-left.png')}
             shouldTintImage={true}
+            disabled={loading}
           />
           {isInLibrary ? (
             <Button
@@ -285,15 +174,18 @@ export function AddToLibraryModal({route, navigation}: Props) {
               btnColor={systemPurple}
               imageReq={require('@assets/icons/book-remove.png')}
               onButtonPress={onRemoveFromLibPress}
+              disabled={loading}
+              loading={loading}
             />
           ) : (
             <Button
               title="Add"
               containerStyle={styles.navButtonAdd}
               btnColor={systemGreen}
-              disabled={dateError}
+              disabled={loading}
               imageReq={require('@assets/icons/book.png')}
               onButtonPress={onAddToLibPress}
+              loading={loading}
             />
           )}
         </Animated.View>
@@ -306,7 +198,6 @@ export function AddToLibraryModal({route, navigation}: Props) {
             <Button
               title="Update Settings"
               btnColor={systemIndigo}
-              disabled={dateError}
               imageReq={require('@assets/icons/book.png')}
               onButtonPress={onUpdateSettingsPress}
             />

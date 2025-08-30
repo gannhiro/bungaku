@@ -59,8 +59,6 @@ export function DropdownRenderItem({
       if (Array.isArray(selection)) {
         const temp = [...selection];
         const includedIndex = selection.findIndex(s => s === item.value);
-        console.log(includedIndex);
-        console.log(temp);
 
         if (includedIndex !== -1) {
           if (atLeastOne && temp.length === 1) {

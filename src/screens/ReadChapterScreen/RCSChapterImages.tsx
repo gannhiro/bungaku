@@ -36,7 +36,6 @@ export const RCSChapterImages = memo(({pagePromise, path}: Props) => {
     Gesture.Tap()
       .numberOfTaps(2)
       .onEnd(() => {
-        console.log('double tap!');
         if (imageScale.value !== 1) {
           imageScale.value = withTiming(1);
           imageX.value = withTiming(0);

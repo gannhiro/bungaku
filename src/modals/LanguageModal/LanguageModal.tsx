@@ -1,9 +1,9 @@
 import {Button, Dropdown, GenericDropdownValues} from '@components';
 import {ColorScheme, ISO_LANGS, LABELS, Language, OTOMANOPEE, PRETENDARD_JP} from '@constants';
-import {UserPreference} from '@db';
 import {RootStackParamsList} from '@navigation';
 import {BlurView} from '@react-native-community/blur';
 import {StackScreenProps} from '@react-navigation/stack';
+import {setInterfaceLanguageAsync} from '@store';
 import {textColor, useAppCore} from '@utils';
 import React, {useEffect, useState} from 'react';
 import {Dimensions, StyleSheet, Text} from 'react-native';
@@ -31,8 +31,8 @@ export function LanguageModal({navigation}: Props) {
   }
 
   useEffect(() => {
-    UserPreference.setLanguage(selectedLanguage);
-  }, [dispatch, selectedLanguage]);
+    dispatch(setInterfaceLanguageAsync(selectedLanguage));
+  }, [selectedLanguage]);
 
   return (
     <Animated.View style={[styles.container]} entering={FadeIn}>

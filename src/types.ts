@@ -1,13 +1,14 @@
-import {res_get_manga_$_feed} from '@api';
+import {Chapter} from '@db';
 
 export type DownloadedChapterDetails = {
-  chapter: res_get_manga_$_feed['data'][0];
+  chapter: Chapter;
   pageFileNames: string[];
   isDataSaver: boolean;
 };
 
 export type UpdatedMangaNotifications = {
-  mangaId: string;
-  newChapterCount: number;
-  notificationId: string;
+  [key: string]: {
+    newChapterCount: number;
+    notificationId: string;
+  };
 };

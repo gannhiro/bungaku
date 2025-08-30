@@ -1,14 +1,20 @@
 import {Model, Q, Query} from '@nozbe/watermelondb';
 import {field, json, date, text, children, reader, writer} from '@nozbe/watermelondb/decorators';
 import {Language} from '@constants';
-import {ContentRating, MangaStatus, PublicationDemographic, res_get_manga} from '@api';
-import {Chapter, database, MangaStatistic} from '@db';
+import {
+  ContentRating,
+  MangaStatus,
+  PublicationDemographic,
+  res_get_manga,
+  res_get_manga_tag,
+} from '@api';
+import {Chapter, database, MangaStatistic, UserPreference} from '@db';
 
 export type LibrarySettings = {
   dateAdded: string;
   isDataSaver: boolean;
   stayUpdated: boolean;
-  stayUpdatedLanguages: Language[];
+  stayUpdatedLanguages: (Language | null)[];
 };
 type LocalizedString = {[key: string]: string};
 type AltTitle = {[key: string]: string};
@@ -51,16 +57,16 @@ export default class Manga extends Model {
   @text('latest_uploaded_chapter') latestUploadedChapter!: string;
   @field('is_locked') isLocked!: boolean;
 
-  @json('title_obj', raw => raw || {}) title!: LocalizedString;
-  @json('alt_titles_obj', raw => raw || []) altTitles!: AltTitle[];
-  @json('description_obj', raw => raw || {}) description!: LocalizedString;
-  @json('links_obj', raw => raw || {}) links!: Link;
-  @json('tags_obj', raw => raw || []) tags!: Tag[];
-  @json('available_translated_languages_obj', raw => raw || []) availableTranslatedLanguages!: (
+  @json('title_obj', raw => raw ?? {}) title!: LocalizedString;
+  @json('alt_titles_obj', raw => raw ?? []) altTitles!: AltTitle[];
+  @json('description_obj', raw => raw ?? {}) description!: LocalizedString;
+  @json('links_obj', raw => raw ?? {}) links!: Link;
+  @json('tags_obj', raw => raw ?? []) tags!: Tag[];
+  @json('available_translated_languages_obj', raw => raw ?? []) availableTranslatedLanguages!: (
     | string
     | null
   )[];
-  @json('relationships_obj', raw => raw || []) relationships!: Relationship[];
+  @json('relationships_obj', raw => raw ?? []) relationships!: Relationship[];
 
   @date('created_at') createdAt!: Date;
   @date('updated_at') updatedAt!: Date;
@@ -68,18 +74,21 @@ export default class Manga extends Model {
   @date('date_added') dateAdded?: Date;
   @field('is_data_saver') isDataSaver?: boolean;
   @field('stay_updated') stayUpdated?: boolean;
-  @json('stay_updated_languages_obj', raw => raw || []) stayUpdatedLanguages?: Language[];
+  @json('stay_updated_languages_obj', raw => raw ?? []) stayUpdatedLanguages!: (Language | null)[];
 
   @children('chapters') chapters!: Query<Chapter>;
   @children('manga_statistics') statistics!: Query<MangaStatistic>;
+
+  get isInLibrary(): boolean {
+    return !!this.stayUpdated;
+  }
 
   static async doesMangaExistById(mangaId: string): Promise<[boolean, boolean]> {
     const manga = await this.getMangaById(mangaId);
     if (!manga) {
       return [false, false];
     }
-    const isDownloaded = await manga.isDownloaded();
-    return [true, isDownloaded];
+    return [true, manga.isInLibrary];
   }
 
   static async getMangaById(mangaId: string): Promise<Manga | undefined> {
@@ -98,42 +107,25 @@ export default class Manga extends Model {
     return libraryMangas.map(manga => manga.mangaId);
   }
 
-  static async createMangaFromApi(
+  static async getMangaBulk(mangaIds: string[]): Promise<Manga[]> {
+    if (mangaIds.length === 0) {
+      return [];
+    }
+    const mangaCollection = database.collections.get<Manga>('mangas');
+    const results = await mangaCollection.query(Q.where('manga_id', Q.oneOf(mangaIds))).fetch();
+    return results;
+  }
+
+  static async upsertFromApi(
     manga: res_get_manga['data'][0],
     librarySettings?: LibrarySettings,
-  ) {
-    const mangaCollection = database.collections.get<Manga>('mangas');
+  ): Promise<Manga> {
+    const existingManga = await this.getMangaById(manga.id);
 
-    await database.write(async () => {
-      await mangaCollection.create(dbManga => {
-        dbManga._raw.id = manga.id;
-        dbManga.mangaId = manga.id;
-
-        const {attributes, relationships} = manga;
-        dbManga.originalLanguage = attributes.originalLanguage;
-        dbManga.lastVolume = attributes.lastVolume;
-        dbManga.lastChapter = attributes.lastChapter;
-        dbManga.publicationDemographic = attributes.publicationDemographic;
-        dbManga.status = attributes.status;
-        dbManga.year = attributes.year;
-        dbManga.contentRating = attributes.contentRating;
-        dbManga.state = attributes.state;
-        dbManga.chapterNumbersResetOnNewVolume = attributes.chapterNumbersResetOnNewVolume;
-        dbManga.version = attributes.version;
-        dbManga.latestUploadedChapter = attributes.latestUploadedChapter;
-        dbManga.isLocked = attributes.isLocked;
-
-        dbManga.title = attributes.title;
-        dbManga.altTitles = attributes.altTitles;
-        dbManga.description = attributes.description;
-        dbManga.links = attributes.links;
-        dbManga.tags = attributes.tags;
-        dbManga.availableTranslatedLanguages = attributes.availableTranslatedLanguages;
-        dbManga.relationships = relationships;
-
-        dbManga.createdAt = new Date(attributes.createdAt);
-        dbManga.updatedAt = new Date(attributes.updatedAt);
-
+    if (existingManga) {
+      // Record exists, so update it.
+      await existingManga.update(dbManga => {
+        (dbManga as Manga)._setFieldsFromApi(manga);
         if (librarySettings) {
           dbManga.dateAdded = librarySettings.dateAdded
             ? new Date(librarySettings.dateAdded)
@@ -143,47 +135,73 @@ export default class Manga extends Model {
           dbManga.stayUpdatedLanguages = librarySettings.stayUpdatedLanguages ?? [];
         }
       });
-    });
+      return existingManga;
+    } else {
+      // Record does not exist, so create it.
+      let newRecord: Manga | undefined;
+      await database.write(async () => {
+        const mangaCollection = database.collections.get<Manga>('mangas');
+        newRecord = await mangaCollection.create(dbManga => {
+          const newManga = dbManga as Manga;
+          newManga._raw.id = manga.id;
+          newManga.mangaId = manga.id;
+          newManga._setFieldsFromApi(manga);
+          newManga.createdAt = new Date(manga.attributes.createdAt);
+
+          if (librarySettings) {
+            newManga.dateAdded = librarySettings.dateAdded
+              ? new Date(librarySettings.dateAdded)
+              : new Date();
+            newManga.isDataSaver = librarySettings.isDataSaver ?? false;
+            newManga.stayUpdated = librarySettings.stayUpdated ?? false;
+            newManga.stayUpdatedLanguages = librarySettings.stayUpdatedLanguages ?? [];
+          }
+        });
+      });
+      return newRecord!;
+    }
   }
 
-  static async createFromApiBulk(mangas: res_get_manga['data']) {
+  static async upsertFromApiBulk(mangas: res_get_manga['data']) {
     const mangaCollection = database.get<Manga>('mangas');
-    const existingMangaIds = (
-      await mangaCollection.query(Q.where('manga_id', Q.oneOf(mangas.map(m => m.id)))).fetch()
-    ).map(m => m.mangaId);
-    const mangaToCreate = mangas.filter(m => !existingMangaIds.includes(m.id));
+    const existingMangas = await mangaCollection
+      .query(Q.where('manga_id', Q.oneOf(mangas.map(m => m.id))))
+      .fetch();
+    const existingMangaMap = new Map(existingMangas.map(m => [m.mangaId, m]));
 
-    const batchActions = mangaToCreate.map(manga => {
-      return mangaCollection.prepareCreate(dbManga => {
-        dbManga._raw.id = manga.id;
-        dbManga.mangaId = manga.id;
-        const {attributes, relationships} = manga;
-        dbManga.originalLanguage = attributes.originalLanguage;
-        dbManga.lastVolume = attributes.lastVolume;
-        dbManga.lastChapter = attributes.lastChapter;
-        dbManga.publicationDemographic = attributes.publicationDemographic;
-        dbManga.status = attributes.status;
-        dbManga.year = attributes.year;
-        dbManga.contentRating = attributes.contentRating;
-        dbManga.state = attributes.state;
-        dbManga.chapterNumbersResetOnNewVolume = attributes.chapterNumbersResetOnNewVolume;
-        dbManga.version = attributes.version;
-        dbManga.latestUploadedChapter = attributes.latestUploadedChapter;
-        dbManga.isLocked = attributes.isLocked;
-        dbManga.title = attributes.title;
-        dbManga.altTitles = attributes.altTitles;
-        dbManga.description = attributes.description;
-        dbManga.links = attributes.links;
-        dbManga.tags = attributes.tags;
-        dbManga.availableTranslatedLanguages = attributes.availableTranslatedLanguages;
-        dbManga.relationships = relationships;
-        dbManga.createdAt = new Date(attributes.createdAt);
-        dbManga.updatedAt = new Date(attributes.updatedAt);
+    const mangaToCreate = mangas.filter(m => !existingMangaMap.has(m.id));
+    const mangaToUpdate = mangas.filter(m => existingMangaMap.has(m.id));
+
+    const batchActions: Model[] = [];
+
+    for (const manga of mangaToUpdate) {
+      const record = existingMangaMap.get(manga.id);
+      if (record) {
+        batchActions.push(
+          record.prepareUpdate(dbManga => {
+            (dbManga as Manga)._setFieldsFromApi(manga);
+          }),
+        );
+      }
+    }
+
+    for (const manga of mangaToCreate) {
+      batchActions.push(
+        mangaCollection.prepareCreate(dbManga => {
+          const newManga = dbManga as Manga;
+          newManga._raw.id = manga.id;
+          newManga.mangaId = manga.id;
+          newManga._setFieldsFromApi(manga);
+          newManga.createdAt = new Date(manga.attributes.createdAt);
+        }),
+      );
+    }
+
+    if (batchActions.length > 0) {
+      await database.write(async () => {
+        await database.batch(...batchActions);
       });
-    });
-    await database.write(async () => {
-      await database.batch(...batchActions);
-    });
+    }
   }
 
   static async deleteMangaById(mangaId: string): Promise<void> {
@@ -210,8 +228,18 @@ export default class Manga extends Model {
     });
   }
 
-  @reader async isDownloaded(): Promise<boolean> {
-    return this.stayUpdated !== null;
+  @reader async getPreferredTitle(): Promise<string> {
+    const preferences = await UserPreference.getInstance();
+
+    return (
+      this.title?.[preferences?.language ?? ''] ??
+      this.altTitles?.find(altTitle => altTitle[preferences?.language ?? ''])?.[
+        preferences?.language ?? ''
+      ] ??
+      Object.values(this?.title ?? {})[0] ??
+      this.title?.en ??
+      'no title!'
+    );
   }
 
   @writer async updateLibrarySettings(librarySettings: LibrarySettings) {
@@ -253,15 +281,58 @@ export default class Manga extends Model {
   }
 
   @writer async removeFromLibrary() {
-    await this.update(dbManga => {
-      dbManga.dateAdded = undefined;
-      dbManga.isDataSaver = undefined;
-      dbManga.stayUpdated = undefined;
-      dbManga.stayUpdatedLanguages = undefined;
-    });
+    const allChapters = await this.chapters.fetch();
+    const batchActions: Model[] = [];
+
+    for (const chapter of allChapters) {
+      if (chapter.isDownloaded) {
+        batchActions.push(
+          chapter.prepareUpdate(dbChapter => {
+            dbChapter._fileNames = [];
+            dbChapter._isDataSaver = false;
+            dbChapter._isDownloaded = false;
+          }),
+        );
+      }
+    }
+
+    batchActions.push(
+      this.prepareUpdate(dbManga => {
+        dbManga.dateAdded = undefined;
+        dbManga.isDataSaver = undefined;
+        dbManga.stayUpdated = undefined;
+        dbManga.stayUpdatedLanguages = [];
+      }),
+    );
+
+    await this.database.batch(...batchActions);
   }
 
   @writer async deleteSelfPermanently() {
     await this.destroyPermanently();
+  }
+
+  private _setFieldsFromApi(apiManga: res_get_manga['data'][0]) {
+    const {attributes, relationships} = apiManga;
+    this.originalLanguage = attributes.originalLanguage;
+    this.lastVolume = attributes.lastVolume;
+    this.lastChapter = attributes.lastChapter;
+    this.publicationDemographic = attributes.publicationDemographic;
+    this.status = attributes.status;
+    this.year = attributes.year;
+    this.contentRating = attributes.contentRating;
+    this.state = attributes.state;
+    this.chapterNumbersResetOnNewVolume = attributes.chapterNumbersResetOnNewVolume;
+    this.version = attributes.version;
+    this.latestUploadedChapter = attributes.latestUploadedChapter;
+    this.isLocked = attributes.isLocked;
+    this.title = attributes.title;
+    this.altTitles = attributes.altTitles;
+    this.description = attributes.description;
+    this.links = attributes.links;
+    this.tags = attributes.tags;
+    this.availableTranslatedLanguages = attributes.availableTranslatedLanguages;
+    this.relationships = relationships;
+    this.updatedAt = new Date(attributes.updatedAt);
   }
 }

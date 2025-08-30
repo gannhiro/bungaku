@@ -2,7 +2,7 @@ import {ColorScheme, PRETENDARD_JP, TOP_OVERLAY_HEIGHT} from '@constants';
 import {textColor, useAppCore} from '@utils';
 import React from 'react';
 import {StyleSheet, Text, View} from 'react-native';
-import {EnhancedLibraryList} from '@components';
+import {LibraryList} from '@components';
 
 export function LibraryScreen() {
   const {colorScheme} = useAppCore();
@@ -12,7 +12,7 @@ export function LibraryScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.libraryLabel}>Library</Text>
-      <EnhancedLibraryList />
+      <LibraryList />
     </View>
   );
 }

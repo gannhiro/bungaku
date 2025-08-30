@@ -5,6 +5,7 @@ import Animated, {useAnimatedStyle, withTiming} from 'react-native-reanimated';
 import {ColorScheme, PRETENDARD_JP} from '@constants';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import {textColor, useAppCore} from '@utils';
+import Color from 'color';
 
 enum Tabs {
   HOME = 'HomeScreen',
@@ -33,9 +34,7 @@ export function TabBar({state, navigation, descriptors}: MaterialTopTabBarProps)
         const bgColorStyle = useAnimatedStyle(() => {
           'worklet';
           return {
-            backgroundColor: withTiming(
-              focused ? colorScheme.colors.main : colorScheme.colors.secondary,
-            ),
+            opacity: withTiming(focused ? 1 : 0.3),
           };
         }, [focused, colorScheme.colors.main]);
 
@@ -111,6 +110,7 @@ function getStyles(colorScheme: ColorScheme) {
   return StyleSheet.create({
     container: {
       flexDirection: 'row',
+      backgroundColor: Color(colorScheme.colors.secondary).darken(0.5).hex(),
     },
     pressable: {
       flex: 1,
@@ -122,11 +122,13 @@ function getStyles(colorScheme: ColorScheme) {
       paddingVertical: 10,
       borderTopWidth: 2,
       borderColor: colorScheme.colors.primary,
+      backgroundColor: colorScheme.colors.main,
     },
     tabContLabel: {
-      fontFamily: PRETENDARD_JP.REGULAR,
+      fontFamily: PRETENDARD_JP.BOLD,
       color: textColor(colorScheme.colors.main),
-      fontSize: 10,
+      fontSize: 12,
+      textAlign: 'center',
     },
     icon: {
       width: 20,

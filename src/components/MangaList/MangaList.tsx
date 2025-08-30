@@ -65,14 +65,13 @@ export function MangaList({params, horizontal, style, contentViewStyle, onScroll
         ...params,
         offset: offset + params.limit,
         includes: ['artist', 'author', 'cover_art'],
-        contentRating: ['safe'],
       },
       [],
     );
 
     if (data && data.result === 'ok') {
       const tempMangas = [...mangas, ...data.data];
-      await Manga.createFromApiBulk(data.data);
+      await Manga.upsertFromApiBulk(data.data);
       setOffset(offset + params.limit);
       setMangas(tempMangas);
     } else if (data && data.result === 'error') {
@@ -106,7 +105,7 @@ export function MangaList({params, horizontal, style, contentViewStyle, onScroll
     );
 
     if (data.result === 'ok') {
-      await Manga.createFromApiBulk(data.data);
+      await Manga.upsertFromApiBulk(data.data);
       setMangas(data.data);
       setTotal(data.total);
       flatlistRef.current?.scrollToOffset({animated: true, offset: 0});
@@ -154,7 +153,7 @@ export function MangaList({params, horizontal, style, contentViewStyle, onScroll
       }
 
       if (data.result === 'ok') {
-        await Manga.createFromApiBulk(data.data);
+        await Manga.upsertFromApiBulk(data.data);
         setMangas(data.data);
         setTotal(data.total);
         flatlistRef.current?.scrollToOffset({animated: true, offset: 0});

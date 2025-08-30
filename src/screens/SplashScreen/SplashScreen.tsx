@@ -1,48 +1,17 @@
-import {mangadexAPI, res_get_manga_tag} from '@api';
 import {APP_NAME, ColorScheme, PRETENDARD_JP} from '@constants';
-import {database, Tag, UserPreference} from '@db';
 import {RootStackParamsList} from '@navigation';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {StackScreenProps} from '@react-navigation/stack';
+import {initializeLibraryObserver, initializeLibraryUpdates, initializeMangaTags} from '@store';
 import {textColor, useAppCore} from '@utils';
 import React, {useEffect, useState} from 'react';
 import {PermissionsAndroid, StyleSheet, View} from 'react-native';
 import FS from 'react-native-fs';
 import * as Progress from 'react-native-progress';
 import Animated, {FadeIn} from 'react-native-reanimated';
+import notifee, {AndroidImportance} from '@notifee/react-native';
 
 type Props = StackScreenProps<RootStackParamsList, 'SplashScreen'>;
-
-async function initializeMangaTags() {
-  const localTags = await Tag.getAllTags();
-
-  if (localTags.length === 0) {
-    const apiTags = await mangadexAPI<res_get_manga_tag, {}>('get', '/manga/tag', {}, []);
-
-    if (apiTags.result !== 'ok') {
-      return;
-    }
-
-    try {
-      const tagsCollection = database.collections.get<Tag>('tags');
-      const batchActions = apiTags.data.map(tagData => {
-        return tagsCollection.prepareCreate(tag => {
-          tag._raw.id = tagData.id;
-          tag.tagId = tagData.id;
-          tag.group = tagData.attributes.group;
-          tag.version = tagData.attributes.version;
-          tag.name = tagData.attributes.name;
-        });
-      });
-
-      await database.write(async () => {
-        return await database.batch(...batchActions);
-      });
-    } catch (error) {
-      console.log(error);
-    }
-  }
-}
 
 export function SplashScreen({navigation}: Props) {
   const {dispatch, colorScheme} = useAppCore();
@@ -69,6 +38,14 @@ export function SplashScreen({navigation}: Props) {
 
   useEffect(() => {
     (async () => {
+      await notifee.createChannel({
+        id: 'library-updates',
+        name: 'Library Updates',
+        description: 'Notifications for new chapters in your library.',
+        vibration: false,
+        importance: AndroidImportance.DEFAULT,
+      });
+
       const firstTimeInstall = await AsyncStorage.getItem('first-time');
       if (!firstTimeInstall) {
         console.log('first time installation.');
@@ -86,7 +63,13 @@ export function SplashScreen({navigation}: Props) {
       }
 
       setLoadingText('fetching tags');
-      await initializeMangaTags();
+      await dispatch(initializeMangaTags());
+
+      setLoadingText('fetching library');
+      await dispatch(initializeLibraryObserver());
+
+      setLoadingText('fetching updates');
+      await dispatch(initializeLibraryUpdates());
 
       setLoadingText('welcome');
       setLoading(false);

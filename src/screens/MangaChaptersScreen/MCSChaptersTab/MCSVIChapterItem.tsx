@@ -1,4 +1,4 @@
-import {res_get_group_$, res_get_manga_$_feed, res_get_user_$} from '@api';
+import {res_get_group_$, res_get_user_$} from '@api';
 import {FlagIcon} from '@components';
 import {
   ColorScheme,
@@ -9,9 +9,9 @@ import {
   systemOrange,
   systemRed,
 } from '@constants';
-import {queueDownloadChapter, RootState, useAppDispatch, useAppSelector} from '@store';
+import {queueDownloadChapter, RootState, useAppSelector} from '@store';
 import {textColor, useAppCore} from '@utils';
-import React, {memo, useEffect, useState} from 'react';
+import React, {memo, useCallback, useEffect, useState} from 'react';
 import {Dimensions, Image, StyleSheet, Text, Vibration} from 'react-native';
 import FS from 'react-native-fs';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
@@ -28,14 +28,15 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import {useMangaChaptersScreenContext} from '../useMangaChaptersScreenContext';
-import {useNavigation} from '@react-navigation/native';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
 import {RootStackParamsList} from '@navigation';
+import {Chapter, UserPreference} from '@db';
 
 const {width, height} = Dimensions.get('screen');
 
 type Props = {
-  chapter: res_get_manga_$_feed['data'][0];
+  chapter: Chapter;
 };
 
 export const MCSVIChapterItem = memo(({chapter}: Props) => {
@@ -53,6 +54,9 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
   const {dispatch, colorScheme} = useAppCore();
   const navigation =
     useNavigation<StackNavigationProp<RootStackParamsList, 'MangaChaptersScreen'>>();
+  const isInLibrary = useAppSelector((state: RootState) => state.libraryList).libraryList.includes(
+    manga?.id ?? '',
+  );
   const styles = getStyles(colorScheme);
 
   const potentialJobId = `${manga?.id}-${chapter.id}`;
@@ -61,10 +65,8 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
     (state: RootState) => state.jobs.jobs[potentialJobId]?.progress,
   );
   const isJobPending = jobStatus === 'pending' || jobStatus === 'queued';
-
-  const [mangaInLibrary, setMangaInLibrary] = useState(false);
-  const [downloadable, setDownloadable] = useState(false);
   const [isDownloaded, setIsDownloaded] = useState(false);
+  const [isCached, setIsCached] = useState(false);
 
   const isSelected = selectedChapters.includes(chapter.id);
   const scanlator = chapter?.relationships.find(rs => rs.type === 'scanlation_group') as
@@ -78,14 +80,17 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
 
   const chapterTranslationX = useSharedValue(0);
   const chapterPressableBG = useSharedValue('#0000');
-  const chapterPressableBorderColor = useSharedValue('#0000');
   const chapterPressableStyle = useAnimatedStyle(() => {
     return {
       backgroundColor: chapterPressableBG.value,
       transform: [{translateX: chapterTranslationX.value}],
-      borderColor: chapterPressableBorderColor.value,
+      borderColor: isDownloaded
+        ? systemGreen
+        : isCached
+        ? systemOrange
+        : colorScheme.colors.secondary,
     };
-  });
+  }, [isDownloaded, isCached]);
 
   const rightGroupWidth = useSharedValue(0);
   const rightGroupStyle = useAnimatedStyle(() => {
@@ -149,7 +154,7 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
       }
       rightGroupWidth.value = withTiming(0);
     })
-    .enabled(downloadable);
+    .enabled(!!!chapter.externalUrl);
   const gestures = Gesture.Race(tapGesture, longPressGest, panLeftGest);
 
   async function shouldDownloadChapter() {
@@ -157,26 +162,32 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
       return;
     }
 
-    if (mangaInLibrary) {
+    if (isInLibrary) {
       dispatch(
         queueDownloadChapter({
-          chapter,
-          manga,
-          isDataSaver: false,
+          chapter: {
+            id: chapter.id,
+            title: chapter.title ?? `${chapter.chapterNumber}`,
+            translatedLanguage: chapter.translatedLanguage,
+            chapterNumber: parseInt(chapter.chapterNumber ?? ''),
+          },
+          manga: {
+            id: manga.id,
+            title: manga.title.en,
+          },
+          isDataSaver: manga?.isDataSaver ?? false,
         }),
       );
-    } else {
-      navigation.navigate('AddToLibraryModal', {
-        manga,
-        statistics: statistics ?? undefined,
-      });
+      return;
     }
+
+    navigation.navigate('AddToLibraryModal', {
+      manga,
+      statistics: statistics ?? undefined,
+    });
   }
 
   async function onChapterLongPress() {
-    const dirList = await FS.readdir(`${FS.DocumentDirectoryPath}/manga/`);
-    console.log(dirList);
-
     if (!selectMode) {
       setSelectMode(true);
     }
@@ -205,14 +216,14 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
       return;
     }
 
-    if (chapter.attributes.externalUrl) {
-      InAppBrowser.open(chapter.attributes.externalUrl);
+    if (chapter.externalUrl) {
+      InAppBrowser.open(chapter.externalUrl);
       return;
     }
 
-    const chapterLang = chapter?.attributes.translatedLanguage;
+    const chapterLang = chapter?.translatedLanguage;
     const tempChapters = chapters.filter(item => {
-      if (item.attributes.translatedLanguage === chapterLang) {
+      if (item.translatedLanguage === chapterLang) {
         return item;
       }
     });
@@ -233,7 +244,7 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
 
   function getTimeReleased() {
     const dateNow = new Date().getTime();
-    const timeInMs = dateNow - new Date(chapter.attributes.publishAt).getTime();
+    const timeInMs = dateNow - new Date(chapter.publishAt).getTime();
 
     const timeInSecs = Math.floor(timeInMs / 1000);
     const timeInMins = Math.floor(timeInMs / (1000 * 60));
@@ -261,17 +272,17 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
     return timeInSecs + ' seconds ago';
   }
 
-  useEffect(() => {
-    (async () => {
-      const isDownloaded = false;
-      setIsDownloaded(isDownloaded);
+  useFocusEffect(
+    useCallback(() => {
+      const subscription = chapter.observe().subscribe(updatedChapter => {
+        const cached = !updatedChapter.isDownloaded && updatedChapter.fileNames.length > 0;
+        setIsDownloaded(updatedChapter.isDownloaded);
+        setIsCached(cached);
+      });
 
-      chapterPressableBorderColor.value = isDownloaded ? systemGreen : colorScheme.colors.primary;
-
-      const isChapterDownloadable = !chapter.attributes.externalUrl;
-      setDownloadable(isChapterDownloadable);
-    })();
-  }, [chapter, manga, chapterPressableBorderColor, colorScheme, jobStatus]);
+      return () => subscription.unsubscribe();
+    }, []),
+  );
 
   return (
     <GestureDetector gesture={gestures}>
@@ -293,21 +304,21 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
         )}
         <Animated.View style={styles.leftGroup}>
           <Animated.View style={styles.topRow}>
-            <FlagIcon language={chapter?.attributes.translatedLanguage} style={styles.flagIcon} />
+            <FlagIcon language={chapter?.translatedLanguage} style={styles.flagIcon} />
             <Animated.Text
               style={[styles.chapterTitleLabel]}
               ellipsizeMode={'tail'}
               numberOfLines={1}>
-              {chapter?.attributes.title
-                ? chapter.attributes.title.length > 35
-                  ? chapter?.attributes.title.slice(0, 35) + '...'
-                  : chapter?.attributes.title
-                : 'Chapter ' + chapter?.attributes.chapter}
+              {chapter?.title
+                ? chapter.title.length > 35
+                  ? chapter?.title.slice(0, 35) + '...'
+                  : chapter?.title
+                : 'Chapter ' + chapter?.chapterNumber}
             </Animated.Text>
           </Animated.View>
           <Animated.View style={styles.bottomRow}>
             <Animated.Text style={styles.chapterGenericLabel}>
-              {'Chapter ' + chapter?.attributes.chapter + ' | '}
+              {'Chapter ' + chapter?.chapterNumber + ' | '}
               {getTimeReleased()}
             </Animated.Text>
           </Animated.View>

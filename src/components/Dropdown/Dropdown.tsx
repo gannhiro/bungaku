@@ -25,7 +25,7 @@ export type GenericDropdownValues = {
 
 type Props = {
   items: GenericDropdownValues;
-  selection: string | number | Array<string | number>;
+  selection: string | number | Array<string | number | null>;
   setSelection: Dispatch<SetStateAction<any>>;
   atLeastOne?: boolean;
   onSelectionPress?: (value: string | number | null) => void;

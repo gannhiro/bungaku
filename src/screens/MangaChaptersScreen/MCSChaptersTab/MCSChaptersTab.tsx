@@ -11,7 +11,6 @@ import {ColorScheme, ISO_LANGS, PRETENDARD_JP, TOP_OVERLAY_HEIGHT} from '@consta
 import Clipboard from '@react-native-clipboard/clipboard';
 import {MaterialTopTabScreenProps} from '@react-navigation/material-top-tabs';
 import {FlashList, ListRenderItemInfo} from '@shopify/flash-list';
-import {RootState, useAppSelector} from '@store';
 import {textColor, useAppCore} from '@utils';
 import React, {useEffect, useRef, useState} from 'react';
 import {
@@ -37,6 +36,8 @@ import Animated, {
 import {MCSBottomTabsParamsList} from '../MangaChaptersScreen';
 import {useMangaChaptersScreenContext} from '../useMangaChaptersScreenContext';
 import MCSVIChapterItem from './MCSVIChapterItem';
+import {Chapter} from '@db';
+import {RootState, useAppSelector} from '@store';
 
 type Props = MaterialTopTabScreenProps<MCSBottomTabsParamsList, 'MCSChaptersTab'>;
 
@@ -57,6 +58,9 @@ export function MCSChaptersTab({}: Props) {
   } = useMangaChaptersScreenContext();
 
   const {colorScheme} = useAppCore();
+  const isInLibrary = useAppSelector((state: RootState) => state.libraryList).libraryList.includes(
+    manga?.id ?? '',
+  );
 
   const styles = getStyles(colorScheme);
 
@@ -74,8 +78,6 @@ export function MCSChaptersTab({}: Props) {
     }) ?? [];
 
   const author = manga?.relationships.find(rs => rs.type === 'author') as res_get_author_$['data'];
-
-  const [isInLibrary, setIsInLibrary] = useState(false);
   const [languages, setLanguages] = useState<string[]>([]);
   const [showBottomSheet, setShowBottomSheet] = useState<boolean>(false);
 
@@ -115,7 +117,7 @@ export function MCSChaptersTab({}: Props) {
     };
   };
 
-  function renderItem({item}: ListRenderItemInfo<res_get_manga_$_feed['data'][0]>) {
+  function renderItem({item}: ListRenderItemInfo<Chapter>) {
     return <MCSVIChapterItem chapter={item} />;
   }
 
@@ -140,13 +142,6 @@ export function MCSChaptersTab({}: Props) {
       setOrder(ORDER.ASCENDING);
     }
   }
-
-  useEffect(() => {
-    (async () => {
-      const inLibrary = (await manga?.isDownloaded()) ?? false;
-      setIsInLibrary(inLibrary);
-    })();
-  }, []);
 
   return (
     <View style={[styles.container]}>
@@ -193,10 +188,7 @@ export function MCSChaptersTab({}: Props) {
             contentContainerStyle={styles.chapListContent}
             data={chapters.filter(chapter => {
               let shouldReturn = true;
-              if (
-                languages.length > 0 &&
-                !languages.includes(chapter.attributes.translatedLanguage)
-              ) {
+              if (languages.length > 0 && !languages.includes(chapter.translatedLanguage)) {
                 shouldReturn = false;
               }
 

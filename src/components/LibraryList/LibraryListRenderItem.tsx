@@ -4,7 +4,7 @@ import {Manga} from '@db';
 import {RootStackParamsList} from '@navigation';
 import {useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
-import {RootState, useAppSelector} from '@store';
+import {removeLibraryUpdateNotifs, RootState, useAppSelector} from '@store';
 import {textColor, useAppCore} from '@utils';
 import React from 'react';
 import {Dimensions, Image, StyleSheet, Text, Vibration, View} from 'react-native';
@@ -25,20 +25,22 @@ type Props = {
 };
 
 export function LibraryListRenderItem({manga}: Props) {
-  const {colorScheme, preferences} = useAppCore();
+  const {colorScheme, preferences, dispatch} = useAppCore();
   const navigation = useNavigation<StackNavigationProp<RootStackParamsList, 'HomeNavigator'>>();
 
   const {language} = preferences;
   const {updatedMangaList} = useAppSelector((state: RootState) => state.libraryUpdates);
 
   const styles = getStyles(colorScheme);
-  const badgeCount = updatedMangaList.find(val => val.mangaId === manga.id)?.newChapterCount ?? 0;
+  const badgeCount =
+    updatedMangaList[Object.keys(updatedMangaList).find(val => val === manga.id) ?? '']
+      ?.newChapterCount ?? 0;
   const coverPath = `file://${FS.DocumentDirectoryPath}/manga/${manga.id}/cover.png`;
   const title =
-    manga.title[language] ??
-    manga.altTitles.find(keyValue => keyValue[language])?.[language] ??
-    manga.title.en ??
-    'no title';
+    manga.title?.[language] ??
+    manga.altTitles?.find(altTitle => altTitle[language])?.[language] ??
+    Object.values(manga?.title ?? {})[0] ??
+    manga.title?.en;
 
   const scale = useSharedValue(1);
   const contAnimStyle = useAnimatedStyle(() => {
@@ -61,6 +63,8 @@ export function LibraryListRenderItem({manga}: Props) {
   function goToChapters() {
     Vibration.vibrate([0, 50], false);
 
+    dispatch(removeLibraryUpdateNotifs(manga.id));
+
     navigation.navigate('MangaChaptersScreen', {
       mangaId: manga.mangaId,
     });
@@ -80,7 +84,7 @@ export function LibraryListRenderItem({manga}: Props) {
         {badgeCount > 0 && (
           <View style={styles.badgeOuter}>
             <View style={styles.badgeInner}>
-              <Text style={styles.badgeText}>{badgeCount}</Text>
+              <Text style={styles.badgeText}>{badgeCount > 9 ? '+9' : badgeCount}</Text>
             </View>
           </View>
         )}

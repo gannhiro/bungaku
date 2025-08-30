@@ -11,19 +11,15 @@ import {
 } from 'react-native';
 import {DownloadsListRenderItem} from './DownloadsListRenderItem';
 import {createSelector} from '@reduxjs/toolkit';
-import {res_get_manga_$_feed} from '@api';
 import {DownloadsListRenderHeaderItem} from './DownloadsListRenderHeaderItem';
-import {useEffect} from 'react';
 import {useAppCore} from '@utils';
 
 export interface GroupedJobSection {
   mangaId: string;
   title: string;
-  coverFileName?: string;
   data: {
     jobId: string;
     status: JobStatus;
-    chapter?: res_get_manga_$_feed['data'][0];
   }[];
 }
 
@@ -46,10 +42,6 @@ export function DownloadsScreen({}: Props) {
   }) {
     return <DownloadsListRenderHeaderItem section={section} />;
   }
-
-  useEffect(() => {
-    console.log('changed jobs');
-  }, [jobs]);
 
   return (
     <View style={styles.container}>
@@ -76,13 +68,10 @@ const selectGroupedJobs = createSelector([selectJobsMap], (jobs): GroupedJobSect
 
     if (!grouped[mangaId]) {
       const manga = jobStatus.manga;
-      const coverFileName = manga?.relationships?.find(r => r.type === 'cover_art')?.attributes
-        .fileName;
 
       grouped[mangaId] = {
         mangaId: mangaId,
-        title: manga?.attributes?.title?.en ?? mangaId,
-        coverFileName: coverFileName,
+        title: manga?.title ?? mangaId,
         data: [],
       };
     }
@@ -90,7 +79,6 @@ const selectGroupedJobs = createSelector([selectJobsMap], (jobs): GroupedJobSect
     grouped[mangaId].data.push({
       jobId: jobId,
       status: jobStatus,
-      chapter: jobStatus.chapter,
     });
   });
 
@@ -98,13 +86,12 @@ const selectGroupedJobs = createSelector([selectJobsMap], (jobs): GroupedJobSect
 
   sectionsArray.forEach(section => {
     section.data.sort((jobA, jobB) => {
-      // Example sort: queued first, then by chapter number if available
       if (jobA.status.status === 'queued' && jobB.status.status !== 'queued') return -1;
       if (jobA.status.status !== 'queued' && jobB.status.status === 'queued') return 1;
 
-      const chapA = parseFloat(jobA.chapter?.attributes?.chapter ?? '0');
-      const chapB = parseFloat(jobB.chapter?.attributes?.chapter ?? '0');
-      return chapA - chapB; // Ascending chapter order
+      const chapA = parseFloat(`${jobA.status.chapter?.chapterNumber ?? '0'}`);
+      const chapB = parseFloat(`${jobA.status.chapter?.chapterNumber ?? '0'}`);
+      return chapA - chapB;
     });
   });
 
@@ -113,7 +100,10 @@ const selectGroupedJobs = createSelector([selectJobsMap], (jobs): GroupedJobSect
 
 function getStyles(colorScheme: ColorScheme) {
   return StyleSheet.create({
-    container: {flex: 1},
+    container: {
+      flex: 1,
+      backgroundColor: colorScheme.colors.main,
+    },
     downloadsList: {
       width: '100%',
       flex: 1,

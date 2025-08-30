@@ -17,6 +17,7 @@ import * as Progress from 'react-native-progress';
 import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
 import {HSJumboListPageIndicator} from './HSJumboListPageIndicator';
 import {HSJumboListRenderItem} from './HSJumboListRenderItem';
+import {Manga} from '@db';
 
 const {width} = Dimensions.get('window');
 export type CoverSources = {
@@ -62,7 +63,7 @@ export function HSJumboList() {
     }
   }
 
-  function getItemLayout(data: res_get_manga['data'] | null | undefined, index: number) {
+  function getItemLayout(_: Array<any>, index: number) {
     return {
       length: width,
       offset: 0,
@@ -80,6 +81,7 @@ export function HSJumboList() {
         [],
       );
       if (mangaData && mangaData.result === 'ok') {
+        await Manga.upsertFromApiBulk(mangaData.data);
         setMangas(mangaData?.data);
         setLoading(false);
       }
@@ -110,7 +112,7 @@ export function HSJumboList() {
           <FlatList
             horizontal
             ref={listRef}
-            data={mangas}
+            data={mangas ?? []}
             renderItem={renderItem}
             snapToInterval={width}
             showsHorizontalScrollIndicator={false}

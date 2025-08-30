@@ -1,10 +1,10 @@
 import {ColorScheme, PRETENDARD_JP, systemCyan, systemGreen, systemIndigo} from '@constants';
-import {useAppSelector} from '@store';
 import {StyleSheet, Text, TouchableOpacity, View, ViewStyle} from 'react-native';
 import {GroupedJobSection} from './DownloadsScreen';
 import {FlagIcon} from '@components';
 import {textColor, useAppCore} from '@utils';
 import Color from 'color';
+import {useCallback} from 'react';
 
 type Props = {
   jobDetails: GroupedJobSection['data'][0];
@@ -13,15 +13,15 @@ type Props = {
 
 export function DownloadsListRenderItem({jobDetails, onPress}: Props) {
   const {colorScheme} = useAppCore();
-  const job = useAppSelector(state => state.jobs.jobs[jobDetails.jobId]);
+  const {status} = jobDetails;
 
   const styles = getStyles(colorScheme);
 
-  function getBackgroundColor(): ViewStyle['backgroundColor'] {
-    if (job.status === 'queued') return Color.rgb(systemCyan).alpha(0.1).toString();
-    if (job.status === 'pending') return Color.rgb(systemIndigo).alpha(0.1).toString();
-    if (job.status === 'succeeded') return Color.rgb(systemGreen).alpha(0.1).toString();
-  }
+  const getBackgroundColor = useCallback((): ViewStyle['backgroundColor'] => {
+    if (status.status === 'queued') return Color.rgb(systemCyan).alpha(0.1).toString();
+    if (status.status === 'pending') return Color.rgb(systemIndigo).alpha(0.1).toString();
+    if (status.status === 'succeeded') return Color.rgb(systemGreen).alpha(0.1).toString();
+  }, [status.status]);
 
   function onPressItem() {
     onPress?.();
@@ -33,23 +33,20 @@ export function DownloadsListRenderItem({jobDetails, onPress}: Props) {
       onPress={onPressItem}>
       <View style={styles.leftDetailsPart}>
         <Text style={styles.chapterTitle}>
-          {job.chapter?.attributes.title
-            ? job.chapter?.attributes.title
-            : `Chapter ${job.chapter?.attributes.chapter}`}
+          {status.chapter?.title
+            ? status.chapter?.title
+            : `Chapter ${status.chapter?.chapterNumber}`}
         </Text>
         <View style={styles.chapterDetailsContainer}>
-          {job.chapter?.attributes.translatedLanguage && (
-            <FlagIcon
-              language={job.chapter?.attributes.translatedLanguage}
-              style={styles.languageIcon}
-            />
+          {status.chapter?.translatedLanguage && (
+            <FlagIcon language={status.chapter?.translatedLanguage} style={styles.languageIcon} />
           )}
-          <Text style={styles.chapterNumber}>Chapter - {job.chapter?.attributes.chapter}</Text>
+          <Text style={styles.chapterNumber}>Chapter - {status.chapter?.chapterNumber}</Text>
         </View>
       </View>
 
       <View style={styles.rightPercentagePart}>
-        <Text style={styles.chapterTitle}>{((job.progress ?? 0) * 100).toFixed(0)}%</Text>
+        <Text style={styles.chapterTitle}>{((status.progress ?? 0) * 100).toFixed(0)}%</Text>
       </View>
     </TouchableOpacity>
   );

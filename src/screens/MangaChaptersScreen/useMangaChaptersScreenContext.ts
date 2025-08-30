@@ -1,13 +1,13 @@
 import {res_get_manga, res_get_statistics_manga, res_get_manga_$_feed} from '@api';
 import {GenericDropdownValues} from '@components';
 import {Language} from '@constants';
-import {Manga} from '@db';
+import {Chapter, Manga, MangaStatistic} from '@db';
 import {Dispatch, SetStateAction, createContext, useContext} from 'react';
 
 export interface iMangaChaptersScreenContext {
   manga?: Manga;
-  statistics?: res_get_statistics_manga | null;
-  chapters: res_get_manga_$_feed['data'];
+  statistics?: MangaStatistic | null;
+  chapters: Chapter[];
   onAddToLibPress: () => Promise<void>;
   languages: Array<Language>;
   setLanguages: Dispatch<SetStateAction<Array<Language>>>;
@@ -16,7 +16,7 @@ export interface iMangaChaptersScreenContext {
   loadingProgress: number;
   loadingText: string;
   setLoadingProgress: Dispatch<SetStateAction<number>>;
-  setChapters: Dispatch<SetStateAction<res_get_manga_$_feed['data']>>;
+  setChapters: Dispatch<SetStateAction<Chapter[]>>;
   setLoadingText: Dispatch<SetStateAction<string>>;
   setLoading: Dispatch<SetStateAction<boolean>>;
   setSelectMode: Dispatch<SetStateAction<boolean>>;
