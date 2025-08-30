@@ -281,7 +281,7 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
       });
 
       return () => subscription.unsubscribe();
-    }, []),
+    }, [chapter.id]),
   );
 
   return (
