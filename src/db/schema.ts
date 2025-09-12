@@ -1,7 +1,10 @@
 import {appSchema, tableSchema} from '@nozbe/watermelondb';
 
+// WARNING: DO NOT CHANGE THIS IF THERE IS *NO* CHANGE IN THE SCHEMA
+export const CURRENT_DB_VERSION = 1;
+
 export default appSchema({
-  version: 1,
+  version: CURRENT_DB_VERSION,
   tables: [
     tableSchema({
       name: 'user_preferences',
@@ -86,6 +89,18 @@ export default appSchema({
         {name: 'file_names', type: 'string', isOptional: true},
         {name: 'is_data_saver', type: 'boolean', isOptional: true},
         {name: 'is_downloaded', type: 'boolean', isOptional: true},
+      ],
+    }),
+    tableSchema({
+      name: 'jobs',
+      columns: [
+        {name: 'job_id', type: 'string'},
+        {name: 'status', type: 'string', isIndexed: true},
+        {name: 'progress', type: 'number'},
+        {name: 'error_message', type: 'string', isOptional: true},
+        {name: 'payload', type: 'string'},
+        {name: 'created_at', type: 'number'},
+        {name: 'updated_at', type: 'number'},
       ],
     }),
   ],

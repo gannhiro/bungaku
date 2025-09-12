@@ -3,8 +3,7 @@ import {GenericDropdownValues} from '@components';
 import {ColorScheme, PRETENDARD_JP, white} from '@constants';
 import {RootStackParamsList} from '@navigation';
 import {StackScreenProps} from '@react-navigation/stack';
-import {cacheChapter, RootState, useAppSelector} from '@store';
-import {DownloadedChapterDetails} from '@types';
+import {cacheChapterJob} from '@store';
 import {textColor, useAppCore} from '@utils';
 import React, {Fragment, useEffect, useRef, useState} from 'react';
 import {
@@ -74,8 +73,8 @@ export function ReadChapterScreen({route, navigation}: Props) {
     [],
   );
 
-  const cacheDirectory = `${FS.CachesDirectoryPath}/${manga.id}/${chapters[currentChapter].id}`;
-  const downloadedChapDirectory = `${FS.DocumentDirectoryPath}/manga/${manga.id}/${chapters[currentChapter].translatedLanguage}/${chapters[currentChapter].id}`;
+  const cachedChapterDirectory = `${FS.CachesDirectoryPath}/${manga.id}/${chapters[currentChapter].id}`;
+  const downloadedChapterDirectory = `${FS.DocumentDirectoryPath}/manga/${manga.id}/${chapters[currentChapter].translatedLanguage}/${chapters[currentChapter].id}`;
 
   const scanlator = chapters[currentChapter].relationships.find(
     rs => rs.type === 'scanlation_group',
@@ -208,13 +207,11 @@ export function ReadChapterScreen({route, navigation}: Props) {
       await FastImage.clearMemoryCache();
       await FastImage.clearDiskCache();
 
-      const isDownloaded = await FS.exists(downloadedChapDirectory);
+      const isDownloaded = await FS.exists(downloadedChapterDirectory);
       if (isDownloaded) {
-        console.log('chapter is downloaded');
-
         const finalPageObjects = chapters[currentChapter].fileNames.map(fileName => {
           return {
-            path: `file://${downloadedChapDirectory}/${fileName}`,
+            path: `file://${downloadedChapterDirectory}/${fileName}`,
           };
         });
 
@@ -223,43 +220,33 @@ export function ReadChapterScreen({route, navigation}: Props) {
         return;
       }
 
-      const isCached = await FS.exists(cacheDirectory);
+      const isCached = await FS.exists(cachedChapterDirectory);
       if (isCached) {
-        try {
-          const fileNames = chapters[currentChapter].fileNames;
-          console.log('chapter is cached', fileNames);
+        const fileNames = chapters[currentChapter].fileNames;
+        console.log('chapter is cached', fileNames);
 
-          const finalPageObjects = fileNames.map(item => {
-            return {
-              path: `file://${cacheDirectory}/${item}`,
-            };
-          });
+        const finalPageObjects = fileNames.map(item => {
+          return {
+            path: `file://${cachedChapterDirectory}/${item}`,
+          };
+        });
 
-          setPages(finalPageObjects);
-          setLoading(false);
-          return;
-        } catch (error) {
-          console.error(error);
-        }
-      }
-
-      function cacheChapterCallback(
-        tempPages: {pagePromise?: Promise<FS.DownloadResult>; path: string}[],
-        tempChapters: res_at_home_$,
-      ) {
-        setPages(tempPages);
-        setChapterPages(tempChapters);
+        setPages(finalPageObjects);
         setLoading(false);
+        return;
       }
 
-      dispatch(
-        cacheChapter({
+      const {pageDownloads, chapterData} = await dispatch(
+        cacheChapterJob({
           chapter: chapters[currentChapter],
-          manga,
+          mangaId: manga.id,
           isDataSaver,
-          callback: cacheChapterCallback,
         }),
-      );
+      ).unwrap();
+
+      setPages(pageDownloads);
+      setChapterPages(chapterData);
+      setLoading(false);
     })();
 
     chapterOverlayOpacity.value = withSequence(
@@ -273,10 +260,8 @@ export function ReadChapterScreen({route, navigation}: Props) {
     currentChapter,
     dispatch,
     isDataSaver,
-    manga,
-    locReadingMode,
-    cacheDirectory,
-    downloadedChapDirectory,
+    cachedChapterDirectory,
+    downloadedChapterDirectory,
   ]);
 
   useFocusEffect(() => {

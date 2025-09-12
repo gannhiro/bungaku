@@ -5,7 +5,6 @@ import userSlice from './slices/userSlice';
 import errorSlice from './slices/errorSlice';
 import jobsSlice from './slices/jobsSlice';
 import libraryUpdates from './slices/libraryUpdates';
-import {downloadListenerMiddleWare} from './slices/middlewares/downloadChapterListener';
 import libraryListSlice from './slices/libraryListSlice';
 
 export const store = configureStore({
@@ -18,8 +17,6 @@ export const store = configureStore({
     error: errorSlice,
     libraryList: libraryListSlice,
   },
-  middleware: getDefaultMiddleware =>
-    getDefaultMiddleware().prepend(downloadListenerMiddleWare.middleware),
 });
 
 export type RootState = ReturnType<typeof store.getState>;

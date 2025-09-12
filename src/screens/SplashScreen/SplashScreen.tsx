@@ -2,7 +2,12 @@ import {APP_NAME, ColorScheme, PRETENDARD_JP} from '@constants';
 import {RootStackParamsList} from '@navigation';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {StackScreenProps} from '@react-navigation/stack';
-import {initializeLibraryObserver, initializeLibraryUpdates, initializeMangaTags} from '@store';
+import {
+  initializeJobs,
+  initializeLibraryObserver,
+  initializeLibraryUpdates,
+  initializeMangaTags,
+} from '@store';
 import {textColor, useAppCore} from '@utils';
 import React, {useEffect, useState} from 'react';
 import {PermissionsAndroid, StyleSheet, View} from 'react-native';
@@ -61,6 +66,8 @@ export function SplashScreen({navigation}: Props) {
           buttonNegative: 'No',
         });
       }
+
+      await dispatch(initializeJobs());
 
       setLoadingText('fetching tags');
       await dispatch(initializeMangaTags());

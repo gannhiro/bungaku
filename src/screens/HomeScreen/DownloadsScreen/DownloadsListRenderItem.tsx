@@ -13,15 +13,17 @@ type Props = {
 
 export function DownloadsListRenderItem({jobDetails, onPress}: Props) {
   const {colorScheme} = useAppCore();
-  const {status} = jobDetails;
+  const {status, progress, chapter} = jobDetails;
 
   const styles = getStyles(colorScheme);
 
+  const jobProgressInPercent = ((progress / chapter.totalPages) * 100).toFixed(0);
+
   const getBackgroundColor = useCallback((): ViewStyle['backgroundColor'] => {
-    if (status.status === 'queued') return Color.rgb(systemCyan).alpha(0.1).toString();
-    if (status.status === 'pending') return Color.rgb(systemIndigo).alpha(0.1).toString();
-    if (status.status === 'succeeded') return Color.rgb(systemGreen).alpha(0.1).toString();
-  }, [status.status]);
+    if (status === 'queued') return Color.rgb(systemCyan).alpha(0.1).toString();
+    if (status === 'active') return Color.rgb(systemIndigo).alpha(0.1).toString();
+    if (status === 'succeeded') return Color.rgb(systemGreen).alpha(0.1).toString();
+  }, [status]);
 
   function onPressItem() {
     onPress?.();
@@ -33,20 +35,18 @@ export function DownloadsListRenderItem({jobDetails, onPress}: Props) {
       onPress={onPressItem}>
       <View style={styles.leftDetailsPart}>
         <Text style={styles.chapterTitle}>
-          {status.chapter?.title
-            ? status.chapter?.title
-            : `Chapter ${status.chapter?.chapterNumber}`}
+          {chapter.title ? chapter.title : `Chapter ${chapter.chapterNumber}`}
         </Text>
         <View style={styles.chapterDetailsContainer}>
-          {status.chapter?.translatedLanguage && (
-            <FlagIcon language={status.chapter?.translatedLanguage} style={styles.languageIcon} />
+          {chapter?.translatedLanguage && (
+            <FlagIcon language={chapter.translatedLanguage} style={styles.languageIcon} />
           )}
-          <Text style={styles.chapterNumber}>Chapter - {status.chapter?.chapterNumber}</Text>
+          <Text style={styles.chapterNumber}>Chapter - {chapter.chapterNumber}</Text>
         </View>
       </View>
 
       <View style={styles.rightPercentagePart}>
-        <Text style={styles.chapterTitle}>{((status.progress ?? 0) * 100).toFixed(0)}%</Text>
+        <Text style={styles.chapterTitle}>{jobProgressInPercent}%</Text>
       </View>
     </TouchableOpacity>
   );

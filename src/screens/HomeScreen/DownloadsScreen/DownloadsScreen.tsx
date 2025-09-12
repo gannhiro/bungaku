@@ -1,6 +1,5 @@
 import {MaterialTopTabScreenProps} from '@react-navigation/material-top-tabs';
 import {HomeBottomTabsParamsList} from '../HomeNavigator';
-import {JobStatus, RootState, useAppSelector} from '@store';
 import {ColorScheme} from '@constants';
 import {
   SectionList,
@@ -10,35 +9,68 @@ import {
   View,
 } from 'react-native';
 import {DownloadsListRenderItem} from './DownloadsListRenderItem';
-import {createSelector} from '@reduxjs/toolkit';
 import {DownloadsListRenderHeaderItem} from './DownloadsListRenderHeaderItem';
 import {useAppCore} from '@utils';
+import {JobPayload} from '@store';
+import {useEffect, useState} from 'react';
+import {useAppSelector} from '@store';
+import {selectJobs} from '@store';
 
 export interface GroupedJobSection {
   mangaId: string;
   title: string;
-  data: {
-    jobId: string;
-    status: JobStatus;
-  }[];
+  data: JobPayload[];
 }
 
 type Props = MaterialTopTabScreenProps<HomeBottomTabsParamsList, 'DownloadsScreen', undefined>;
 
 export function DownloadsScreen({}: Props) {
   const {colorScheme} = useAppCore();
-  const jobs = useAppSelector(selectGroupedJobs);
+  const jobs = useAppSelector(selectJobs);
 
   const styles = getStyles(colorScheme);
+  const [jobSections, setJobSections] = useState<GroupedJobSection[]>([]);
 
-  function renderItem({item}: SectionListRenderItemInfo<GroupedJobSection['data'][0]>) {
+  useEffect(() => {
+    const grouped: {[mangaId: string]: GroupedJobSection} = {};
+    const jobsArray = Object.values(jobs);
+
+    for (const job of jobsArray) {
+      const mangaId = job.manga.id;
+
+      if (!grouped[mangaId]) {
+        grouped[mangaId] = {
+          mangaId: mangaId,
+          title: job.manga.title,
+          data: [],
+        };
+      }
+
+      grouped[mangaId].data.push(job);
+    }
+
+    const sectionsArray = Object.values(grouped).sort((a, b) => a.title.localeCompare(b.title));
+
+    sectionsArray.forEach(section => {
+      section.data.sort((jobA, jobB) => {
+        if (jobA.status === 'queued' && jobB.status !== 'queued') return -1;
+        if (jobA.status !== 'queued' && jobB.status === 'queued') return 1;
+
+        return jobB.createdAt - jobA.createdAt;
+      });
+    });
+
+    setJobSections(sectionsArray);
+  }, [jobs]);
+
+  function renderItem({item}: SectionListRenderItemInfo<JobPayload>) {
     return <DownloadsListRenderItem jobDetails={item} />;
   }
 
   function renderSectionHeader({
     section,
   }: {
-    section: SectionListData<GroupedJobSection['data'][0], GroupedJobSection>;
+    section: SectionListData<JobPayload, GroupedJobSection>;
   }) {
     return <DownloadsListRenderHeaderItem section={section} />;
   }
@@ -48,55 +80,15 @@ export function DownloadsScreen({}: Props) {
       <SectionList
         style={styles.downloadsList}
         contentContainerStyle={styles.downloadsListContent}
-        sections={jobs}
+        sections={jobSections}
         renderItem={renderItem}
         renderSectionHeader={renderSectionHeader}
+        keyExtractor={item => item.jobId}
+        extraData={jobs}
       />
     </View>
   );
 }
-
-const selectJobsMap = (state: RootState) => state.jobs.jobs;
-
-const selectGroupedJobs = createSelector([selectJobsMap], (jobs): GroupedJobSection[] => {
-  const grouped: {[mangaId: string]: GroupedJobSection} = {};
-
-  Object.entries(jobs).forEach(([jobId, jobStatus]) => {
-    const mangaId = jobStatus?.manga?.id ?? '';
-
-    jobStatus.jobType === 'downloadChapter';
-
-    if (!grouped[mangaId]) {
-      const manga = jobStatus.manga;
-
-      grouped[mangaId] = {
-        mangaId: mangaId,
-        title: manga?.title ?? mangaId,
-        data: [],
-      };
-    }
-
-    grouped[mangaId].data.push({
-      jobId: jobId,
-      status: jobStatus,
-    });
-  });
-
-  const sectionsArray = Object.values(grouped).sort((a, b) => a.title.localeCompare(b.title));
-
-  sectionsArray.forEach(section => {
-    section.data.sort((jobA, jobB) => {
-      if (jobA.status.status === 'queued' && jobB.status.status !== 'queued') return -1;
-      if (jobA.status.status !== 'queued' && jobB.status.status === 'queued') return 1;
-
-      const chapA = parseFloat(`${jobA.status.chapter?.chapterNumber ?? '0'}`);
-      const chapB = parseFloat(`${jobA.status.chapter?.chapterNumber ?? '0'}`);
-      return chapA - chapB;
-    });
-  });
-
-  return sectionsArray;
-});
 
 function getStyles(colorScheme: ColorScheme) {
   return StyleSheet.create({

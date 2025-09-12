@@ -90,7 +90,7 @@ export default function RootNavigation() {
 
   return (
     <Overlay>
-      <StatusBar translucent={true} backgroundColor={'#00000000'} />
+      <StatusBar translucent={true} backgroundColor={'#0000'} />
       <NavigationContainer
         onReady={navOnReady}
         onStateChange={onNavStateChange}

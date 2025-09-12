@@ -9,11 +9,16 @@ import {
   systemOrange,
   systemRed,
 } from '@constants';
-import {queueDownloadChapter, RootState, useAppSelector} from '@store';
+import {
+  RootState,
+  useAppSelector,
+  queueChapterDownload,
+  deleteChapterJob,
+  selectJobs,
+} from '@store';
 import {textColor, useAppCore} from '@utils';
-import React, {memo, useCallback, useEffect, useState} from 'react';
+import React, {memo, useEffect, useState} from 'react';
 import {Dimensions, Image, StyleSheet, Text, Vibration} from 'react-native';
-import FS from 'react-native-fs';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 import * as Progress from 'react-native-progress';
@@ -28,10 +33,10 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import {useMangaChaptersScreenContext} from '../useMangaChaptersScreenContext';
-import {useFocusEffect, useNavigation} from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
 import {RootStackParamsList} from '@navigation';
-import {Chapter, UserPreference} from '@db';
+import {Chapter} from '@db';
 
 const {width, height} = Dimensions.get('screen');
 
@@ -51,23 +56,21 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
     setSelectedChapters,
   } = useMangaChaptersScreenContext();
 
-  const {dispatch, colorScheme} = useAppCore();
+  const {colorScheme, dispatch} = useAppCore();
   const navigation =
     useNavigation<StackNavigationProp<RootStackParamsList, 'MangaChaptersScreen'>>();
   const isInLibrary = useAppSelector((state: RootState) => state.libraryList).libraryList.includes(
     manga?.id ?? '',
   );
+  const jobs = useAppSelector(selectJobs);
   const styles = getStyles(colorScheme);
 
-  const potentialJobId = `${manga?.id}-${chapter.id}`;
-  const jobStatus = useAppSelector((state: RootState) => state.jobs.jobs[potentialJobId]?.status);
-  const jobProgress = useAppSelector(
-    (state: RootState) => state.jobs.jobs[potentialJobId]?.progress,
-  );
-  const isJobPending = jobStatus === 'pending' || jobStatus === 'queued';
   const [isDownloaded, setIsDownloaded] = useState(false);
   const [isCached, setIsCached] = useState(false);
 
+  const potentialJobId = `${manga?.id}-${chapter.id}`;
+  const job = jobs[potentialJobId];
+  const isActiveOrQueued = job?.status === 'active' || job?.status === 'queued';
   const isSelected = selectedChapters.includes(chapter.id);
   const scanlator = chapter?.relationships.find(rs => rs.type === 'scanlation_group') as
     | res_get_group_$['data']
@@ -76,12 +79,10 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
     | res_get_user_$['data']
     | undefined;
 
-  // MARK: Animations and Gestures
-
   const chapterTranslationX = useSharedValue(0);
   const chapterPressableBG = useSharedValue('#0000');
-  const chapterPressableStyle = useAnimatedStyle(() => {
-    return {
+  const chapterPressableStyle = useAnimatedStyle(
+    () => ({
       backgroundColor: chapterPressableBG.value,
       transform: [{translateX: chapterTranslationX.value}],
       borderColor: isDownloaded
@@ -89,16 +90,18 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
         : isCached
         ? systemOrange
         : colorScheme.colors.secondary,
-    };
-  }, [isDownloaded, isCached]);
+    }),
+    [isDownloaded, isCached, colorScheme],
+  );
 
   const rightGroupWidth = useSharedValue(0);
-  const rightGroupStyle = useAnimatedStyle(() => {
-    return {
+  const rightGroupStyle = useAnimatedStyle(
+    () => ({
       width: rightGroupWidth.value,
       backgroundColor: isDownloaded ? systemRed : systemGreen,
-    };
-  });
+    }),
+    [isDownloaded],
+  );
 
   const tapGesture = Gesture.Tap()
     .onStart(() => {
@@ -113,7 +116,7 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
     });
   const longPressGest = Gesture.LongPress()
     .onStart(() => {
-      if (isJobPending) {
+      if (job?.status === 'active') {
         return;
       }
       chapterPressableBG.value = withSequence(
@@ -132,15 +135,11 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
       );
     })
     .onEnd(() => {
-      console.log('long pressed');
       // runOnJS(onChapterLongPress)();
     });
   const panLeftGest = Gesture.Pan()
-    .enabled(!isJobPending && !selectMode)
+    .enabled(!(job?.status === 'active') && !selectMode)
     .minVelocityX(-200)
-    .onStart(() => {
-      console.log('panned left');
-    })
     .onChange(event => {
       if (event.translationX < -61 || event.translationX > 1) {
         return;
@@ -149,35 +148,28 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
     })
     .onEnd(event => {
       if (event.translationX < -61) {
-        console.log('swiped threshold reached');
-        runOnJS(shouldDownloadChapter)();
+        runOnJS(handleSwipeAction)();
       }
       rightGroupWidth.value = withTiming(0);
     })
     .enabled(!!!chapter.externalUrl);
+
   const gestures = Gesture.Race(tapGesture, longPressGest, panLeftGest);
 
-  async function shouldDownloadChapter() {
-    if (!manga) {
+  function handleSwipeAction() {
+    if (!manga) return;
+    if (isDownloaded) {
+      dispatch(deleteChapterJob({mangaId: manga.id, chapterId: chapter.id}));
       return;
     }
+    shouldDownloadChapter();
+  }
+
+  function shouldDownloadChapter() {
+    if (!manga) return;
 
     if (isInLibrary) {
-      dispatch(
-        queueDownloadChapter({
-          chapter: {
-            id: chapter.id,
-            title: chapter.title ?? `${chapter.chapterNumber}`,
-            translatedLanguage: chapter.translatedLanguage,
-            chapterNumber: parseInt(chapter.chapterNumber ?? ''),
-          },
-          manga: {
-            id: manga.id,
-            title: manga.title.en,
-          },
-          isDataSaver: manga?.isDataSaver ?? false,
-        }),
-      );
+      dispatch(queueChapterDownload({manga, chapter}));
       return;
     }
 
@@ -187,39 +179,20 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
     });
   }
 
-  async function onChapterLongPress() {
-    if (!selectMode) {
-      setSelectMode(true);
-    }
-    if (isSelected) {
-      const temp = [...selectedChapters];
-      temp.splice(selectedChapters.indexOf(chapter.id), 1);
-      setSelectedChapters(temp);
-    } else {
-      setSelectedChapters([...selectedChapters, chapter.id]);
-    }
-  }
-
   function goToReadChapter() {
     if (selectMode) {
       if (isSelected) {
         const temp = [...selectedChapters];
         temp.splice(selectedChapters.indexOf(chapter.id), 1);
-        setSelectedChapters(temp);
-      } else {
-        setSelectedChapters([...selectedChapters, chapter.id]);
+        return setSelectedChapters(temp);
       }
-      return;
+
+      return setSelectedChapters([...selectedChapters, chapter.id]);
     }
 
-    if (!manga) {
-      return;
-    }
+    if (!manga) return;
 
-    if (chapter.externalUrl) {
-      InAppBrowser.open(chapter.externalUrl);
-      return;
-    }
+    if (chapter.externalUrl) return InAppBrowser.open(chapter.externalUrl);
 
     const chapterLang = chapter?.translatedLanguage;
     const tempChapters = chapters.filter(item => {
@@ -243,63 +216,42 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
   }
 
   function getTimeReleased() {
-    const dateNow = new Date().getTime();
-    const timeInMs = dateNow - new Date(chapter.publishAt).getTime();
-
-    const timeInSecs = Math.floor(timeInMs / 1000);
-    const timeInMins = Math.floor(timeInMs / (1000 * 60));
-    const timeInHours = Math.floor(timeInMs / (1000 * 60 * 60));
+    const timeInMs = Date.now() - new Date(chapter.publishAt).getTime();
     const timeInDays = Math.floor(timeInMs / (1000 * 60 * 60 * 24));
-    const timeInMonths = Math.floor(timeInMs / (1000 * 60 * 60 * 24 * 30));
-    const timeInYears = Math.floor(timeInMs / (1000 * 60 * 60 * 24 * 30 * 12));
-
-    if (timeInMonths > 12) {
-      return timeInYears + ' years ago';
-    }
-    if (timeInDays > 30) {
-      return timeInMonths + ' months ago';
-    }
-    if (timeInHours > 24) {
-      return timeInDays + ' days ago';
-    }
-    if (timeInMins > 60) {
-      return timeInHours + ' hours ago';
-    }
-    if (timeInSecs > 60) {
-      return timeInMins + ' minutes ago';
-    }
-
-    return timeInSecs + ' seconds ago';
+    if (timeInDays > 365) return `${Math.floor(timeInDays / 365)}y ago`;
+    if (timeInDays > 30) return `${Math.floor(timeInDays / 30)}mo ago`;
+    if (timeInDays > 0) return `${timeInDays}d ago`;
+    const timeInHours = Math.floor(timeInMs / (1000 * 60 * 60));
+    if (timeInHours > 0) return `${timeInHours}h ago`;
+    const timeInMins = Math.floor(timeInMs / (1000 * 60));
+    if (timeInMins > 0) return `${timeInMins}m ago`;
+    return `${Math.floor(timeInMs / 1000)}s ago`;
   }
 
-  useFocusEffect(
-    useCallback(() => {
-      const subscription = chapter.observe().subscribe(updatedChapter => {
-        const cached = !updatedChapter.isDownloaded && updatedChapter.fileNames.length > 0;
-        setIsDownloaded(updatedChapter.isDownloaded);
-        setIsCached(cached);
-      });
+  const progressPercentage = (job?.progress ?? 0) / chapter.pages;
 
-      return () => subscription.unsubscribe();
-    }, [chapter.id]),
-  );
+  useEffect(() => {
+    const subscription = chapter.observe().subscribe(updatedChapter => {
+      const cached = !updatedChapter.isDownloaded && updatedChapter.fileNames.length > 0;
+      setIsDownloaded(updatedChapter.isDownloaded);
+      setIsCached(cached);
+    });
+    return () => subscription.unsubscribe();
+  }, [chapter]);
 
   return (
     <GestureDetector gesture={gestures}>
       <Animated.View entering={FadeIn} style={[styles.container, chapterPressableStyle]}>
         {selectMode && (
           <Animated.View entering={SlideInLeft} style={[styles.leftCheckbox]}>
-            {isSelected ? (
-              <Image
-                source={require('@assets/icons/checkbox-marked-outline.png')}
-                style={styles.checkbox}
-              />
-            ) : (
-              <Image
-                source={require('@assets/icons/checkbox-blank-outline.png')}
-                style={styles.checkbox}
-              />
-            )}
+            <Image
+              source={
+                isSelected
+                  ? require('@assets/icons/checkbox-marked-outline.png')
+                  : require('@assets/icons/checkbox-blank-outline.png')
+              }
+              style={styles.checkbox}
+            />
           </Animated.View>
         )}
         <Animated.View style={styles.leftGroup}>
@@ -344,17 +296,20 @@ export const MCSVIChapterItem = memo(({chapter}: Props) => {
           </Animated.View>
         </Animated.View>
         <Animated.View style={[styles.rightGroup, rightGroupStyle]}>
-          {isDownloaded ? (
-            <Image source={require('@assets/icons/close.png')} style={styles.rmIcon} />
-          ) : (
-            <Image source={require('@assets/icons/tray-arrow-down.png')} style={styles.dlIcon} />
-          )}
+          <Image
+            source={
+              isDownloaded
+                ? require('@assets/icons/close.png')
+                : require('@assets/icons/tray-arrow-down.png')
+            }
+            style={isDownloaded ? styles.rmIcon : styles.dlIcon}
+          />
         </Animated.View>
-        {isJobPending && (
+        {isActiveOrQueued && (
           <Progress.Bar
             style={styles.progBar}
-            indeterminate={!jobProgress}
-            progress={jobProgress}
+            indeterminate={job?.status === 'queued'}
+            progress={progressPercentage}
             borderWidth={0}
             height={3}
             width={width - 40}
@@ -372,7 +327,6 @@ function getStyles(colorScheme: ColorScheme) {
       zIndex: 0,
       borderRadius: 10,
       marginBottom: 10,
-
       flexDirection: 'row',
       alignItems: 'center',
       borderWidth: 1.5,
@@ -411,13 +365,7 @@ function getStyles(colorScheme: ColorScheme) {
       fontFamily: PRETENDARD_JP.REGULAR,
       color: systemCyanLight,
       fontSize: 9,
-
       marginRight: 3,
-    },
-    bookIcon: {
-      width: 30,
-      height: 25,
-      tintColor: textColor(colorScheme.colors.main),
     },
     accountIcon: {
       width: 12,
@@ -431,7 +379,6 @@ function getStyles(colorScheme: ColorScheme) {
       right: 0,
     },
     rightGroup: {
-      backgroundColor: systemGreen,
       height: '100%',
       alignItems: 'center',
       justifyContent: 'center',

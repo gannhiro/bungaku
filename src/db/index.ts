@@ -6,6 +6,7 @@ import Tag from './models/tag';
 import Chapter from './models/chapter';
 import UserPreference from './models/userPreferences';
 import MangaStatistic from './models/manga_statistic';
+import Job from './models/job';
 
 const adapter = new SQLiteAdapter({
   schema,
@@ -14,9 +15,9 @@ const adapter = new SQLiteAdapter({
 
 export const database = new Database({
   adapter,
-  modelClasses: [Manga, Tag, Chapter, MangaStatistic, UserPreference],
+  modelClasses: [Manga, Tag, Chapter, MangaStatistic, Job, UserPreference],
 });
 
-export {Manga, Tag, Chapter, UserPreference, MangaStatistic, schema};
+export {Manga, Tag, Chapter, UserPreference, MangaStatistic, Job, schema};
 
 export * from './schema';

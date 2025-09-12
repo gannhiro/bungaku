@@ -1,7 +1,7 @@
 import {database} from '@db';
-import {JobPayload} from '@managers';
 import {Model} from '@nozbe/watermelondb';
 import {field, text, date, json, writer} from '@nozbe/watermelondb/decorators';
+import {JobPayload} from '@store';
 
 type UpdateJobProps = {
   status?: JobPayload['status'];
