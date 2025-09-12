@@ -34,7 +34,7 @@ export const initializeMangaTags = createAsyncThunk<void, void, AppAsyncThunkCon
         });
 
         await database.write(async () => {
-          return await database.batch(...batchActions);
+          return await database.batch(batchActions);
         });
 
         dispatch(setMangaTags(apiTags['data']));

@@ -107,7 +107,7 @@ export default class Chapter extends Model {
 
     if (batchActions.length > 0) {
       await database.write(async () => {
-        await database.batch(...batchActions);
+        await database.batch(batchActions);
       });
     }
   }

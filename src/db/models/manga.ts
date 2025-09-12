@@ -199,7 +199,7 @@ export default class Manga extends Model {
 
     if (batchActions.length > 0) {
       await database.write(async () => {
-        await database.batch(...batchActions);
+        await database.batch(batchActions);
       });
     }
   }
@@ -224,7 +224,7 @@ export default class Manga extends Model {
 
     await database.write(async () => {
       const batchDeletions = allRecordsToDelete.map(record => record.prepareDestroyPermanently());
-      await database.batch(...batchDeletions);
+      await database.batch(batchDeletions);
     });
   }
 
@@ -305,7 +305,7 @@ export default class Manga extends Model {
       }),
     );
 
-    await this.database.batch(...batchActions);
+    await this.database.batch(batchActions);
   }
 
   @writer async deleteSelfPermanently() {
