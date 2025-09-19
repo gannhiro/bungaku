@@ -1,6 +1,6 @@
 {
   "name": "bungaku",
-  "version": "0.0.1-alpha",
+  "version": "0.0.1-alpha.2",
   "private": true,
   "scripts": {
     "android": "react-native run-android",
