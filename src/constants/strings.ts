@@ -11,6 +11,10 @@ export function useLabels() {
 type Labels = {
   [K in Language]: {
     noInternetLabel: string;
+    updateNotification: {
+      updateAvailableLabel1: string;
+      updateAvailableLabel2: string;
+    };
     homeScreen: {
       home: string;
       search: string;
@@ -84,6 +88,10 @@ type Labels = {
 export const LABELS: Labels = {
   // EN
   en: {
+    updateNotification: {
+      updateAvailableLabel1: 'New update ready to install.',
+      updateAvailableLabel2: 'Click here to install @%',
+    },
     homeScreen: {
       home: 'Home',
       search: 'Search',
@@ -156,6 +164,10 @@ export const LABELS: Labels = {
   },
   // JP
   ja: {
+    updateNotification: {
+      updateAvailableLabel1: '新しいアップデートのインストール準備ができました。',
+      updateAvailableLabel2: 'ここをクリックしてインストール @%',
+    },
     homeScreen: {
       home: 'ホーム',
       search: '検索',
@@ -227,6 +239,10 @@ export const LABELS: Labels = {
   },
   // Ko
   ko: {
+    updateNotification: {
+      updateAvailableLabel1: '새 업데이트가 설치 준비되었습니다.',
+      updateAvailableLabel2: '설치하려면 여기를 클릭하세요 @%',
+    },
     homeScreen: {
       home: '홈',
       search: '검색',
@@ -298,6 +314,10 @@ export const LABELS: Labels = {
   },
   // CN
   zh: {
+    updateNotification: {
+      updateAvailableLabel1: '新更新已准备好安装。',
+      updateAvailableLabel2: '点击此处安装 @%',
+    },
     homeScreen: {
       home: '首页',
       search: '搜索',
@@ -369,6 +389,10 @@ export const LABELS: Labels = {
   },
   // ES
   es: {
+    updateNotification: {
+      updateAvailableLabel1: 'Nueva actualización lista para instalar.',
+      updateAvailableLabel2: 'Haz clic aquí para instalar @%',
+    },
     homeScreen: {
       home: 'Inicio',
       search: 'Buscar',
@@ -441,6 +465,10 @@ export const LABELS: Labels = {
   },
   // FR
   fr: {
+    updateNotification: {
+      updateAvailableLabel1: 'Nouvelle mise à jour prête à être installée.',
+      updateAvailableLabel2: 'Cliquez ici pour installer @%',
+    },
     homeScreen: {
       home: 'Accueil',
       search: 'Rechercher',
@@ -514,6 +542,10 @@ export const LABELS: Labels = {
   },
   // DE
   de: {
+    updateNotification: {
+      updateAvailableLabel1: 'Neues Update zur Installation bereit.',
+      updateAvailableLabel2: 'Klicken Sie hier, um @% zu installieren',
+    },
     homeScreen: {
       home: 'Start',
       search: 'Suchen',
@@ -571,7 +603,8 @@ export const LABELS: Labels = {
           creditsSubLabel:
             'Liste der Personen, die beigetragen haben, und der zur Erstellung von bungaku verwendeten Technologien',
           maxConcurrentDownloadsLabel: 'Max. gleichzeitige Downloads',
-          maxConcurrentDownloadsSubLabel: 'Legen Sie die maximale Anzahl gleichzeitiger Downloads fest',
+          maxConcurrentDownloadsSubLabel:
+            'Legen Sie die maximale Anzahl gleichzeitiger Downloads fest',
         },
         privacySection: {
           headingLabel: 'Datenschutz',
