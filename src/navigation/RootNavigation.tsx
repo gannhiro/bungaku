@@ -64,7 +64,7 @@ export default function RootNavigation() {
 
   const stackNavOption: StackNavigationOptions = {
     headerShown: false,
-    gestureEnabled: true,
+    gestureEnabled: false,
   };
 
   function navOnReady() {
