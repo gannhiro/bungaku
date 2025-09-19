@@ -17,3 +17,4 @@ export * from './BottomSheet/BottomSheet';
 export * from './GTextInput/GTextInput';
 export * from './BigIconButton/BigIconButton';
 export * from './Chip/Chip';
+export * from './UpdateAppSectionNotif/UpdateAppSectionNotif';

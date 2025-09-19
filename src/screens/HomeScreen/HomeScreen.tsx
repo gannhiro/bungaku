@@ -1,4 +1,4 @@
-import {Button, DevelopersChoice, LibraryUpdates} from '@components';
+import {Button, DevelopersChoice, LibraryUpdates, UpdateAppSectionNotif} from '@components';
 import {ColorScheme, PRETENDARD_JP, mangaDexOrange, neko, useLabels} from '@constants';
 import {textColor, useAppCore} from '@utils';
 import React from 'react';
@@ -25,6 +25,7 @@ export function HomeScreen() {
   return (
     <ScrollView style={styles.container}>
       <HSJumboList />
+      <UpdateAppSectionNotif style={styles.updateNotifContainer} />
       <View style={styles.btnGroup}>
         <Button
           title={labels.mDexButtonLabel}
@@ -91,6 +92,9 @@ function getStyles(colorScheme: ColorScheme) {
     adBtnImage: {
       width: 25,
       height: 25,
+    },
+    updateNotifContainer: {
+      marginHorizontal: 15,
     },
   });
 }
