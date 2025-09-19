@@ -34,6 +34,7 @@ import {
 } from 'react-native';
 import FS from 'react-native-fs';
 import {InAppBrowser, InAppBrowserAndroidOptions} from 'react-native-inappbrowser-reborn';
+import {UpdateAppSectionNotif} from '@components';
 
 export type Settings = {
   title: string;
@@ -447,13 +448,14 @@ export function AccSettingsScreen() {
   return (
     <View style={styles.container}>
       <ScrollView style={styles.scrollview} contentContainerStyle={styles.scrollviewCont}>
+        <UpdateAppSectionNotif />
         <SectionList
           sections={settingsSectionList}
           renderItem={renderItem}
           renderSectionHeader={renderHeaderItem}
           keyExtractor={item => item.label}
         />
-        <Text style={styles.buildText}>
+        <Text style={styles.versionText}>
           {APP_NAME} version {APP_VERS}
         </Text>
       </ScrollView>
@@ -463,12 +465,12 @@ export function AccSettingsScreen() {
 
 function getStyles(colorScheme: ColorScheme) {
   return StyleSheet.create({
-    buildText: {
+    versionText: {
       fontFamily: PRETENDARD_JP.THIN,
       fontSize: 11,
-      color: systemGray2,
+      color: textColor(colorScheme.colors.main),
       textAlign: 'center',
-      marginTop: 50,
+      marginTop: 30,
     },
     container: {
       flex: 1,
