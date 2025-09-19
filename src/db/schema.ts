@@ -1,0 +1,108 @@
+import {appSchema, tableSchema} from '@nozbe/watermelondb';
+
+// WARNING: DO NOT CHANGE THIS IF THERE IS *NO* CHANGE IN THE SCHEMA
+export const CURRENT_DB_VERSION = 1;
+
+export default appSchema({
+  version: CURRENT_DB_VERSION,
+  tables: [
+    tableSchema({
+      name: 'user_preferences',
+      columns: [
+        {name: 'color_scheme_name', type: 'string'},
+        {name: 'language', type: 'string'},
+        {name: 'allow_pornography', type: 'boolean'},
+        {name: 'prefer_data_saver', type: 'boolean'},
+        {name: 'prefer_bg_downloads_data_saver', type: 'boolean'},
+        {name: 'reading_mode', type: 'string'},
+        {name: 'max_concurrent_downloads', type: 'number'},
+      ],
+    }),
+    tableSchema({
+      name: 'mangas',
+      columns: [
+        {name: 'manga_id', type: 'string', isIndexed: true},
+        {name: 'original_language', type: 'string'},
+        {name: 'last_volume', type: 'string', isOptional: true},
+        {name: 'last_chapter', type: 'string', isOptional: true},
+        {name: 'publication_demographic', type: 'string', isOptional: true},
+        {name: 'status', type: 'string'},
+        {name: 'year', type: 'number', isOptional: true},
+        {name: 'content_rating', type: 'string'},
+        {name: 'state', type: 'string'},
+        {name: 'chapter_numbers_reset_on_new_volume', type: 'boolean'},
+        {name: 'version', type: 'number'},
+        {name: 'latest_uploaded_chapter', type: 'string', isOptional: true},
+        {name: 'is_locked', type: 'boolean'},
+        {name: 'title_obj', type: 'string'},
+        {name: 'alt_titles_obj', type: 'string'},
+        {name: 'description_obj', type: 'string'},
+        {name: 'links_obj', type: 'string'},
+        {name: 'tags_obj', type: 'string'},
+        {name: 'available_translated_languages_obj', type: 'string'},
+        {name: 'relationships_obj', type: 'string'},
+        {name: 'created_at', type: 'number'},
+        {name: 'updated_at', type: 'number'},
+
+        {name: 'date_added', type: 'number', isOptional: true},
+        {name: 'is_data_saver', type: 'boolean', isOptional: true},
+        {name: 'stay_updated', type: 'boolean', isOptional: true},
+        {name: 'stay_updated_languages_obj', type: 'string', isOptional: true},
+      ],
+    }),
+    tableSchema({
+      name: 'tags',
+      columns: [
+        {name: 'tag_id', type: 'string', isIndexed: true},
+        {name: 'group', type: 'string'},
+        {name: 'version', type: 'number'},
+        {name: 'name_obj', type: 'string'},
+      ],
+    }),
+    tableSchema({
+      name: 'manga_statistics',
+      columns: [
+        {name: 'manga_id', type: 'string', isIndexed: true},
+        {name: 'follows', type: 'number'},
+        {name: 'rating_average', type: 'number', isOptional: true},
+        {name: 'rating_bayesian', type: 'number', isOptional: true},
+        {name: 'comments_thread_id', type: 'number', isOptional: true},
+        {name: 'comments_replies_count', type: 'number', isOptional: true},
+      ],
+    }),
+    tableSchema({
+      name: 'chapters',
+      columns: [
+        {name: 'chapter_id', type: 'string', isIndexed: true},
+        {name: 'manga_id', type: 'string', isIndexed: true},
+        {name: 'volume', type: 'string', isOptional: true},
+        {name: 'chapter_number', type: 'string', isOptional: true},
+        {name: 'title', type: 'string', isOptional: true},
+        {name: 'translated_language', type: 'string'},
+        {name: 'external_url', type: 'string', isOptional: true},
+        {name: 'publish_at', type: 'number'},
+        {name: 'readable_at', type: 'number'},
+        {name: 'created_at', type: 'number'},
+        {name: 'updated_at', type: 'number'},
+        {name: 'pages', type: 'number'},
+        {name: 'version', type: 'number'},
+        {name: 'relationships_obj', type: 'string'},
+        {name: 'file_names', type: 'string', isOptional: true},
+        {name: 'is_data_saver', type: 'boolean', isOptional: true},
+        {name: 'is_downloaded', type: 'boolean', isOptional: true},
+      ],
+    }),
+    tableSchema({
+      name: 'jobs',
+      columns: [
+        {name: 'job_id', type: 'string'},
+        {name: 'status', type: 'string', isIndexed: true},
+        {name: 'progress', type: 'number'},
+        {name: 'error_message', type: 'string', isOptional: true},
+        {name: 'payload', type: 'string'},
+        {name: 'created_at', type: 'number'},
+        {name: 'updated_at', type: 'number'},
+      ],
+    }),
+  ],
+});

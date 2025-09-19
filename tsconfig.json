@@ -1,0 +1,32 @@
+{
+  "compilerOptions": {
+    "jsx": "react-native",
+    "baseUrl": ".",
+    "paths": {
+      "@screens": ["src/screens/index"],
+      "@modals": ["src/modals/index"],
+      "@navigation": ["src/navigation/index"],
+      "@constants": ["src/constants/index"],
+      "@utils": ["src/utils/index"],
+      "@components": ["src/components/index"],
+      "@store": ["src/store/index"],
+      "@api": ["src/api/index"],
+      "@assets/*": ["assets/*"],
+      "@types": ["src/types"],
+      "@db": ["src/db/index"]
+    },
+    "moduleResolution": "node",
+    "noEmit": true,
+    "resolveJsonModule": true,
+    "types": ["jest", "node"],
+    "allowJs": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "strict": true,
+    "experimentalDecorators": true
+  },
+
+  "extends": "@tsconfig/react-native/tsconfig.json",
+  "exclude": ["node_modules", "babel.config.js", "metro.config.js"]
+}

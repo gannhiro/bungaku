@@ -1,0 +1,1149 @@
+{
+  "migIndex": 1,
+  "data": [
+    {
+      "path": "assets/fonts/OtomanopeeOne-Regular.ttf",
+      "sha1": "3c886369a17ee31bb9146515d291df7adef2d5df"
+    },
+    {
+      "path": "assets/fonts/PretendardJP-Black.otf",
+      "sha1": "eb7d710a9addc1ba2f1993011a57b61be88c06fb"
+    },
+    {
+      "path": "assets/fonts/PretendardJP-Bold.otf",
+      "sha1": "7a53289945f9b34cae7ca8dabdf0c9df910ed32b"
+    },
+    {
+      "path": "assets/fonts/PretendardJP-ExtraBold.otf",
+      "sha1": "8aa3b5d926be773dabb10255a6aed98f6e67af2e"
+    },
+    {
+      "path": "assets/fonts/PretendardJP-ExtraLight.otf",
+      "sha1": "c3239d800728520278489b94e16c8963731a9882"
+    },
+    {
+      "path": "assets/fonts/PretendardJP-Light.otf",
+      "sha1": "340b20e4dff1b216c3e3421e36bd5690ec799ba3"
+    },
+    {
+      "path": "assets/fonts/PretendardJP-Medium.otf",
+      "sha1": "55f17c9110fc0d53177a77baebccd9a3da7d53d2"
+    },
+    {
+      "path": "assets/fonts/PretendardJP-Regular.otf",
+      "sha1": "9a7f1951d6620c0d098b30a61b4563e17867b3be"
+    },
+    {
+      "path": "assets/fonts/PretendardJP-SemiBold.otf",
+      "sha1": "65c470a6db3cc0b26ead00adcdf86ed45a4a55a4"
+    },
+    {
+      "path": "assets/fonts/PretendardJP-Thin.otf",
+      "sha1": "487f2d85ee46e25db968ff1c39c9baf99b736509"
+    },
+    {
+      "path": "assets/flagsPNG/ad.png",
+      "sha1": "58c8fd062d773eadf82af74ec493a7ea5b392251"
+    },
+    {
+      "path": "assets/flagsPNG/ae.png",
+      "sha1": "3dd5c27b0482da1374b37a08ce349926fd65105b"
+    },
+    {
+      "path": "assets/flagsPNG/af.png",
+      "sha1": "b8fd3cecea92e7926f7fd5b499bef6cfc241812c"
+    },
+    {
+      "path": "assets/flagsPNG/ag.png",
+      "sha1": "25ef2c8b23c1a1aeb26a9b348b267051a58afc92"
+    },
+    {
+      "path": "assets/flagsPNG/ai.png",
+      "sha1": "45a3cf6d244c85e119d854d3954e9cdaee378dfc"
+    },
+    {
+      "path": "assets/flagsPNG/al.png",
+      "sha1": "b5aad75210c7054d8a5f0f04a223b25b69a05963"
+    },
+    {
+      "path": "assets/flagsPNG/am.png",
+      "sha1": "ccc07ca17e86d529df2003129a9228d5d938451d"
+    },
+    {
+      "path": "assets/flagsPNG/ao.png",
+      "sha1": "e99eb30c1fa91f88fb8cd96b22f884511864e487"
+    },
+    {
+      "path": "assets/flagsPNG/aq.png",
+      "sha1": "b3b70c57fe1b3c9d5fbd2de996aa630765f84153"
+    },
+    {
+      "path": "assets/flagsPNG/ar.png",
+      "sha1": "7241a12fb2b2ad322bf1bd520e1f27e1c23c3fe2"
+    },
+    {
+      "path": "assets/flagsPNG/as.png",
+      "sha1": "3a476979aad98657692a0b3f694ed71dcde2bce1"
+    },
+    {
+      "path": "assets/flagsPNG/at.png",
+      "sha1": "5d8c395e9982bb5d54372b369a6865fb3d029f04"
+    },
+    {
+      "path": "assets/flagsPNG/au.png",
+      "sha1": "0f401e67ef1c114d018908e90c4de670cc71941a"
+    },
+    {
+      "path": "assets/flagsPNG/aw.png",
+      "sha1": "db95786862dfc7db863373db012e34d173f00dba"
+    },
+    {
+      "path": "assets/flagsPNG/ax.png",
+      "sha1": "5076c403f30f6e8865b2c81631a582acad966ff5"
+    },
+    {
+      "path": "assets/flagsPNG/az.png",
+      "sha1": "63a35230b0c1882ad598d4357e972c590c049181"
+    },
+    {
+      "path": "assets/flagsPNG/ba.png",
+      "sha1": "e74c4e2af2ea20784d533b8a0d3a06a735e6e980"
+    },
+    {
+      "path": "assets/flagsPNG/bb.png",
+      "sha1": "09deec2f295058bfcdde43743b3b6e2912cef838"
+    },
+    {
+      "path": "assets/flagsPNG/bd.png",
+      "sha1": "ff40233f65ea9340544800a24048e11e7eb84918"
+    },
+    {
+      "path": "assets/flagsPNG/be.png",
+      "sha1": "af59c752a9c76440c028cdac6516c697f1fd2ef4"
+    },
+    {
+      "path": "assets/flagsPNG/bf.png",
+      "sha1": "4f81b5567dea4db437b446540a872eaf84e7e4e9"
+    },
+    {
+      "path": "assets/flagsPNG/bg.png",
+      "sha1": "d9125bce4ea2e8cbec080fbd8bf72f4541643fcb"
+    },
+    {
+      "path": "assets/flagsPNG/bh.png",
+      "sha1": "a1b1ef8f68bfc6986db384d19ac0716a32c5d8c8"
+    },
+    {
+      "path": "assets/flagsPNG/bi.png",
+      "sha1": "1f8bdfb0723550ae0349db3efa67093eade1e2a5"
+    },
+    {
+      "path": "assets/flagsPNG/bj.png",
+      "sha1": "ae4e9a6ea73699411f3559f70c0a5614400fd926"
+    },
+    {
+      "path": "assets/flagsPNG/bl.png",
+      "sha1": "2bfec0758e4f72d884a3ac1fea870a9f7ce5d756"
+    },
+    {
+      "path": "assets/flagsPNG/bm.png",
+      "sha1": "57db1e06d65d622060f2fb5c6e159bbc7baeadd1"
+    },
+    {
+      "path": "assets/flagsPNG/bn.png",
+      "sha1": "fb05e99b3b693c11b5a7d1b2239a3ad142f342b6"
+    },
+    {
+      "path": "assets/flagsPNG/bo.png",
+      "sha1": "d9b74059963fe96bd2ba86a8297261c26035757a"
+    },
+    {
+      "path": "assets/flagsPNG/bq.png",
+      "sha1": "04dab6b347bb0e2b78811ccebfd16a22fabbc5d7"
+    },
+    {
+      "path": "assets/flagsPNG/br.png",
+      "sha1": "831ff23b7ce9aa7d181456936d8c033aecb4f487"
+    },
+    {
+      "path": "assets/flagsPNG/bs.png",
+      "sha1": "4c525bdb62804ba730520115eb21f77c6370fe19"
+    },
+    {
+      "path": "assets/flagsPNG/bt.png",
+      "sha1": "c20490bc01d59d80580c4ea274d8240429a77868"
+    },
+    {
+      "path": "assets/flagsPNG/bv.png",
+      "sha1": "f500997c22848b09341216f9403ab1a71103f4f4"
+    },
+    {
+      "path": "assets/flagsPNG/bw.png",
+      "sha1": "f7087b6d7ae175078a6f15aef64393d9d713e9d8"
+    },
+    {
+      "path": "assets/flagsPNG/by.png",
+      "sha1": "334541bdd3f5e04906100ab605acbe8475c7b30b"
+    },
+    {
+      "path": "assets/flagsPNG/bz.png",
+      "sha1": "550e6a7d8908b34b2235645480d0228d851bd311"
+    },
+    {
+      "path": "assets/flagsPNG/ca.png",
+      "sha1": "791dd03bf0023332cce2872a402a861f53a81eb5"
+    },
+    {
+      "path": "assets/flagsPNG/cc.png",
+      "sha1": "e132ff8f2c682808e2a89e460e91d4c79aa3e9bf"
+    },
+    {
+      "path": "assets/flagsPNG/cd.png",
+      "sha1": "a4fbda4b259f3b12e391a5108b779d62b6d57d8f"
+    },
+    {
+      "path": "assets/flagsPNG/cf.png",
+      "sha1": "aa9269b80d81cc0ea6e91663e21545dd37fe8b77"
+    },
+    {
+      "path": "assets/flagsPNG/cg.png",
+      "sha1": "26d7b021063c2b88ee0ec83e635cf81bb9b0ba82"
+    },
+    {
+      "path": "assets/flagsPNG/ch.png",
+      "sha1": "cd42750eb57f38f2dd0d7598211f68dfca04af3a"
+    },
+    {
+      "path": "assets/flagsPNG/ci.png",
+      "sha1": "1edc2b5ac87f84e0461d71cfd8bddbd45f407539"
+    },
+    {
+      "path": "assets/flagsPNG/ck.png",
+      "sha1": "a47067eefba2ceae927f9b8c424f48bab488bb6c"
+    },
+    {
+      "path": "assets/flagsPNG/cl.png",
+      "sha1": "6f4f7efd42e14c40934c94ea8bc8a23ab9c1d50c"
+    },
+    {
+      "path": "assets/flagsPNG/cm.png",
+      "sha1": "09a51a006c60f816f9550f874071dbd6c954b0df"
+    },
+    {
+      "path": "assets/flagsPNG/cn.png",
+      "sha1": "c0dc37d40e82d3cb44e34ea33cbc9b4b37932df8"
+    },
+    {
+      "path": "assets/flagsPNG/co.png",
+      "sha1": "7e40f29a3d86fd80f49fbffb6cf0244190da7134"
+    },
+    {
+      "path": "assets/flagsPNG/cr.png",
+      "sha1": "30104db525819bb82eed2de11fd8cf52cc73a35c"
+    },
+    {
+      "path": "assets/flagsPNG/cu.png",
+      "sha1": "34ed2e559bb08dbb93e0f7901b6e3f38fb28fc3d"
+    },
+    {
+      "path": "assets/flagsPNG/cv.png",
+      "sha1": "953035560d0cb50eea4e25ed2d83c43ffb7f0015"
+    },
+    {
+      "path": "assets/flagsPNG/cw.png",
+      "sha1": "8b1caddd029e35699d12a390b0f98b51b935de42"
+    },
+    {
+      "path": "assets/flagsPNG/cx.png",
+      "sha1": "d4ba6faf844eecf2a181fc607d79d325d7c4fdb7"
+    },
+    {
+      "path": "assets/flagsPNG/cy.png",
+      "sha1": "7cf928f96361a8de7a040dd1aa7b00d2c9584569"
+    },
+    {
+      "path": "assets/flagsPNG/cz.png",
+      "sha1": "9a5e632cbc7d23d798e86462fbfe97b232bb1b4f"
+    },
+    {
+      "path": "assets/flagsPNG/de.png",
+      "sha1": "5089092eccb08dcad4b3f39290c38fb128f27d95"
+    },
+    {
+      "path": "assets/flagsPNG/dj.png",
+      "sha1": "b4e1c0be663ff014cfa6a60c654d7a0be677b2da"
+    },
+    {
+      "path": "assets/flagsPNG/dk.png",
+      "sha1": "3813ac99f8853c55f282e84bf92969bd30ceccfc"
+    },
+    {
+      "path": "assets/flagsPNG/dm.png",
+      "sha1": "27732d5984de36ebf5cd970b452612030803a061"
+    },
+    {
+      "path": "assets/flagsPNG/do.png",
+      "sha1": "dc2b901ba0d309781309e0f51de170653a9185a0"
+    },
+    {
+      "path": "assets/flagsPNG/dz.png",
+      "sha1": "a40057f2370183025f4e84a5a84bceb00c0de858"
+    },
+    {
+      "path": "assets/flagsPNG/ec.png",
+      "sha1": "59059b44d75a79fb622d94506ee1897ecf6bcd88"
+    },
+    {
+      "path": "assets/flagsPNG/ee.png",
+      "sha1": "db7ad083d440cf677a0b0000b221b7567db23990"
+    },
+    {
+      "path": "assets/flagsPNG/eg.png",
+      "sha1": "4c0a795f36ad296ef5c12a193969fba49eee96d5"
+    },
+    {
+      "path": "assets/flagsPNG/eh.png",
+      "sha1": "0fb050fff8a6047927ceab5907e1ce8020778ff2"
+    },
+    {
+      "path": "assets/flagsPNG/er.png",
+      "sha1": "9d76c8b40cfa85fcaf3058c2f7a8e02a0f58d434"
+    },
+    {
+      "path": "assets/flagsPNG/es.png",
+      "sha1": "11091620dc05dfc80b4a2e385d0e84a5ed1cd4b9"
+    },
+    {
+      "path": "assets/flagsPNG/et.png",
+      "sha1": "5e3343a929c85c21f9a2140f5ca0370d9fe95f4d"
+    },
+    {
+      "path": "assets/flagsPNG/fi.png",
+      "sha1": "fea739f8ae33fd84683facfbd9f8943e53925b45"
+    },
+    {
+      "path": "assets/flagsPNG/fj.png",
+      "sha1": "91ed233cfd8b907c26f2f70c917090707cd6f233"
+    },
+    {
+      "path": "assets/flagsPNG/fk.png",
+      "sha1": "5f754a6bdd7d68744d3a6e874add59b577b3841f"
+    },
+    {
+      "path": "assets/flagsPNG/fm.png",
+      "sha1": "7d6e93a34768fb0cc077cd42a6c9c1aa2fdc8369"
+    },
+    {
+      "path": "assets/flagsPNG/fo.png",
+      "sha1": "95476fb1f3f8c0c9dae6094390eab3e3c71ceba1"
+    },
+    {
+      "path": "assets/flagsPNG/fr.png",
+      "sha1": "bff794d2fa8874eeb62dbc01dbfb670fb68de13d"
+    },
+    {
+      "path": "assets/flagsPNG/ga.png",
+      "sha1": "a9e19566d15164091c2bc7c360bd4583a33df94e"
+    },
+    {
+      "path": "assets/flagsPNG/gb-eng.png",
+      "sha1": "8fe805ab7546ed4ab64e6333afde26de8f940d0f"
+    },
+    {
+      "path": "assets/flagsPNG/gb-nir.png",
+      "sha1": "33e92037d794ea1832f591aaa9c21962d001a27d"
+    },
+    {
+      "path": "assets/flagsPNG/gb-sct.png",
+      "sha1": "4cabe84e25e25019d56ae9385982bf43f4a4fca5"
+    },
+    {
+      "path": "assets/flagsPNG/gb-wls.png",
+      "sha1": "8ef0a1911f785bbbbc41a4f85b69777af863014a"
+    },
+    {
+      "path": "assets/flagsPNG/gb.png",
+      "sha1": "c25c8a4965eaa4f6ad5f195d7a8c99171872a06f"
+    },
+    {
+      "path": "assets/flagsPNG/gd.png",
+      "sha1": "4ae0cf9b1bbfc911b0dc48ccae50d4097ea1aa74"
+    },
+    {
+      "path": "assets/flagsPNG/ge.png",
+      "sha1": "66214ed66d106177e5994d284eb6efe3d1d8c162"
+    },
+    {
+      "path": "assets/flagsPNG/gf.png",
+      "sha1": "869ed2d7e3e80878d9ba547c2a5d60ab8ffbee36"
+    },
+    {
+      "path": "assets/flagsPNG/gg.png",
+      "sha1": "011245b5a7999dee9a838293f343705fbdefd35e"
+    },
+    {
+      "path": "assets/flagsPNG/gh.png",
+      "sha1": "a01e5d94adfa3984ffc72668f717c5e446eb1b2c"
+    },
+    {
+      "path": "assets/flagsPNG/gi.png",
+      "sha1": "94bf2a0b59ff4ad913ae3b5a81b032f2d1ede122"
+    },
+    {
+      "path": "assets/flagsPNG/gl.png",
+      "sha1": "633a34fd5e80e3f8b6eea7cd202f4bbc5a2f1539"
+    },
+    {
+      "path": "assets/flagsPNG/gm.png",
+      "sha1": "51f4f0608be7d35b35d19d078d15b1e74676f0ea"
+    },
+    {
+      "path": "assets/flagsPNG/gn.png",
+      "sha1": "d05acc161857fd106066dffa742f063c250c1771"
+    },
+    {
+      "path": "assets/flagsPNG/gp.png",
+      "sha1": "652adbca74a4c016deefb1d4d55f03dae7416f13"
+    },
+    {
+      "path": "assets/flagsPNG/gq.png",
+      "sha1": "5b51dae0974aed50709f83ececa7736fa8ddaa6b"
+    },
+    {
+      "path": "assets/flagsPNG/gr.png",
+      "sha1": "ba85db48797273ede5e013b4cda365160ffd2270"
+    },
+    {
+      "path": "assets/flagsPNG/gs.png",
+      "sha1": "51d5b7b4b962f93ec4813c42c35a759148a1e172"
+    },
+    {
+      "path": "assets/flagsPNG/gt.png",
+      "sha1": "5c17adb9828325b58b33363b16863de5c3dfb38b"
+    },
+    {
+      "path": "assets/flagsPNG/gu.png",
+      "sha1": "f7168946cd90236824facdbea77117412d971efb"
+    },
+    {
+      "path": "assets/flagsPNG/gw.png",
+      "sha1": "9eb6fcbdaccee736f4aac9ef53b8b8449a612a88"
+    },
+    {
+      "path": "assets/flagsPNG/gy.png",
+      "sha1": "6cbb869945a3d16ed397870f0519f3a09990c2f7"
+    },
+    {
+      "path": "assets/flagsPNG/hk.png",
+      "sha1": "1e46701b28414dd48ba0c975c857def0750963cb"
+    },
+    {
+      "path": "assets/flagsPNG/hm.png",
+      "sha1": "2f48099ad56b30f0bc3ba77dc9289590ee8587f9"
+    },
+    {
+      "path": "assets/flagsPNG/hn.png",
+      "sha1": "2edb1a71029fa8d4df1c6c0e2e0e238451d5af4f"
+    },
+    {
+      "path": "assets/flagsPNG/hr.png",
+      "sha1": "1052ddf665159c7c8ace6e30ccdb759435e35c22"
+    },
+    {
+      "path": "assets/flagsPNG/ht.png",
+      "sha1": "8b25cfea69c310f3ceffd2cf369fb379320af335"
+    },
+    {
+      "path": "assets/flagsPNG/hu.png",
+      "sha1": "cb1d8a6dc744aaa7977d74b0dcc2532f17907488"
+    },
+    {
+      "path": "assets/flagsPNG/id.png",
+      "sha1": "fadc0bf5cd2e2e13db325b65791c878a067c13da"
+    },
+    {
+      "path": "assets/flagsPNG/ie.png",
+      "sha1": "c73655a501feb60370e648b0bcd3253841eeae14"
+    },
+    {
+      "path": "assets/flagsPNG/il.png",
+      "sha1": "46ed3dad4d1532785e6ac0416777f452a522018f"
+    },
+    {
+      "path": "assets/flagsPNG/im.png",
+      "sha1": "ce05b4390e9e7f3bedb4a8c64c4d000af1f10e30"
+    },
+    {
+      "path": "assets/flagsPNG/in.png",
+      "sha1": "0a4c7c942a03aef66cfdd218fdb263c73973ed78"
+    },
+    {
+      "path": "assets/flagsPNG/io.png",
+      "sha1": "7e33f2d49f7c1b4b13df720ad3ac69d71cca6f69"
+    },
+    {
+      "path": "assets/flagsPNG/iq.png",
+      "sha1": "07f8a97fb877764e4556aec7e7367139c7e5d15c"
+    },
+    {
+      "path": "assets/flagsPNG/ir.png",
+      "sha1": "7147a784ceece3aab94092302d9470bb6c8948fc"
+    },
+    {
+      "path": "assets/flagsPNG/is.png",
+      "sha1": "0f2233e3d0799991462778c5e2661d08f2160e57"
+    },
+    {
+      "path": "assets/flagsPNG/it.png",
+      "sha1": "6910e78f9829d11edf66db532e3cb2072d268ac1"
+    },
+    {
+      "path": "assets/flagsPNG/je.png",
+      "sha1": "746e93a77589a2baee26948bc08889b42c4837dd"
+    },
+    {
+      "path": "assets/flagsPNG/jm.png",
+      "sha1": "f3b47c09be90868d0ec1c3a7dbed06e1fe961639"
+    },
+    {
+      "path": "assets/flagsPNG/jo.png",
+      "sha1": "b11de9a3c63aa62dafb241ffdc5b6d634a2ccf45"
+    },
+    {
+      "path": "assets/flagsPNG/jp.png",
+      "sha1": "431b6e7389dd4057a4ea001efc74a3e0cdb1f1c3"
+    },
+    {
+      "path": "assets/flagsPNG/ke.png",
+      "sha1": "192393e860fb8eb86129af407a5d6fb2a5634a8b"
+    },
+    {
+      "path": "assets/flagsPNG/kg.png",
+      "sha1": "6e30385281920373951269b013dc4ac9304ac2cd"
+    },
+    {
+      "path": "assets/flagsPNG/kh.png",
+      "sha1": "eb3bd72a4599af967efd9a18e3e13e6e77d7883a"
+    },
+    {
+      "path": "assets/flagsPNG/ki.png",
+      "sha1": "eb7bd11ded300c59fa8defe109f22a661bd06903"
+    },
+    {
+      "path": "assets/flagsPNG/km.png",
+      "sha1": "1e4f3ce86ab5f0ccacb182e238b7a649cbb3c7db"
+    },
+    {
+      "path": "assets/flagsPNG/kn.png",
+      "sha1": "2e9f283c8bc460ae6aa93af146a5cc3516df41f5"
+    },
+    {
+      "path": "assets/flagsPNG/kp.png",
+      "sha1": "404ad32c81235ed044912ee16b55b214f16821e2"
+    },
+    {
+      "path": "assets/flagsPNG/kr.png",
+      "sha1": "17f07965f7dd8d74baff2d389732e0297fde474e"
+    },
+    {
+      "path": "assets/flagsPNG/kw.png",
+      "sha1": "c96df9f1d91ffe358ee57ad742e3c1b8ff017ec9"
+    },
+    {
+      "path": "assets/flagsPNG/ky.png",
+      "sha1": "757903be15f1441e9260d7a7115b17d143fa46f7"
+    },
+    {
+      "path": "assets/flagsPNG/kz.png",
+      "sha1": "186b2403f2f7ef237d76d29847ab2e4f74442886"
+    },
+    {
+      "path": "assets/flagsPNG/la.png",
+      "sha1": "17aab587a8bb694300de2c4ac9d23d48ee961acc"
+    },
+    {
+      "path": "assets/flagsPNG/lb.png",
+      "sha1": "b4be52c4125e20d80f6e387ffcae065b64cc6736"
+    },
+    {
+      "path": "assets/flagsPNG/lc.png",
+      "sha1": "4f262b5f39c10e31e672fe95271bba56439e2083"
+    },
+    {
+      "path": "assets/flagsPNG/li.png",
+      "sha1": "6e9009e1774a493357bb6291d56b210df02709ea"
+    },
+    {
+      "path": "assets/flagsPNG/lk.png",
+      "sha1": "36dcf6c5eca44d97e2d707d263bf5aabb24fdfd3"
+    },
+    {
+      "path": "assets/flagsPNG/lr.png",
+      "sha1": "418bfd2aa6c31ae36ab7bfbd2c5934df4c8229dc"
+    },
+    {
+      "path": "assets/flagsPNG/ls.png",
+      "sha1": "6a101e9d4b4c9a48c91ceca4f7992fccbb797095"
+    },
+    {
+      "path": "assets/flagsPNG/lt.png",
+      "sha1": "6e079ce1630f051f39ed5a5cd9cfde4b81474995"
+    },
+    {
+      "path": "assets/flagsPNG/lu.png",
+      "sha1": "9d0b6fc86c81a6a3e6866c6da41d3874beb1e1e0"
+    },
+    {
+      "path": "assets/flagsPNG/lv.png",
+      "sha1": "bab74052114b10961c2b138e6a9f219ab4307d4d"
+    },
+    {
+      "path": "assets/flagsPNG/ly.png",
+      "sha1": "eb346a0c5c2a48354127946d13c2df69d7c08638"
+    },
+    {
+      "path": "assets/flagsPNG/ma.png",
+      "sha1": "45bd496c98e31d5644f78fbd7aa8395cba3bad82"
+    },
+    {
+      "path": "assets/flagsPNG/mc.png",
+      "sha1": "87acc398051c1958a3cb5c93d29042f17d71784d"
+    },
+    {
+      "path": "assets/flagsPNG/md.png",
+      "sha1": "13532ddb33fc67946fd6d7b602a3cf2c2b19acfe"
+    },
+    {
+      "path": "assets/flagsPNG/me.png",
+      "sha1": "1d2c976c87902da33679160c87ccca102bca8655"
+    },
+    {
+      "path": "assets/flagsPNG/mf.png",
+      "sha1": "bff794d2fa8874eeb62dbc01dbfb670fb68de13d"
+    },
+    {
+      "path": "assets/flagsPNG/mg.png",
+      "sha1": "2775892ed6575569852a2bb7d32ec9ad4485794e"
+    },
+    {
+      "path": "assets/flagsPNG/mh.png",
+      "sha1": "0341c36e4807005198b23f1e20225fa56775ee94"
+    },
+    {
+      "path": "assets/flagsPNG/mk.png",
+      "sha1": "3077a3bc3164744f5f9db4e430ff30d5cd1a0922"
+    },
+    {
+      "path": "assets/flagsPNG/ml.png",
+      "sha1": "c6c2c6ee4b7e057a622c91433e255d77a2e2c519"
+    },
+    {
+      "path": "assets/flagsPNG/mm.png",
+      "sha1": "c0383ade59544dc139963d215a81eca77f837cc1"
+    },
+    {
+      "path": "assets/flagsPNG/mn.png",
+      "sha1": "e240f3f12a3aaf5a2b28a76e9f74dc5b230e5a53"
+    },
+    {
+      "path": "assets/flagsPNG/mo.png",
+      "sha1": "b7eaa1c50372552af3065d1b58a4dc6c7c9b0cd5"
+    },
+    {
+      "path": "assets/flagsPNG/mp.png",
+      "sha1": "7426436cc8f0b0854de25ce190d07fe7c90f488f"
+    },
+    {
+      "path": "assets/flagsPNG/mq.png",
+      "sha1": "9d4cd39654d3f3c02308b142cc0e9b9913cfd440"
+    },
+    {
+      "path": "assets/flagsPNG/mr.png",
+      "sha1": "8ca6328fc9876cbe13838352f1e509f2d35249ba"
+    },
+    {
+      "path": "assets/flagsPNG/ms.png",
+      "sha1": "882dbd7b93412545c5dc328540fbeb058f2cf6e7"
+    },
+    {
+      "path": "assets/flagsPNG/mt.png",
+      "sha1": "d2e525291d5568c5bc7082372dd272ed4e2ceacf"
+    },
+    {
+      "path": "assets/flagsPNG/mu.png",
+      "sha1": "2f4631375f4d1020fa7a5ec918ab1527f8e07642"
+    },
+    {
+      "path": "assets/flagsPNG/mv.png",
+      "sha1": "ec7b70ce3677c1b2323ab1516c3d0dfa4382385d"
+    },
+    {
+      "path": "assets/flagsPNG/mw.png",
+      "sha1": "a023b4f79074c794998b3e0404f540dda405397d"
+    },
+    {
+      "path": "assets/flagsPNG/mx.png",
+      "sha1": "a56556d15b2309d30be4e810bc1d0360720a5d6f"
+    },
+    {
+      "path": "assets/flagsPNG/my.png",
+      "sha1": "41ca553b4918d2ad815e3532689918ee94eb7da7"
+    },
+    {
+      "path": "assets/flagsPNG/mz.png",
+      "sha1": "190a11c17a53d2119872fd3dc99aad869a7e683d"
+    },
+    {
+      "path": "assets/flagsPNG/na.png",
+      "sha1": "ea65726ab10354d947f319f4873a3c266fd555d5"
+    },
+    {
+      "path": "assets/flagsPNG/nc.png",
+      "sha1": "40661d27a9929d480c4fad590e40364c77930e4e"
+    },
+    {
+      "path": "assets/flagsPNG/ne.png",
+      "sha1": "88749eac368759277c7f92bbdf005623054b25b4"
+    },
+    {
+      "path": "assets/flagsPNG/nf.png",
+      "sha1": "b53ca1cea457fc58b2b0ad0d79abda77af45242e"
+    },
+    {
+      "path": "assets/flagsPNG/ng.png",
+      "sha1": "36cc55c09d57804daf8c8c34e856e7d222d03065"
+    },
+    {
+      "path": "assets/flagsPNG/ni.png",
+      "sha1": "537c7b4d8f3a81696005712edf9a2b040e016cef"
+    },
+    {
+      "path": "assets/flagsPNG/nl.png",
+      "sha1": "75611ec70af5efaffb7e4fcd8019078077d4aebd"
+    },
+    {
+      "path": "assets/flagsPNG/no.png",
+      "sha1": "f500997c22848b09341216f9403ab1a71103f4f4"
+    },
+    {
+      "path": "assets/flagsPNG/np.png",
+      "sha1": "beb7589eb943b70e7356fd36bc362ea45f329b3b"
+    },
+    {
+      "path": "assets/flagsPNG/nr.png",
+      "sha1": "c3cfd65b8df22ce37ec048c4c74655add13c117a"
+    },
+    {
+      "path": "assets/flagsPNG/nu.png",
+      "sha1": "c0832daa9254e67987286194e7fca271064362b6"
+    },
+    {
+      "path": "assets/flagsPNG/nz.png",
+      "sha1": "118a93a99915606629002e37e3a59f8ba1855a03"
+    },
+    {
+      "path": "assets/flagsPNG/om.png",
+      "sha1": "da53cda354c4fa5ee1882e6b8ed49ee45822e298"
+    },
+    {
+      "path": "assets/flagsPNG/pa.png",
+      "sha1": "bc0c35e4300e3af672f82c58561107acbeca6e97"
+    },
+    {
+      "path": "assets/flagsPNG/pe.png",
+      "sha1": "532fea1905a9bdc627eca313ccd0941b59933490"
+    },
+    {
+      "path": "assets/flagsPNG/pf.png",
+      "sha1": "f28537c81d2bad0c5e52660661c0d96f8c092963"
+    },
+    {
+      "path": "assets/flagsPNG/pg.png",
+      "sha1": "8b25e6ed30a929f51b81030899a77d0096b255a4"
+    },
+    {
+      "path": "assets/flagsPNG/ph.png",
+      "sha1": "3dfab7730a54165969f474db1a83b3d7619f17ff"
+    },
+    {
+      "path": "assets/flagsPNG/pk.png",
+      "sha1": "f1de6154d8384d6ee1fae2635a596aeb2786add6"
+    },
+    {
+      "path": "assets/flagsPNG/pl.png",
+      "sha1": "9ac8c66842c65fc5eb28cd9e39b209a7751e61f8"
+    },
+    {
+      "path": "assets/flagsPNG/pm.png",
+      "sha1": "c03e538107877dc1ed1d70b46830bf3c14ff823a"
+    },
+    {
+      "path": "assets/flagsPNG/pn.png",
+      "sha1": "cd8d791ed68c424c667320caf28c3a263d80c951"
+    },
+    {
+      "path": "assets/flagsPNG/pr.png",
+      "sha1": "35645aa79b60812aab8761b0637241d40c90f0ad"
+    },
+    {
+      "path": "assets/flagsPNG/ps.png",
+      "sha1": "3943385e35ac23045667c79446245c0f33ed661d"
+    },
+    {
+      "path": "assets/flagsPNG/pt.png",
+      "sha1": "f430ade4d903f5e56e916ccb11a63bf43333ac58"
+    },
+    {
+      "path": "assets/flagsPNG/pw.png",
+      "sha1": "708998ad23d093a8a876bfc35f11c5716e89b2ab"
+    },
+    {
+      "path": "assets/flagsPNG/py.png",
+      "sha1": "bf2b204cab2bd487b9c6490132cfde5d762e01fc"
+    },
+    {
+      "path": "assets/flagsPNG/qa.png",
+      "sha1": "21f9b24791defcdbe1a4a43288b148869c353615"
+    },
+    {
+      "path": "assets/flagsPNG/re.png",
+      "sha1": "b81556a64924ce7a3be9cf5260c22b7e375ce24c"
+    },
+    {
+      "path": "assets/flagsPNG/ro.png",
+      "sha1": "6a0434a09dc860982d2987855633fe321420b9a4"
+    },
+    {
+      "path": "assets/flagsPNG/rs.png",
+      "sha1": "4cb130ec94e54b1fe937560a13ed1d94ee9c484e"
+    },
+    {
+      "path": "assets/flagsPNG/ru.png",
+      "sha1": "1581e05ab88cfd066bd11276ce06593f49d09242"
+    },
+    {
+      "path": "assets/flagsPNG/rw.png",
+      "sha1": "2a36cd5152d33ed2612e8755f06f253809733807"
+    },
+    {
+      "path": "assets/flagsPNG/sa.png",
+      "sha1": "e9ac01df4776623bc530018b9e2344f9112214d7"
+    },
+    {
+      "path": "assets/flagsPNG/sb.png",
+      "sha1": "98a48849745639ac5267c271b417441dd1bb7a51"
+    },
+    {
+      "path": "assets/flagsPNG/sc.png",
+      "sha1": "9b6ab1e216f636a20bd617dac93e797c69a7c312"
+    },
+    {
+      "path": "assets/flagsPNG/sd.png",
+      "sha1": "20c41dd0896957886ba8dd791b913196fcaa9245"
+    },
+    {
+      "path": "assets/flagsPNG/se.png",
+      "sha1": "77d65b134b32ec59c1d649e9c6ad5b43a3dea3e2"
+    },
+    {
+      "path": "assets/flagsPNG/sg.png",
+      "sha1": "9f7182d077bb08addfbceb458124259669e6f13e"
+    },
+    {
+      "path": "assets/flagsPNG/sh.png",
+      "sha1": "08fb7d87576a2feba950ac4bb275779bfdf15778"
+    },
+    {
+      "path": "assets/flagsPNG/si.png",
+      "sha1": "3b269439ada32900ff30cf7e0911c03d5711ac3c"
+    },
+    {
+      "path": "assets/flagsPNG/sj.png",
+      "sha1": "f500997c22848b09341216f9403ab1a71103f4f4"
+    },
+    {
+      "path": "assets/flagsPNG/sk.png",
+      "sha1": "7b53ed0ac23da8609401d26f61fc254b3be82427"
+    },
+    {
+      "path": "assets/flagsPNG/sl.png",
+      "sha1": "8adeb429df51e2478b5d58dcfa4aaa786662604f"
+    },
+    {
+      "path": "assets/flagsPNG/sm.png",
+      "sha1": "d72f9c4da7e3f783dbe9ec2dc14ad394457084c1"
+    },
+    {
+      "path": "assets/flagsPNG/sn.png",
+      "sha1": "a54898e377e783928c9ded6a8c038b2a9114b1fd"
+    },
+    {
+      "path": "assets/flagsPNG/so.png",
+      "sha1": "5c3334298535657ce830005091af18de1cf4d0de"
+    },
+    {
+      "path": "assets/flagsPNG/sr.png",
+      "sha1": "b788ba0780f1377836251115003f86f94edf601d"
+    },
+    {
+      "path": "assets/flagsPNG/ss.png",
+      "sha1": "c78fd0cbb3b4f220ec7f7da59b4c3246f80fa67d"
+    },
+    {
+      "path": "assets/flagsPNG/st.png",
+      "sha1": "6ccf67111ab9b0662c5be6b37497f2ce0631264f"
+    },
+    {
+      "path": "assets/flagsPNG/sv.png",
+      "sha1": "9be5e0b29c18022aca5dc2c8f73c412e9e980ff3"
+    },
+    {
+      "path": "assets/flagsPNG/sx.png",
+      "sha1": "e2bc853ba36ad770ce698ed3684407132f0174e8"
+    },
+    {
+      "path": "assets/flagsPNG/sy.png",
+      "sha1": "b5b15f3000d1ac51743634016df16ce16f343689"
+    },
+    {
+      "path": "assets/flagsPNG/sz.png",
+      "sha1": "4990a06976f0dcd179262476722bb50e44061688"
+    },
+    {
+      "path": "assets/flagsPNG/tc.png",
+      "sha1": "2b7887ec5a5a76e23932bd7c81c793ecbb96a27b"
+    },
+    {
+      "path": "assets/flagsPNG/td.png",
+      "sha1": "449879c1fa467c4613256a25d5c095d383807e13"
+    },
+    {
+      "path": "assets/flagsPNG/tf.png",
+      "sha1": "9e39067154ede8cead264d501d5ee7ce2250bfe9"
+    },
+    {
+      "path": "assets/flagsPNG/tg.png",
+      "sha1": "4d4893d995622986dd9ecb56f72d13f1b492196f"
+    },
+    {
+      "path": "assets/flagsPNG/th.png",
+      "sha1": "dd0d4a50190ebe7b81092652a61c48633ce94783"
+    },
+    {
+      "path": "assets/flagsPNG/tj.png",
+      "sha1": "627f5c3e61f5304be04a9944f6876726c172cc3e"
+    },
+    {
+      "path": "assets/flagsPNG/tk.png",
+      "sha1": "79f435143651f121919e75d5ba74e6eecef065c1"
+    },
+    {
+      "path": "assets/flagsPNG/tl.png",
+      "sha1": "0224681b7f3c179e87b715cb5402482e47047fac"
+    },
+    {
+      "path": "assets/flagsPNG/tm.png",
+      "sha1": "178e7f23b0e9bd75008f8eac716995394180da50"
+    },
+    {
+      "path": "assets/flagsPNG/tn.png",
+      "sha1": "5f3ae95fa4919f3654e464603be9d909e539da5e"
+    },
+    {
+      "path": "assets/flagsPNG/to.png",
+      "sha1": "a2fd09a3a415ce23f0aa3746516e5302c2265eab"
+    },
+    {
+      "path": "assets/flagsPNG/tr.png",
+      "sha1": "c5f841ce90ab5a531f334f7dcbcc3455525cb972"
+    },
+    {
+      "path": "assets/flagsPNG/tt.png",
+      "sha1": "75d45e86e5a4818100c59fa6b42a4f6105713b7d"
+    },
+    {
+      "path": "assets/flagsPNG/tv.png",
+      "sha1": "aa2c6a49dff7d0ef14c4e3c5295a2cbe14f2face"
+    },
+    {
+      "path": "assets/flagsPNG/tw.png",
+      "sha1": "ee57db33c48d62234513ac8da1c0bee48e0139f0"
+    },
+    {
+      "path": "assets/flagsPNG/tz.png",
+      "sha1": "f8783e70992de7a0806058268f1d56ea3056de6d"
+    },
+    {
+      "path": "assets/flagsPNG/ua.png",
+      "sha1": "917082fd10a33ef308cd7f92813ad8ccdd7147a3"
+    },
+    {
+      "path": "assets/flagsPNG/ug.png",
+      "sha1": "297cc2dc5e11f2c04ae0cbe60d3d83bc2ce5d882"
+    },
+    {
+      "path": "assets/flagsPNG/um.png",
+      "sha1": "bb04b071595e3c2df682cc6d02fe29122ecab245"
+    },
+    {
+      "path": "assets/flagsPNG/us.png",
+      "sha1": "bb04b071595e3c2df682cc6d02fe29122ecab245"
+    },
+    {
+      "path": "assets/flagsPNG/uy.png",
+      "sha1": "994e76271d2e7585cc96e40ec6d256f1afebfbbc"
+    },
+    {
+      "path": "assets/flagsPNG/uz.png",
+      "sha1": "744a16adaede4bf1ed94e90f8e09afa2c2597e0a"
+    },
+    {
+      "path": "assets/flagsPNG/va.png",
+      "sha1": "e5a1404022dccd2fdf421b4054129f3cfa02147f"
+    },
+    {
+      "path": "assets/flagsPNG/vc.png",
+      "sha1": "c98bdbb15aa01fa737cdb61d43500b37c0ac5191"
+    },
+    {
+      "path": "assets/flagsPNG/ve.png",
+      "sha1": "2bd460697921c83ebf1390963b03f99db59f7ccc"
+    },
+    {
+      "path": "assets/flagsPNG/vg.png",
+      "sha1": "91d838708507f318d6e169a8ca45d1fa0f2278e7"
+    },
+    {
+      "path": "assets/flagsPNG/vi.png",
+      "sha1": "8403a07e998b7018acef3fe81c2af55a274c245a"
+    },
+    {
+      "path": "assets/flagsPNG/vn.png",
+      "sha1": "c0447402139acd37f6f9e307063264da0fa0046d"
+    },
+    {
+      "path": "assets/flagsPNG/vu.png",
+      "sha1": "299a70060f85617d3998408ecebbf2328e9d8767"
+    },
+    {
+      "path": "assets/flagsPNG/wf.png",
+      "sha1": "ff05679803b89f910cbdfa9d42e1d718cec12296"
+    },
+    {
+      "path": "assets/flagsPNG/ws.png",
+      "sha1": "b500ff94f78ec3ec7460d333d33f608591fc7b13"
+    },
+    {
+      "path": "assets/flagsPNG/xk.png",
+      "sha1": "60ee8009cca1db3bde8aabcd8da1e8f9c5b27120"
+    },
+    {
+      "path": "assets/flagsPNG/ye.png",
+      "sha1": "0cc9d4318e7bddee4d7a467bc1fc0b48ea35a902"
+    },
+    {
+      "path": "assets/flagsPNG/yt.png",
+      "sha1": "4e733505a3a31d05375217c4c909350ef3902e9d"
+    },
+    {
+      "path": "assets/flagsPNG/za.png",
+      "sha1": "431c934f162d232323b5e8faca56c3b11ba1d419"
+    },
+    {
+      "path": "assets/flagsPNG/zm.png",
+      "sha1": "2cb81d0e6c071276245c8d2968cdb1fd5559c5be"
+    },
+    {
+      "path": "assets/flagsPNG/zw.png",
+      "sha1": "db72b8de7f66804ce616d9328498e467c1512e19"
+    },
+    {
+      "path": "assets/icons/book-open-page-variant-outline.svg",
+      "sha1": "fc27f322fbdf294fc366dfe0f0ab33095226c0ae"
+    },
+    {
+      "path": "assets/icons/book-open-page-variant.svg",
+      "sha1": "fd98c3d1849804249f0126f9d7c4653c85fc03f5"
+    },
+    {
+      "path": "assets/icons/book-open.png",
+      "sha1": "0be2604c560ce291289941dd92ada95a2c848f8b"
+    },
+    {
+      "path": "assets/icons/book.png",
+      "sha1": "d071a2fca5b185e7bac9d1ad6c150320ca52938c"
+    },
+    {
+      "path": "assets/icons/bookshelf.svg",
+      "sha1": "48f4e21769555f87be416752845eda6c05bdee34"
+    },
+    {
+      "path": "assets/icons/check-circle.png",
+      "sha1": "18722cc210c721b7e5e313b185f40993b7260e72"
+    },
+    {
+      "path": "assets/icons/check.png",
+      "sha1": "4e22f8792baee6555e3b3ca0016e47969fe75872"
+    },
+    {
+      "path": "assets/icons/chevron-down.png",
+      "sha1": "7b9fe51611974fa80b8b2fbbbc9d37ce2608c2fc"
+    },
+    {
+      "path": "assets/icons/chevron-up.png",
+      "sha1": "ae0fbbb8ec16040896226506ab0c6221087a2ab9"
+    },
+    {
+      "path": "assets/icons/chevron-up.svg",
+      "sha1": "06f4a6d7f0f684727f2d1356f3d0d1ab537ea05d"
+    },
+    {
+      "path": "assets/icons/close-circle.png",
+      "sha1": "dc2e836db128df7f4f487e670a1ebbbc9ebb9790"
+    },
+    {
+      "path": "assets/icons/cog.svg",
+      "sha1": "c38e1c0f927d645ac89ff7fa2954746c55a405e7"
+    },
+    {
+      "path": "assets/icons/content-save.png",
+      "sha1": "9a907601b09543556059a0a493527539c00070ee"
+    },
+    {
+      "path": "assets/icons/devil-heart.png",
+      "sha1": "f8727c08c165f60c1cb2a6d49f4526ee7e52d2ef"
+    },
+    {
+      "path": "assets/icons/devil-heartv2.png",
+      "sha1": "76b8a867db8c6fa92d5984d94b8ff333994635a6"
+    },
+    {
+      "path": "assets/icons/dots-horizontal-circle.png",
+      "sha1": "d75caa87401d0523ecd5bad1e0919da594d00197"
+    },
+    {
+      "path": "assets/icons/filter-multiple.png",
+      "sha1": "11682edb9ae0549c8a905951dfc9548c4b1d0daa"
+    },
+    {
+      "path": "assets/icons/forum.svg",
+      "sha1": "74fd846c3bc1dfbe139758f367624252dfc308b6"
+    },
+    {
+      "path": "assets/icons/heart.png",
+      "sha1": "425c7ca62ca3f0a53e4329437c92e30d762aa30d"
+    },
+    {
+      "path": "assets/icons/magnify.png",
+      "sha1": "df68f54697498b22fffc4793ddbe8f460ecd5d51"
+    },
+    {
+      "path": "assets/icons/play.png",
+      "sha1": "7e95912cce743e5ad848b757344ee00ac082a979"
+    },
+    {
+      "path": "assets/icons/star.png",
+      "sha1": "bc460b49c5732b8cd9a1aac8fd8e9dfa8257b5ec"
+    }
+  ]
+}
