@@ -51,7 +51,7 @@ export const RCSChapterImages = memo(({pagePromise, path}: Props) => {
 
   const updateZoomState = useCallback((zoomed: boolean) => setIsZoomed(zoomed), []);
 
-  function resetZoom() {
+  const resetZoomWorklet = () => {
     'worklet';
     scale.value = withTiming(1);
     savedScale.value = 1;
@@ -59,15 +59,23 @@ export const RCSChapterImages = memo(({pagePromise, path}: Props) => {
     translateY.value = withTiming(0);
     savedTranslateX.value = 0;
     savedTranslateY.value = 0;
-  }
+  };
 
   const doubleTap = Gesture.Tap()
     .numberOfTaps(2)
-    .onEnd(() => {
-      if (scale.value > 1) return resetZoom();
+    .onEnd(e => {
+      if (scale.value > 1) return resetZoomWorklet();
+      if (!imHeight) return;
 
-      scale.value = withTiming(2);
+      const toTranslateX = (width / 2 - e.x) / 2;
+      const toTranslateY = (imHeight / 2 - e.y) / 2;
+
       savedScale.value = 2;
+      scale.value = withTiming(2);
+      translateX.value = withTiming(toTranslateX);
+      translateY.value = withTiming(toTranslateY);
+      savedTranslateX.value = toTranslateX;
+      savedTranslateY.value = toTranslateY;
     });
 
   const pinchGesture = Gesture.Pinch()
@@ -77,7 +85,7 @@ export const RCSChapterImages = memo(({pagePromise, path}: Props) => {
     })
     .onEnd(() => {
       savedScale.value = scale.value;
-      if (scale.value < 1) resetZoom();
+      if (scale.value < 1) resetZoomWorklet();
     });
 
   const panGesture = Gesture.Pan()
@@ -106,17 +114,16 @@ export const RCSChapterImages = memo(({pagePromise, path}: Props) => {
         try {
           const {statusCode} = await pagePromise;
 
-          if (statusCode === 200) {
-            Image.getSize(path, (iWidth, iHeight) => {
+          if (statusCode === 200)
+            return Image.getSize(path, (iWidth, iHeight) => {
               const ratio = iWidth / iHeight;
               const finalHeight = Math.round(width / ratio);
               setImHeight(finalHeight);
             });
-          } else {
-            throw `An error has occured: ${statusCode}`;
-          }
+
+          throw `An error has occured: ${statusCode}`;
         } catch (e) {
-          console.log('FAILED!: ' + e);
+          console.error('FAILED!: ' + e);
           setIsError(true);
         }
 
