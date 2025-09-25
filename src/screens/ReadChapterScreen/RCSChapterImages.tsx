@@ -1,10 +1,16 @@
 import {ColorScheme} from '@constants';
 import {textColor, useAppCore} from '@utils';
-import React, {memo, useEffect, useState} from 'react';
-import {Dimensions, Image, StyleSheet, Text, View} from 'react-native';
-import FastImage, {FastImageProps} from 'react-native-fast-image';
-import {Gesture} from 'react-native-gesture-handler';
-import {useSharedValue, withTiming} from 'react-native-reanimated';
+import React, {memo, useCallback, useEffect, useState} from 'react';
+import {Dimensions, Image, StyleSheet, Text, View, Platform, FlatList} from 'react-native';
+import FastImage from 'react-native-fast-image';
+import {Gesture, GestureDetector} from 'react-native-gesture-handler';
+import Animated, {
+  runOnJS,
+  useAnimatedStyle,
+  useDerivedValue,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
 import {ReadingMode} from './ReadChapterScreen';
 import {useReadChapterScreenContext} from './useReadChapterScreenContext';
 import FS from 'react-native-fs';
@@ -19,35 +25,88 @@ type Props = {
 const {width, height} = Dimensions.get('screen');
 
 export const RCSChapterImages = memo(({pagePromise, path}: Props) => {
+  const {locReadingMode} = useReadChapterScreenContext();
   const {colorScheme} = useAppCore();
 
   const styles = getStyles(colorScheme);
 
+  const [isZoomed, setIsZoomed] = useState(false);
   const [imHeight, setImHeight] = useState<number | null>(null);
   const [isError, setIsError] = useState(false);
 
-  const imageScale = useSharedValue(1);
-  const imageX = useSharedValue(0);
-  const imageY = useSharedValue(0);
+  const scale = useSharedValue(1);
+  const savedScale = useSharedValue(1);
+  const translateX = useSharedValue(0);
+  const translateY = useSharedValue(0);
+  const savedTranslateX = useSharedValue(0);
+  const savedTranslateY = useSharedValue(0);
 
-  const {locReadingMode} = useReadChapterScreenContext();
+  const gesturesAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [
+      {scale: scale.value},
+      {translateX: translateX.value},
+      {translateY: translateY.value},
+    ],
+  }));
 
-  const gestures = Gesture.Race(
-    Gesture.Tap()
-      .numberOfTaps(2)
-      .onEnd(() => {
-        if (imageScale.value !== 1) {
-          imageScale.value = withTiming(1);
-          imageX.value = withTiming(0);
-          imageY.value = withTiming(0);
-        }
-      }),
-  );
+  const updateZoomState = useCallback((zoomed: boolean) => setIsZoomed(zoomed), []);
 
-  const onPageError: FastImageProps['onError'] = () => {
-    console.log('error loading page');
-    setIsError(true);
+  const resetZoomWorklet = () => {
+    'worklet';
+    scale.value = withTiming(1);
+    savedScale.value = 1;
+    translateX.value = withTiming(0);
+    translateY.value = withTiming(0);
+    savedTranslateX.value = 0;
+    savedTranslateY.value = 0;
   };
+
+  const doubleTap = Gesture.Tap()
+    .numberOfTaps(2)
+    .onEnd(e => {
+      if (scale.value > 1) return resetZoomWorklet();
+      if (!imHeight) return;
+
+      const toTranslateX = (width / 2 - e.x) / 2;
+      const toTranslateY = (imHeight / 2 - e.y) / 2;
+
+      savedScale.value = 2;
+      scale.value = withTiming(2);
+      translateX.value = withTiming(toTranslateX);
+      translateY.value = withTiming(toTranslateY);
+      savedTranslateX.value = toTranslateX;
+      savedTranslateY.value = toTranslateY;
+    });
+
+  const pinchGesture = Gesture.Pinch()
+    .onUpdate(e => {
+      const newScale = savedScale.value * e.scale;
+      scale.value = Math.max(1, newScale);
+    })
+    .onEnd(() => {
+      savedScale.value = scale.value;
+      if (scale.value < 1) resetZoomWorklet();
+    });
+
+  const panGesture = Gesture.Pan()
+    .enabled(isZoomed)
+    .onStart(() => {})
+    .onUpdate(e => {
+      translateX.value = savedTranslateX.value + e.translationX / scale.value;
+      translateY.value = savedTranslateY.value + e.translationY / scale.value;
+    })
+    .onEnd(() => {
+      savedTranslateX.value = translateX.value;
+      savedTranslateY.value = translateY.value;
+    });
+
+  const gestures = Gesture.Simultaneous(pinchGesture, panGesture, doubleTap);
+
+  useDerivedValue(() => {
+    'worklet';
+    const currentlyZoomed = scale.value > 1;
+    runOnJS(updateZoomState)(currentlyZoomed);
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -55,17 +114,16 @@ export const RCSChapterImages = memo(({pagePromise, path}: Props) => {
         try {
           const {statusCode} = await pagePromise;
 
-          if (statusCode === 200) {
-            Image.getSize(path, (iWidth, iHeight) => {
+          if (statusCode === 200)
+            return Image.getSize(path, (iWidth, iHeight) => {
               const ratio = iWidth / iHeight;
               const finalHeight = Math.round(width / ratio);
               setImHeight(finalHeight);
             });
-          } else {
-            throw `An error has occured: ${statusCode}`;
-          }
+
+          throw `An error has occured: ${statusCode}`;
         } catch (e) {
-          console.log('FAILED!: ' + e);
+          console.error('FAILED!: ' + e);
           setIsError(true);
         }
 
@@ -96,12 +154,15 @@ export const RCSChapterImages = memo(({pagePromise, path}: Props) => {
         {height: locReadingMode === 'webtoon' ? imHeight ?? undefined : height},
       ]}>
       {imHeight ? (
-        <FastImage
-          source={{uri: path, priority: 'high'}}
-          resizeMode="contain"
-          style={{flex: 1, width: width}}
-          onError={onPageError}
-        />
+        <GestureDetector gesture={gestures}>
+          <Animated.View style={[{flex: 1}, gesturesAnimatedStyle]}>
+            <FastImage
+              source={{uri: path, priority: 'high'}}
+              resizeMode="contain"
+              style={{width: width, height: '100%'}}
+            />
+          </Animated.View>
+        </GestureDetector>
       ) : (
         <View style={styles.loadingContainer}>
           <Text style={styles.loadingLabel}>loading page...</Text>
