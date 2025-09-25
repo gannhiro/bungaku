@@ -43,7 +43,7 @@ export function UpdateAppSectionNotif({style}: Props) {
   }, []);
 
   if (!latestRelease) return null;
-  if (semver.lte(latestRelease.tag_name, APP_VERS)) return;
+  if (!semver.lte(latestRelease.tag_name, APP_VERS)) return;
 
   return (
     <Animated.View entering={FadeIn} exiting={FadeOut} style={[styles.container, style]}>
