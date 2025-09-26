@@ -21,6 +21,7 @@ import {textColor} from '@utils';
 import * as Progress from 'react-native-progress';
 import {useAppCore} from '@utils';
 import {Manga} from '@db';
+import Animated from 'react-native-reanimated';
 
 const {width} = Dimensions.get('screen');
 
@@ -179,7 +180,7 @@ export function MangaList({params, horizontal, style, contentViewStyle, onScroll
   return (
     <View style={[styles.container, style]}>
       {!loading && !intError ? (
-        <FlatList
+        <Animated.FlatList
           data={mangas}
           renderItem={renderItem}
           horizontal={horizontal}
@@ -202,9 +203,9 @@ export function MangaList({params, horizontal, style, contentViewStyle, onScroll
           }
           getItemLayout={(_, index) => {
             return {
-              length: (width / 3) * 2 + 10,
+              length: (width / 4) * 2 + 10,
               index: index,
-              offset: ((width / 3) * 2 + 10) * index,
+              offset: ((width / 4) * 2 + 10) * index,
             };
           }}
           initialNumToRender={8}
