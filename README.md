@@ -3,6 +3,10 @@
   <h1>bungaku</h1>
   <h4>bungaku is a simple manga reader for android that is powered by an API provided by MangaDex.</h4>
   <p><b>DISCLAIMER</b>: Currently bungaku is in its very early development, please expect a lot of bugs and weird stuff happening.</p>
+
+| Preview | Comic Details | Reading Chapters | Download Chapters |
+|---|---|---|---|
+|![preview](https://github.com/user-attachments/assets/ebcc1075-19e5-48ae-8957-65953c77ab79)|![preview2](https://github.com/user-attachments/assets/8e5168ed-c2f4-4bf3-ba48-e47d1d3e9adf)|![preview3](https://github.com/user-attachments/assets/f259e205-daf9-4625-a15a-d2a978d6576f)|![preview6](https://github.com/user-attachments/assets/571c249b-15a5-41d5-b035-1a2987546dd5)
 </div>
 
 <br/>
@@ -16,10 +20,9 @@
 
 1. UI translations are done with AI.
 2. Limited themes, there are only 4 themes right now that are available.
-3. No zooming of pages yet.
-4. Not yet tested with tablets.
-5. No background updates yet.
-6. No user onboarding.
+3. Not yet tested with tablets.
+4. No background updates yet.
+5. No user onboarding.
 
 ## Credits
 
